@@ -21,7 +21,8 @@ Create a `.env` file in the root of your project with one of the following confi
 ```env
 VITE_MAP_URL=https://yourdomain.com/api
 VITE_MAP_PORT=         # leave empty
-VITE_MAP_ENDPOINT=     # leave empty
+VITE_BING_MAPS_KEY=*********************************
+VITE_APP_NAME=DAMap #or your App Name
 ```
 
 * Use this when your backend is hosted at a full domain URL (e.g., production on whhdrm.club).
@@ -32,18 +33,11 @@ VITE_MAP_ENDPOINT=     # leave empty
 ```env
 VITE_MAP_URL=          # leave empty
 VITE_MAP_PORT=8778
-VITE_MAP_ENDPOINT=/api
+VITE_BING_MAPS_KEY=*********************************
+VITE_APP_NAME=DAMap #or your App Name
 ```
 
 * Use this in a **local/WAN setup** where only the port is known.
-* The app constructs the URL as:
-
-  ```
-  http://<frontend-ip>:<port>/<endpoint>
-  ```
-
-> This ensures flexibility for both public access and internal network environments.
-
 ---
 
 ## 🧱 Folder Structure
@@ -100,7 +94,7 @@ const mapUUID = "your-map-uuid";
 Access the map’s ViewModel to interact with layers:
 
 ```tsx
-import {useMapVM} from "@/components/map/toolbar/MapToolbarVMContext.tsx";
+import {useMapVM} from "@/components/map/model/MapVMContext.tsx";
 const mapVM =useMapVM();
 mapVM.addDALayer({ uuid: selectedOption });
 mapVM.zoomToFullExtent();

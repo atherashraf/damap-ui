@@ -3,7 +3,7 @@ import { IconButton, Tooltip } from "@mui/material";
 import InfoIcon from "@mui/icons-material/Info";
 
 import IdentifyResult from "@/components/map/widgets/IdentifyResult.tsx";
-import {useMapVM} from "@/components/map/toolbar/MapToolbarVMContext.tsx";
+import {useMapVM} from "@/components/map/models/MapVMContext.tsx";
 
 const Identifier = () => {
   const mapVM= useMapVM();

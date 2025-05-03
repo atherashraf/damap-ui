@@ -23,7 +23,9 @@ import { Box, CircularProgress, IconButton, Tooltip } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import AddLayerPanel from "../../AddLayerPanel";
 import { MapAPIs } from "@/api/MapApi";
-import { useMapVM } from "@/components/map/toolbar/MapToolbarVMContext";
+import {useMapVM} from "@/components/map/models/MapVMContext.tsx";
+
+
 
 const AddLayer = () => {
     const mapVM = useMapVM(); // Access the MapVM from context

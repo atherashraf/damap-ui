@@ -10,10 +10,6 @@
  * - Dynamic content injection
  * - Supports global access via LeftDrawerContext
  *
- * Usage Example:
- *
- * const leftDrawer = useLeftDrawer();
- * leftDrawer.setContent("Layer Info", <LayerInfoPanel />);
  */
 
 import * as React from "react";

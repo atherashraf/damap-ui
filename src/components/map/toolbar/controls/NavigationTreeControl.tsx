@@ -2,7 +2,7 @@
 import { IconButton, Tooltip } from "@mui/material";
 import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import NavigationTree from "@/components/map/widgets/NavigationTree";
-import {useMapVM} from "@/components/map/toolbar/MapToolbarVMContext.tsx";
+import {useMapVM} from "@/components/map/models/MapVMContext.tsx";
 
 /**
  * NavigationTreeControl is a map control button that opens the map navigation tree

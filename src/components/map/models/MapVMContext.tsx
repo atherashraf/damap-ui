@@ -26,7 +26,7 @@ import React, {
     useContext,
     useRef,
     useEffect,
-    useState,
+    useState, ReactNode,
 } from 'react';
 import MapVM from "@/components/map/models/MapVM.ts";
 import {IDomRef} from "@/types/typeDeclarations.ts";
@@ -37,7 +37,7 @@ import {IDomRef} from "@/types/typeDeclarations.ts";
  * It holds a reference to a singleton MapVM initialized with `domRef` and `isDesigner` flags.
  * Consumers can access it using the `useMapVM()` hook.
  */
-const MapVMContext = createContext<MapVM | null>(null);
+export const MapVMContext = createContext<MapVM | null>(null);
 
 /**
  * Provider component to initialize and expose a `MapVM` instance via context.
@@ -49,15 +49,13 @@ const MapVMContext = createContext<MapVM | null>(null);
  * @param {boolean} props.isDesigner - Flag indicating whether the map is in "designer" mode
  * @returns {JSX.Element | null} A context provider with initialized `MapVM`, or null if not yet ready
  */
-export const MapVMProvider = ({
-                                  children,
-                                  domRef,
-                                  isDesigner,
-                              }: {
+interface IMapVMProviderProps {
     children: React.ReactNode;
     domRef: IDomRef;
     isDesigner: boolean;
-}) => {
+}
+
+export const MapVMProvider = ({children, domRef, isDesigner,}: IMapVMProviderProps) => {
     const mapVMRef = useRef<MapVM | null>(null);
     const [ready, setReady] = useState(false);
 
@@ -72,6 +70,42 @@ export const MapVMProvider = ({
 
     return (
         <MapVMContext.Provider value={mapVMRef.current}>
+            {children}
+        </MapVMContext.Provider>
+    );
+};
+
+
+/**
+ * `MapVMInjectProvider` is an alternative context provider that allows
+ * injecting an already-initialized `MapVM` instance into the React context.
+ *
+ * Use this when `MapVM` has already been created (e.g., by a parent component)
+ * and you want to expose it to children without reinitializing.
+ *
+ * Example usage:
+ * ```tsx
+ * <MapVMInjectProvider mapVM={existingMapVM}>
+ *   <Toolbar />
+ *   <LayerPanel />
+ * </MapVMInjectProvider>
+ * ```
+ *
+ * @component
+ * @param {Object} props - Component props
+ * @param {React.ReactNode} props.children - Child components that require access to `MapVM`
+ * @param {MapVM} props.mapVM - An existing instance of `MapVM`
+ * @returns {JSX.Element} A context provider wrapping the children
+ */
+
+interface IMapVMInjectProviderProps {
+    children: ReactNode;
+    mapVM: MapVM;
+}
+
+export const MapVMInjectProvider = ({children, mapVM,}: IMapVMInjectProviderProps) => {
+    return (
+        <MapVMContext.Provider value={mapVM}>
             {children}
         </MapVMContext.Provider>
     );

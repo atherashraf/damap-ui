@@ -28,7 +28,7 @@
  */
 
 import React from "react";
-import { MapToolbarVMContext } from "./MapToolbarVMContext";
+
 import type MapVM from "@/components/map/models/MapVM";
 import AddLayer from "@/components/map/toolbar/controls/AddLayer";
 import LayerSwitcherControl from "@/components/map/toolbar/controls/LayerSwitcherControl.tsx";
@@ -38,6 +38,7 @@ import Identifier from "@/components/map/toolbar/controls/Identifier.tsx";
 import RefreshMap from "@/components/map/toolbar/controls/RefreshMap.tsx";
 import ClearSelection from "@/components/map/toolbar/controls/ClearSelection.tsx";
 import AttributeTableControl from "@/components/map/toolbar/controls/AttributeTableControl.tsx";
+import {MapVMInjectProvider} from "@/components/map/models/MapVMContext.tsx";
 
 interface Props {
     mapVM: MapVM;
@@ -46,7 +47,7 @@ interface Props {
 
 const MapToolbarContainer: React.FC<Props> = ({ mapVM, dynamicButtons = [] }) => {
     return (
-        <MapToolbarVMContext.Provider value={mapVM}>
+        <MapVMInjectProvider mapVM={mapVM}>
             <AddLayer />
             <LayerSwitcherControl />
             {/* Add more static buttons as needed */}
@@ -70,7 +71,7 @@ const MapToolbarContainer: React.FC<Props> = ({ mapVM, dynamicButtons = [] }) =>
             {dynamicButtons.map((btn, i) => (
                 <React.Fragment key={i}>{btn}</React.Fragment>
             ))}
-        </MapToolbarVMContext.Provider>
+        </MapVMInjectProvider>
     );
 };
 

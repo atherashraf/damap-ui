@@ -1,7 +1,7 @@
 import { IconButton, Tooltip } from "@mui/material";
 import ClearIcon from "@mui/icons-material/Clear";
 import * as React from "react";
-import {useMapVM} from "@/components/map/toolbar/MapToolbarVMContext.tsx";
+import {useMapVM} from "@/components/map/models/MapVMContext.tsx";
 
 const ClearSelection = () => {
   const mapVM = useMapVM();

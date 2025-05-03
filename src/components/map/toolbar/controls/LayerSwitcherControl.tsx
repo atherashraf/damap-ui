@@ -1,7 +1,7 @@
 import {IconButton, Tooltip} from "@mui/material";
 import LayersIcon from "@mui/icons-material/Layers";
-import {useMapVM} from "@/components/map/toolbar/MapToolbarVMContext.tsx";
 import LayerSwitcherPaper from "@/components/map/layer_switcher/LayerSwitcherPaper.tsx";
+import {useMapVM} from "@/components/map/models/MapVMContext.tsx";
 
 
 /**

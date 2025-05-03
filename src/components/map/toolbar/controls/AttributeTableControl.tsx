@@ -3,12 +3,12 @@ import {IconButton, Tooltip} from "@mui/material";
 import TableChartIcon from "@mui/icons-material/TableChart";
 import AttributeTable from "@/components/map/table/AttributeTable.tsx";
 import {RefObject} from "react";
-import {useMapVM} from "@/components/map/toolbar/MapToolbarVMContext.tsx";
 import {MapAPIs} from "@/api/MapApi.ts";
 import {Column, Row} from "@/types/gridTypeDeclaration.ts";
 import {Feature} from "ol";
 import _ from "@/utils/lodash.ts";
 import {AttributeTableRequest} from "@/types/typeDeclarations.ts";
+import {useMapVM} from "@/components/map/models/MapVMContext.tsx";
 
 
 

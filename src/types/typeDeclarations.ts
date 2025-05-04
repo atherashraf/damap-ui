@@ -4,8 +4,6 @@ import RightDrawer from "@/components/map/drawers/RightDrawer";
 import LeftDrawer from "@/components/map/drawers/LeftDrawer";
 import DADialogBox from "@/components/base/DADialogBox";
 import {pointShapeTypes} from "@/components/map/layer_styling/vector/symbolizer/PointSymbolizer";
-import {MapPanelHandle} from "@/components/map/MapPanel";
-import AttributeTable from "@/components/map/table/AttributeTable.tsx";
 import DAMapLoading from "@/components/map/widgets/DAMapLoading.tsx";
 import TimeSlider from "@/components/map/widgets/TimeSlider.tsx";
 import {DASnackbarHandle} from "@/components/base/DASnackbar.tsx";
@@ -33,8 +31,6 @@ export interface IDomRef {
     bottomDrawerRef?: RefObject<BottomDrawer | null>
     dialogBoxRef: RefObject<DADialogBox | null>;
     snackBarRef: RefObject<DASnackbarHandle | null>;
-    mapPanelRef: RefObject<MapPanelHandle | null>;
-    attributeTableRef?: RefObject<typeof AttributeTable | null>;
     loadingRef: RefObject<DAMapLoading | null>;
     timeSliderRef?: RefObject<TimeSlider>;
 }
@@ -42,8 +38,8 @@ export interface IDomRef {
 export interface IMapToolbarProps {
     target?: any;
     mapVM: MapVM;
-    isDesigner: boolean;
-    isCreateMap: boolean;
+    isDesigner?: boolean;
+    isCreateMap?: boolean;
 }
 
 export interface ILayerSourcesInfo {

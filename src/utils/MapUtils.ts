@@ -1,10 +1,5 @@
-import { inflateCoordinatesArray } from "ol/geom/flat/inflate";
-import Feature from "ol/Feature";
-import Polygon from "ol/geom/Polygon";
-import LineString from "ol/geom/LineString";
 import XYZ from "ol/source/XYZ";
 import { MapAPIs } from "@/api/MapApi";
-import { transform } from "ol/proj";
 import GeoJSON from "ol/format/GeoJSON";
 
 import "@/assets/css/side-drawer.css";
@@ -24,110 +19,6 @@ class MapUtils {
     }
 
 
-
-    displayFeatureInfo(evt: { pixel: number[]; coordinate: number[] }, mapVm: MapVM, targetElem: HTMLElement) {
-        const me = this;
-        me.addAccordionsToRightDraw(targetElem);
-        let map = mapVm.getMap();
-        let pixel = evt.pixel;
-        let coord = evt.coordinate;
-        const features :any = [];
-        let projCode = map.getView().getProjection().getCode();
-        if (projCode === "EPSG:3857") {
-            coord = transform(evt.coordinate, "EPSG:3857", "EPSG:4326");
-        }
-
-        // Handle vector features
-        map.forEachFeatureAtPixel(pixel, function (feature, lyr) {
-            // @ts-ignore
-            feature["layer_name"] = lyr.get("name");
-            // @ts-ignore
-            feature["layer_title"] = lyr.get("title");
-            features.push(feature);
-        });
-
-        // Handle XYZ layer pixel value retrieval
-        me.getRasterPixelValue(coord, mapVm, targetElem);
-
-        if (features.length > 0) {
-            me.processVectorFeatures(features, mapVm, targetElem);
-        }
-    }
-
-    processVectorFeatures(features: Feature[], mapVm: MapVM, targetElem: HTMLElement) {
-        const me = this;
-        let vectorSource = mapVm.selectionLayer.getOlLayer()?.getSource();
-        vectorSource?.clear();
-
-        let feature = features[0];
-        if (feature.get("layer_name") === "weather_data") {
-            feature = feature.getProperties().features[0];
-        }
-        const geometry = feature.getGeometry();
-        if (!geometry) return;
-        let gType = geometry.getType();
-        // @ts-ignore
-        if (gType === "Polygon" && feature.flatCoordinates_) {
-            const inflatedCoordinates = inflateCoordinatesArray(
-                // @ts-ignore
-                feature.getFlatCoordinates(), // flat coordinates
-                0, // offset
-                // @ts-ignore
-                feature.getEnds(), // geometry end indices
-                2 // stride
-            );
-            const polygonFeature = new Feature(new Polygon(inflatedCoordinates));
-            polygonFeature.setProperties(feature.getProperties());
-            vectorSource?.addFeatures([polygonFeature]);
-            // @ts-ignore
-        } else if (gType === "LineString" && feature.flatCoordinates_) {
-            const inflatedCoordinates = inflateCoordinatesArray(
-                // @ts-ignore
-                feature.getFlatCoordinates(), // flat coordinates
-                0, // offset
-                // @ts-ignore
-                feature.getEnds(), // geometry end indices
-                2 // stride
-            );
-            const lineFeature = new Feature(new LineString(inflatedCoordinates[0]));
-            lineFeature.setProperties(feature.getProperties());
-            vectorSource?.addFeatures([lineFeature]);
-        }
-
-        me.showJsonDataInHTMLTable(feature.getProperties(), "v", targetElem);
-        if (feature.get("layer_name")) {
-            me.getFeatureDetailFromDB(feature, mapVm, targetElem);
-        }
-    }
-
-    getFeatureDetailFromDB(feature: Feature, mapVm: MapVM, targetElem: HTMLElement) {
-        try {
-            const me = this;
-            let row = feature.getProperties();
-            const uuid = feature.get("layer_name");
-            const daLayer = mapVm.getDALayer(uuid);
-            if (daLayer.layerInfo.format !== "WFS") {
-                mapVm
-                    .getApi()
-                    .get(MapAPIs.DCH_FEATURE_DETAIL, {
-                        uuid: feature.get("layer_name"),
-                        col_name: "id",
-                        col_val: row["id"],
-                    })
-                    .then((payload) => {
-                        if (payload) {
-                            // @ts-ignore
-                            payload["layer"] = feature["layer_title"];
-                            me.showJsonDataInHTMLTable(payload, "v", targetElem);
-                        } else {
-                            me.showJsonDataInHTMLTable(row, "v", targetElem);
-                        }
-                    });
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    }
 
     getRasterPixelValue(coord: number[], mapVM: MapVM, targetElem: HTMLElement) {
         let me = this;

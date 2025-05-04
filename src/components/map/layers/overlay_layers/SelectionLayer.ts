@@ -1,15 +1,17 @@
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
-import MapVM from "../../models/MapVM.ts";
+import Feature from "ol/Feature";
+import MapVM from "@/components/map/models/MapVM";
 import {Fill, Stroke, Style} from "ol/style";
 import CircleStyle from "ol/style/Circle";
-import {IGeoJSON} from "../../TypeDeclaration";
+import {IGeoJSON} from "@/types/typeDeclarations.ts";
 import GeoJSON from "ol/format/GeoJSON";
 import autoBind from "auto-bind";
 import {WKT} from "ol/format";
-import AbstractOverlayLayer from "./AbstractOverlayLayer.ts";
+import AbstractOverlayLayer from "./AbstractOverlayLayer";
 import {buffer} from "ol/extent";
-import StylingUtils from "../styling/StylingUtils.tsx";
+import StylingUtils from "../styling/StylingUtils";
+import {Geometry} from "ol/geom";
 // import {getPointShapes} from "../../components/styling/vector/symbolizer/PointSymbolizer";
 
 class SelectionLayer extends AbstractOverlayLayer {
@@ -72,6 +74,18 @@ class SelectionLayer extends AbstractOverlayLayer {
             this.clearSelection();
         }
         const features = new WKT().readFeatures(wkt);
+        this.getSource()?.addFeatures(features);
+    }
+    addFeature(Feature: Feature, clearPreviousSelection: boolean = true) {
+        if (clearPreviousSelection) {
+            this.clearSelection();
+        }
+        this.getSource()?.addFeature(Feature);
+    }
+    addFeatures(features: Feature[], clearPreviousSelection: boolean = true) {
+        if (clearPreviousSelection) {
+            this.clearSelection();
+        }
         this.getSource()?.addFeatures(features);
     }
 
@@ -150,6 +164,42 @@ class SelectionLayer extends AbstractOverlayLayer {
             this.mapVM.showSnackbar("Please select feature before zoom to");
         }
     }
+
+    zoomToFeature(feature: Feature<Geometry>) {
+        const geom = feature.getGeometry();
+        if (geom) {
+            const extent = buffer(geom.getExtent(), 2000);
+            if (extent.every((v) => Number.isFinite(v))) {
+                this.mapVM.zoomToExtent(extent);
+            } else {
+                this.mapVM.showSnackbar("Invalid extent from feature", "warning");
+            }
+        }
+    }
+
+    zoomToFeatures() {
+        const features = this.getSource()?.getFeatures() || [];
+
+        const validExtents = features
+            .map(f => f.getGeometry()?.getExtent())
+            .filter((ext): ext is [number, number, number, number] =>
+                !!ext && ext.every((v) => Number.isFinite(v))
+            );
+
+        if (validExtents.length > 0) {
+            const [minX, minY, maxX, maxY] = validExtents.reduce((acc, curr) => [
+                Math.min(acc[0], curr[0]),
+                Math.min(acc[1], curr[1]),
+                Math.max(acc[2], curr[2]),
+                Math.max(acc[3], curr[3]),
+            ]);
+            const bufferedExtent = buffer([minX, minY, maxX, maxY], 20000);
+            this.mapVM.zoomToExtent(bufferedExtent);
+        } else {
+            this.mapVM.showSnackbar("No valid features to zoom to","warning");
+        }
+    }
+
 }
 
 export default SelectionLayer;

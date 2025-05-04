@@ -5,7 +5,10 @@ import {RefObject, useRef, useEffect} from "react";
 import TimeSlider, {IDateRange} from "@/components/map/widgets/TimeSlider";
 import MVTLayer from "@/components/map/layers/da_layers/MVTLayer";
 import TimeSliderControl from "@/components/map/widgets/TimeSliderControl.tsx";
-import {AppBar, Button, Toolbar, Typography} from "@mui/material";
+import {AppBar, Button,  Toolbar, Tooltip, Typography} from "@mui/material";
+import {getMapVM} from "@/components/map/models/MapVMContext.tsx";
+import SymbologyControl from "@/components/map/toolbar/controls/SymbologyControl.tsx"; // any icon you prefer
+
 
 const timeSliderRef: RefObject<TimeSlider | null> = React.createRef<TimeSlider>();
 
@@ -52,16 +55,34 @@ const LayerDesigner = () => {
         return () => clearInterval(interval); // Cleanup the interval on unmount
     }, []);
 
-    function handleRandomClick() {
-        alert("Random Click");
+
+    const handleRandomClick = () => {
+        // alert("Random Click");
+        const mapVM = getMapVM()
+        mapVM?.showSnackbar("working map VM")
     }
+
+    const buttonAdded = useRef(false);
+    useEffect(() => {
+        const mapVM = getMapVM();
+
+        if (!buttonAdded.current && mapVM?.getMapToolbar) {
+            mapVM.getMapToolbar().addButton(
+                <Tooltip title="Custom Tool">
+                    <SymbologyControl />
+                </Tooltip>
+            );
+            buttonAdded.current = true;
+        }
+    }, []);
+
 
     return (
         <React.Fragment>
-            <MapView uuid={layerId} isMap={false} isDesigner={true}>
+            <MapView uuid={layerId || ''} isMap={false} isDesigner={true}>
                 <AppBar position="static" color="default" elevation={2}>
                     <Toolbar variant="dense">
-                        <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                        <Typography variant="h6" sx={{flexGrow: 1}}>
                             Map Toolbar
                         </Typography>
                         <Button variant="contained" color="secondary" onClick={handleRandomClick}>

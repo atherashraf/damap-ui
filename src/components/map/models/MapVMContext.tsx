@@ -32,13 +32,21 @@ import MapVM from "@/components/map/models/MapVM.ts";
 import {IDomRef} from "@/types/typeDeclarations.ts";
 
 
+let _globalMapVM: MapVM | null = null;
+
+export const getMapVM = (): MapVM => {
+    if (!_globalMapVM) {
+        throw new Error("getMapVM(): MapVM has not been initialized.");
+    }
+    return _globalMapVM;
+};
+
 /**
  * Context to provide a globally accessible instance of `MapVM`.
  * It holds a reference to a singleton MapVM initialized with `domRef` and `isDesigner` flags.
  * Consumers can access it using the `useMapVM()` hook.
  */
 export const MapVMContext = createContext<MapVM | null>(null);
-
 /**
  * Provider component to initialize and expose a `MapVM` instance via context.
  *
@@ -55,6 +63,7 @@ interface IMapVMProviderProps {
     isDesigner: boolean;
 }
 
+// export const mapVMRef = useRef<MapVM | null>(null);
 export const MapVMProvider = ({children, domRef, isDesigner,}: IMapVMProviderProps) => {
     const mapVMRef = useRef<MapVM | null>(null);
     const [ready, setReady] = useState(false);
@@ -62,6 +71,7 @@ export const MapVMProvider = ({children, domRef, isDesigner,}: IMapVMProviderPro
     useEffect(() => {
         if (!mapVMRef.current && domRef) {
             mapVMRef.current = new MapVM(domRef, isDesigner);
+            _globalMapVM = mapVMRef.current
             setReady(true);
         }
     }, [domRef, isDesigner]);

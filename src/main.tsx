@@ -11,9 +11,9 @@ const theme = createTheme({
     palette: {
         mode: 'light', // or 'dark' if preferred
         primary: {
-            main: '#1565c0',       // Strong Blue
-            light: '#5e92f3',
-            dark: '#003c8f',
+            main: '#3f543c',       // Strong Blue
+            light: '#639865',
+            dark: '#254222',
             contrastText: '#ffffff',
         },
         secondary: {

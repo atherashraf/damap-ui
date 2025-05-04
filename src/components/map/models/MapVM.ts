@@ -18,15 +18,13 @@ import {
 import RightDrawer from "@/components/map/drawers/RightDrawer.tsx";
 import LeftDrawer from "@/components/map/drawers/LeftDrawer.tsx";
 import DADialogBox from "@/components/base/DADialogBox";
-import {MapPanelHandle} from "@/components/map/MapPanel";
 // @ts-ignore
 import Legend from "ol-ext/control/Legend";
 // @ts-ignore
 import ol_legend_Legend from "ol-ext/legend/Legend";
 import RasterTileLayer from "../layers/da_layers/RasterTileLayer.ts";
 import AbstractDALayer from "../layers/da_layers/AbstractDALayer.ts";
-import Draw from "ol/interaction/Draw";
-import SelectionLayer from "../layers/overlay_layers/SelectionLayer.ts";
+
 
 import autoBind from "auto-bind";
 import DAMapLoading from "@/components/map/widgets/DAMapLoading";
@@ -36,12 +34,13 @@ import DAVectorLayer from "../layers/da_layers/DAVectorLayer.ts";
 import IDWLayer from "../layers/overlay_layers/IDWLayer.ts";
 import OverlayVectorLayer from "../layers/overlay_layers/OverlayVectorLayer.ts";
 import XYZLayer, {IXYZLayerInfo} from "@/components/map/layers/overlay_layers/XYZLayer.ts";
-import MapUtils from "@/utils/MapUtils.ts";
-import AttributeTable from "@/components/map/table/AttributeTable.tsx";
 import BaseLayer from "ol/layer/Base";
 import {DASnackbarHandle} from "@/components/base/DASnackbar.tsx";
 import TimeSliderControl from "@/components/map/widgets/TimeSliderControl.tsx";
 import BottomDrawer from "@/components/map/drawers/BottomDrawer.tsx";
+import {AlertColor} from "@mui/material";
+
+import SelectionLayer from "@/components/map/layers/overlay_layers/SelectionLayer.ts";
 
 
 export interface IDALayers {
@@ -67,8 +66,6 @@ class MapVM {
     private _layerOfInterest: string | null = null;
     private _daLayerAddedEvent = new Event("DALayerAdded");
     // @ts-ignore
-    mapUtils: MapControls | null = null;
-    // @ts-ignore
     currentMapInteraction = null;
     // leftDrawerRef: any
     mapExtent: Array<number> = [
@@ -78,44 +75,37 @@ class MapVM {
     public readonly api: MapApi;
     private readonly isDesigner: boolean;
     // private readonly fullScreen: FullScreen;
-    legendPanel: any = null;
+    private legendPanel: any = null;
     // @ts-ignore
-    selectionLayer: SelectionLayer;
-    // @ts-ignore
-    mapInfo: IMapInfo;
-    additionalToolbarButtons: JSX.Element[] = [];
+    private mapInfo: IMapInfo;
+    private additionalToolbarButtons: JSX.Element[] = [];
+    private attributeTableSelectedRowKey: string | null = null;
+    private attributeTableScrollTop: number = 0;
+    private selectionLayer: SelectionLayer | undefined;
+    private mapToolbar: MapToolbar;
+
 
     constructor(domRef: IDomRef, isDesigner: boolean) {
         this._domRef = domRef;
         this.isDesigner = isDesigner;
         this.api = new MapApi(domRef.snackBarRef);
-        // this.fullScreen = new FullScreen({source: "fullscreen"});
-        // this.fullScreen.on("enterfullscreen", this.handleFullScreen.bind(this));
-        // this.fullScreen.on("leavefullscreen", this.handleFullScreen.bind(this));
-        this.mapUtils = new MapUtils(this);
         autoBind(this);
+        this.mapToolbar = new MapToolbar({
+            mapVM: this
+            // isDesigner: this.isDesigner,
+            // isCreateMap: (!this.isDesigner && !mapInfo) || mapInfo?.isEditor || false,
+        })
     }
 
-    // handleFullScreen() {
-    //     this.getMapPanelRef().current?.closeBottomDrawer();
-    // }
-
-    setDomRef(domRef: IDomRef) {
-        this._domRef = domRef;
-    }
 
     initMap(mapInfo?: IMapInfo) {
         // @ts-ignore
         this.mapInfo = mapInfo;
+
         this.map = new Map({
             controls: defaultControls().extend([
                 // this.fullScreen,
-                new MapToolbar({
-                    mapVM: this,
-                    isDesigner: this.isDesigner,
-                    isCreateMap:
-                        (!this.isDesigner && !mapInfo) || mapInfo?.isEditor || false,
-                }),
+                this.mapToolbar
             ]),
             view: new View({
                 center: [7723464, 3569764],
@@ -150,9 +140,24 @@ class MapVM {
         this.addSidebarController();
         this.isInit = true;
         this.selectionLayer = new SelectionLayer(this);
-        // this.addLegendControlToMap();
-        // weatherLayerInfos.forEach((info) => this.addWeatherLayer(info));
     }
+
+    isLayerDesigner(): boolean {
+        return this.isDesigner;
+    }
+
+    getMapInfo(): IMapInfo | undefined {
+        return this.mapInfo;
+    }
+
+    getMapToolbar(): MapToolbar {
+        return this.mapToolbar
+    }
+
+    // getAttributeTableSelectedRowKey(): string | null {
+    //     return this.attributeTableSelectedRowKey;
+    // }
+
 
     getBaseLayer(): any {
         const layers = this.map.getLayers().getArray();
@@ -173,14 +178,6 @@ class MapVM {
         return currentBaseLayer
     }
 
-    // addWeatherLayer(selectedWeatherOption: any) {
-    //     const wLayers = new WeatherLayers(this);
-    //     if (selectedWeatherOption.layer_name === "weather_data") {
-    //         wLayers.getWeatherData(selectedWeatherOption.layer_name);
-    //     } else {
-    //         wLayers.addTileWeatherMap(selectedWeatherOption);
-    //     }
-    // }
 
     addLegendControlToMap() {
         // Define a new legend
@@ -217,12 +214,6 @@ class MapVM {
         return this.api;
     }
 
-    // getBottomDrawerRef(): RefObject<BottomDrawer>{
-    //     return this._domRef.bottomDrawerRef
-    // }
-    getMapPanelRef(): RefObject<MapPanelHandle | null> {
-        return this._domRef.mapPanelRef;
-    }
 
     getMapLoadingRef(): RefObject<DAMapLoading | null> {
         return this._domRef.loadingRef;
@@ -252,14 +243,6 @@ class MapVM {
         return this._domRef.leftDrawerRef;
     }
 
-    setAttributeTableRef(ref: RefObject<typeof AttributeTable>) {
-        this._domRef.attributeTableRef = ref;
-    }
-
-    getAttributeTableRef(): RefObject<typeof AttributeTable> {
-        // @ts-ignore
-        return this._domRef.attributeTableRef;
-    }
 
     getDialogBoxRef(): RefObject<DADialogBox | null> {
         return this._domRef.dialogBoxRef;
@@ -338,7 +321,7 @@ class MapVM {
             // this.map?.updateSize()
             // this.map?.setSize(this.map.getSize())
             // this.map?.updateSize()
-            this.showSnackbar("Refreshing map...", 2000);
+            this.showSnackbar("Refreshing map...", "info", 2000);
             Object.keys(this.daLayers).forEach((key) => {
                 this.daLayers[key].refreshLayer();
             });
@@ -369,87 +352,8 @@ class MapVM {
         return this.mapExtent ? this.mapExtent : this.getCurrentExtent();
     }
 
-    identifyFeature(target: HTMLElement) {
-        let me = this;
-        // me.mapControls.add_lbdc_discharge_head_tail(me); //fo layer test
-        //@ts-ignore
-        me.map.removeInteraction(me.currentMapInteraction);
-        me.currentMapInteraction = null;
-        //@ts-ignore
-        // me.mapUtils?.setCurserDisplay("help");
-        this.map.on("click", function (evt) {
-            // me.map.removeInteraction(me.currentMapInteraction);
-            //@ts-ignore
-            if (!(me.currentMapInteraction instanceof Draw)) {
-                //@ts-ignore
-                me.mapUtils.displayFeatureInfo(evt, me, target);
-            }
-        });
-    }
 
-    // @ts-ignore
-    addDrawInteraction(drawType, target) {
-        let me = this;
-        let source = this.selectionLayer.getSource();
-        if (this.currentMapInteraction !== null) {
-            this.map.removeInteraction(this.currentMapInteraction);
-        }
-        // @ts-ignore
-        this.currentMapInteraction = new Draw({
-            source: source,
-            type: drawType,
-        });
-        //@ts-ignore
-        this.map.addInteraction(this.currentMapInteraction);
-        // @ts-ignore
-        this.currentMapInteraction.on("drawstart", () => {
-            // console.log("draw start...")
-            source?.clear();
-        });
-        // @ts-ignore
-        this.currentMapInteraction.on("drawend", function (e) {
-            // console.log("draw start...")
-            //@ts-ignore
-            me.mapUtils.getRasterAreaFromPolygon(me, target, e.feature);
-        });
-    }
-
-    // getSelectionLayer(): VectorLayer<VectorSource> {
-    //     // @ts-ignore
-    //     return this.overlayLayers["sel_layer"]
-    // }
-
-
-    // @ts-ignore
-
-    //
-    // getIconStyle() {
-    //     return new Style({
-    //         image: new Icon({
-    //             anchor: [0.5, 15],
-    //             anchorXUnits: 'fraction',
-    //             anchorYUnits: 'pixels',
-    //             src: RedPinIcon
-    //         }),
-    //     });
-    // }
-    //
-    //
-    // addGeoJSONLayer(geojsonObject: object) {
-    //     const title = "project_location"
-    //     const vectorSource = new VectorSource({
-    //         features: new GeoJSON().readFeatures(geojsonObject),
-    //     });
-    //     const vectorLayer = new VectorLayer({
-    //         //@ts-ignore
-    //         title: title,
-    //         source: vectorSource,
-    //         style: () => this.getIconStyle()
-    //     });
-    //     this.addOverlayLayer(vectorLayer, title)
-    // }
-    //
-    isLayerAdded(targetLayer) {
+    isLayerAdded(targetLayer: any) {
         let layerFound = false;
         targetLayer && this.getMap().getLayers().forEach(layer => {
             if (layer === targetLayer) {
@@ -519,18 +423,6 @@ class MapVM {
         }
     }
 
-    // addInterpolationSurface(title: string, data: IGeoJSON, fieldName: string, aoi: IGeoJSON = null) {
-    //     const uuid = MapVM.generateUUID();
-    //     this.daLayers[uuid] = new IDWLayer(uuid, title, data, fieldName, aoi)
-    // }
-    //
-    // updateIDWLayer(propertyName: string) {
-    //     if (this.interpolationLayer) {
-    //         this.mapVM.getMap().removeLayer(this.interpolationLayer)
-    //     }
-    //     this.createIDWLayer(propertyName)
-    //     this.addIDWLayer()
-    // }
 
     async addDALayer(
         info: {
@@ -596,13 +488,23 @@ class MapVM {
         return this.getDALayer(uuid)
     }
 
-    showSnackbar(msg: string, duration: number = 4000) {
-        this._domRef?.snackBarRef?.current?.show(msg, undefined, duration);
+
+    showSnackbar(msg: string, severity: AlertColor = 'info', duration: number = 4000) {
+        /**
+         * Displays a snackbar message with optional severity and duration.
+         *
+         * @param msg - The message to display.
+         * @param duration - How long the snackbar should remain visible (in milliseconds). Default is 4000 ms.
+         * @param severity - The visual style of the snackbar, indicating the type of message.
+         *                   Accepted values are:
+         *                   - 'error'   → for error messages
+         *                   - 'info'    → for informational messages (default)
+         *                   - 'success' → for success confirmations
+         *                   - 'warning' → for warnings
+         */
+        this._domRef?.snackBarRef?.current?.show(msg, severity, duration);
     }
 
-    drawPolygonForRasterArea(target: HTMLElement) {
-        this.addDrawInteraction("Polygon", target);
-    }
 
     static generateUUID() {
         // Public Domain/MIT
@@ -671,10 +573,6 @@ class MapVM {
         delete this.daLayers[uuid];
     }
 
-    getSelectionLayer() {
-        return this.selectionLayer;
-    }
-
 
     //@ts-ignore
     addTimeSliderControl(
@@ -711,61 +609,52 @@ class MapVM {
         }
     }
 
-    // Right Drawer Helper
-    openRightDrawer = (heading: string, content: JSX.Element) => {
-        this._domRef.rightDrawerRef?.current?.setContent(heading, content);
-    };
+    /***
+     N
+     ***/
 
-    // startRightDrawerLoading = (heading?: string) => {
-    //     this._domRef.rightDrawerRef?.current?.startLoading?.(heading);
-    // };
-    //
-    // closeRightDrawer = () => {
-    //     this._domRef.rightDrawerRef?.current?.closeDrawer();
-    // };
 
-    // Left Drawer Helper
-    // openLeftDrawer = (heading: string, content: JSX.Element) => {
-    //     this._domRef.leftDrawerRef?.current?.setContent(heading, content);
-    // };
+    setAttributeTableState(state: { selectedRowKey?: string | null; scrollTop?: number }) {
+        if ('selectedRowKey' in state) {
+            this.attributeTableSelectedRowKey = state.selectedRowKey!;
+        }
+        if ('scrollTop' in state) {
+            this.attributeTableScrollTop = state.scrollTop!;
+        }
+    }
 
-    // startLeftDrawerLoading = (heading?: string) => {
-    //     this._domRef.leftDrawerRef?.current?.startLoading?.(heading);
-    // };
+    getAttributeTableState(): { selectedRowKey: string | null; scrollTop: number } {
+        return {
+            selectedRowKey: this.attributeTableSelectedRowKey,
+            scrollTop: this.attributeTableScrollTop,
+        };
+    }
 
-    // closeLeftDrawer = () => {
-    //     this._domRef.leftDrawerRef?.current?.closeDrawer();
-    // };
-    //
-    // openBottomDrawer(tableHeight: number) {
-    //     const mapBoxRef = this.getMapPanelRef();
-    //     if (!mapBoxRef?.current?.isBottomDrawerOpen()) {
-    //         const mapHeight = mapBoxRef?.current?.getMapHeight();
-    //         const maxMapHeight = mapBoxRef?.current?.getMaxMapHeight() || 300;
-    //         // console.log("map height", mapHeight, maxMapHeight);
-    //         // @ts-ignore
-    //         tableHeight = mapHeight <= maxMapHeight ? tableHeight : mapHeight / 2;
-    //         // console.log("table height", tableHeight)
-    //         mapBoxRef?.current?.openBottomDrawer(tableHeight);
-    //     }
-    //     return tableHeight;
+    // ============================================================
+    // SECTION: USER Selection LAYER WRAPPERS
+    // ============================================================
+
+    getSelectionLayer() {
+        return this.selectionLayer;
+    }
+
+    // addWKT2Selection(wkt: string) {
+    //     this.interactionLayer?.addWKTFeature(wkt, 'selected');
     // }
     //
-    // setBottomDrawerContent = (content: JSX.Element) => {
-    //     this._domRef.bottomDrawerRef?.current?.setContent(content);
-    // };
     //
-    // startBottomDrawerLoading = () => {
-    //     this._domRef.bottomDrawerRef?.current?.startLoading?.();
-    // };
+    // highlightFeature(feature: Feature<Geometry>) {
+    //     this.interactionLayer?.highlight(feature);
+    // }
     //
-    // stopBottomDrawerLoading = () => {
-    //     this._domRef.bottomDrawerRef?.current?.stopLoading?.();
-    // };
-    //
-    // closeBottomDrawer = () => {
-    //     this._domRef.bottomDrawerRef?.current?.closeDrawer();
-    // };
+    // clearHighlights() {
+    //     this.interactionLayer?.clearHighlight();
+    // }
+
+
+    // zoomToFeature() {
+    //     this.interactionLayer?.zoomToSelections();
+    // }
 
 
 }

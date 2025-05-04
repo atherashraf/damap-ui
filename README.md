@@ -40,6 +40,17 @@ VITE_APP_NAME=DAMap #or your App Name
 * Use this in a **local/WAN setup** where only the port is known.
 ---
 
+## DAMap Architecture Model
+
+The architecture of DAMap follows the MVVM (Model–View–ViewModel) design pattern, where:
+
+- **View** consists of React components like `MapView`, `LeftDrawer`, `RightDrawer`, and `TimeSlider`.
+- **ViewModel** is represented by the `MapVM` class, which manages map state, layer logic, interaction handling, and UI communication.
+- **Model** includes the underlying `Map` object from OpenLayers and associated layers such as `BaseLayers`, `HighlightLayer`, and `DALayer`.
+
+![DAMap Architecture Model](./readme_damap_architecture.png)
+
+
 ## 🧱 Folder Structure
 
 ```bash
@@ -74,7 +85,8 @@ damap-ui/
 
 ---
 
-## 🗘️ Map Usage
+## 🗺️ Map View and Map View Model  Usage
+### 🧱 Embed the MapView Component
 
 Import and use the `MapView` component:
 
@@ -91,7 +103,10 @@ const mapUUID = "your-map-uuid";
 </MapView>
 ```
 
-Access the map’s ViewModel to interact with layers:
+### 🧠 Access the Map ViewModel
+Use the useMapVM() hook (inside React components) or getMapVM() (outside) to interact with the map:
+
+
 
 ```tsx
 import {useMapVM} from "@/components/map/model/MapVMContext.tsx";
@@ -102,17 +117,78 @@ mapVM.zoomToFullExtent();
 
 ---
 
-## 📊 Attribute Table API
+## 🧩 Add New Button to Map Toolbar
+The MapToolbar in the map interface supports dynamic extension, allowing developers to programmatically add new buttons—such as tools, toggles, or actions—to the toolbar from anywhere in the application.
 
-Open the attribute table programmatically:
+To ensure the button is only added once, use a useRef() guard inside a useEffect().
 
-```ts
-mapVM.openAttributeTable(columns, rows, pkCols, tableHeight, daGridRef, pivotTableSrc);
+ℹ️ Note: Use getMapVM() if you're outside React’s component tree (e.g., utility files). Use useMapVM() if you're inside a React component.
+### ✅ Example (Using getMapVM() in React Lifecycle)
+```tsx
+import {useEffect, useRef} from "react";
+import {IconButton, Tooltip} from "@mui/material";
+import BuildIcon from '@mui/icons-material/Build'; // any icon you prefer
+import {getMapVM} from "@/components/map/models/MapVMContext";
+
+const buttonAdded = useRef(false);
+
+useEffect(() => {
+    const mapVM = getMapVM();
+
+    if (!buttonAdded.current && mapVM?.getMapToolbar) {
+        mapVM.getMapToolbar().addButton(
+            <Tooltip title="Custom Tool">
+                <IconButton onClick={() => alert("Custom action executed!")}>
+                    <BuildIcon/>
+                </IconButton>
+            </Tooltip>
+        );
+        buttonAdded.current = true;
+    }
+}, []);
 ```
+### 🔧 Built-in Toolbar Buttons 
 
-> See full documentation for column/row format and pivot options.
+In addition to custom buttons, the system comes with several built-in buttons that can be added dynamically via addButton(...) or by uncommenting them inside the MapToolbarContainer.
 
----
+These components provide commonly used tools for interaction, layer management, and map control.
+
+#### 🧰 Available Buttons
+
+| Component                     | Description                                                         |
+| ----------------------------- | ------------------------------------------------------------------- |
+| `AddLayer`                    | Opens a dialog to add a new data layer (DALayer) to the map.        |
+| `LayerSwitcherControl`        | Toggles visibility of individual layers.                            |
+| `NavigationTreeControl`       | Displays a hierarchical tree of all map layers.                     |
+| `Zoom2Extent`                 | Zooms the map to its full configured extent.                        |
+| `RefreshMap`                  | Refreshes all data layers currently loaded on the map.              |
+| `ClearSelection`              | Clears currently selected/highlighted features.                     |
+| `Identifier`                  | Enables click-based identify tool to inspect feature attributes.    |
+| `AttributeTableControl`       | Opens the attribute table for the currently selected layer.         |
+| `CommentButton` ✅             | Opens the comment panel for user discussions or notes on layers.    |
+| `SaveMap` 🔒                  | Saves the current map design (typically used in map designer mode). |
+| `LOISelector` 🔍              | Lets users choose a Layer of Interest (LOI) from a dropdown.        |
+| `SymbologyControl` 🎨         | Opens a symbology editor for changing layer style.                  |
+| `RasterArea` 🖊️              | Enables polygon drawing for raster-based analysis or clipping.      |
+| `AddClassificationSurface` 🌍 | Loads land classification or AI-based surfaces (like NDVI, LULC).   |
+
+### 🧪 Example: Adding the Available Button Dynamically
+```tsx 
+import { useEffect, useRef } from "react";
+import CommentButton from "@/components/map/toolbar/controls/CommentButton";
+import { getMapVM } from "@/components/map/models/MapVMContext";
+
+const commentBtnAdded = useRef(false);
+
+useEffect(() => {
+    const mapVM = getMapVM();
+    if (!commentBtnAdded.current) {
+        mapVM.getMapToolbar()?.addButton(<CommentButton />);
+        commentBtnAdded.current = true;
+    }
+}, []);
+
+```
 
 ## ⚙️ Admin Tools (Layer & Map Management)
 

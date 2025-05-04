@@ -1,15 +1,17 @@
 import * as React from "react";
 import DesignServicesIcon from "@mui/icons-material/DesignServices";
 import { IconButton, Tooltip } from "@mui/material";
-import { IControlProps } from "../../TypeDeclaration";
-import SymbologySetting from "@/components/map/layer_styling/SymbologySetting.tsx";
 
-const SymbologyControl = (props: IControlProps) => {
-  const { drawerRef } = props;
+import SymbologySetting from "@/components/map/layer_styling/SymbologySetting.tsx";
+import {useMapVM} from "@/components/map/models/MapVMContext.tsx";
+
+const SymbologyControl = () => {
+  const mapVM = useMapVM();
+  const drawerRef = mapVM.getRightDrawerRef();
   const handleClick = () => {
-    drawerRef?.current?.addContents(
+    drawerRef?.current?.setContent(
       "Layer Styler",
-      <SymbologySetting key={"symbology-setting"} mapVM={props.mapVM} />
+      <SymbologySetting key={"symbology-setting"} mapVM={mapVM} />
     );
     drawerRef?.current?.openDrawer();
     // props.mapVM?.refreshMap()

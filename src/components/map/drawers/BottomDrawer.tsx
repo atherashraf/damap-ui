@@ -78,6 +78,9 @@ class BottomDrawer extends React.PureComponent<BottomDrawerProps, BottomDrawerSt
     handleUnhide = () => {
         this.setState({ isHidden: false });
     };
+    isHidden() {
+        return this.state.isHidden;
+    }
 
 
 
@@ -198,6 +201,8 @@ class BottomDrawer extends React.PureComponent<BottomDrawerProps, BottomDrawerSt
             </>
         );
     }
+
+
 }
 
 export default BottomDrawer;

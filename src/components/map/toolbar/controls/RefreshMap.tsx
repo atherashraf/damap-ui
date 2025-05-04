@@ -15,7 +15,7 @@ const RefreshMap = () => {
   };
   return (
     <>
-      <Tooltip title={"Add Layer"}>
+      <Tooltip title={"Refresh Map"}>
         <IconButton sx={{ padding: "3px" }} onClick={handleClick}>
           <AutorenewIcon />
         </IconButton>

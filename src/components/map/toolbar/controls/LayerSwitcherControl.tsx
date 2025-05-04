@@ -27,7 +27,7 @@ const LayerSwitcherControl = (): JSX.Element => {
     };
 
     return (
-        <Tooltip title="Create Layer Style">
+        <Tooltip title="Open Layer Switcher">
             <IconButton sx={{width: 30, height: 30}} onClick={handleClick}>
                 <LayersIcon/>
             </IconButton>

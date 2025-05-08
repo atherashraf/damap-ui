@@ -36,6 +36,7 @@ import { DASnackbarHandle } from "@/components/base/DASnackbar";
 
 interface IProps {
     snackbarRef: RefObject<DASnackbarHandle | null>;
+    onSuccess?: () => void;
 }
 
 const AddURLLayerInfo = (props: IProps) => {
@@ -77,6 +78,7 @@ const AddURLLayerInfo = (props: IProps) => {
             .then((payload) => {
                 if (payload) {
                     props.snackbarRef.current?.show(payload.msg || "Layer Info added successfully");
+                    props.onSuccess?.();
                 }
             });
     };

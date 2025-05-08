@@ -21,11 +21,16 @@
     "publish:lib": "./npm_publish.sh"
   },
   "dependencies": {
+    "@date-io/date-fns": "^3.2.1",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^7.0.2",
+    "@mui/lab": "^7.0.0-beta.12",
     "@mui/material": "^7.0.2",
+    "@mui/x-date-pickers": "^8.2.0",
     "@reduxjs/toolkit": "^2.7.0",
+    "date-fns": "^4.1.0",
+    "geostyler-sld-parser": "^5.4.0",
     "ol": "^10.5.0",
     "ol-ext": "^4.0.31",
     "pako": "^2.1.0",

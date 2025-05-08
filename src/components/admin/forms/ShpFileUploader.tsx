@@ -49,6 +49,7 @@ import MapApi, {MapAPIs} from "@/api/MapApi";
 
 interface IProps {
     snackbarRef: React.RefObject<DASnackbarHandle | null>;
+    onSuccess?: () => void;
 }
 
 const ShpFileUploader = (props: IProps) => {
@@ -110,6 +111,7 @@ const ShpFileUploader = (props: IProps) => {
         api.postFormData(MapAPIs.DCH_UPLOAD_SHP_FILE, formData).then((response) => {
             if (response) {
                 props.snackbarRef.current?.show(response.msg, "success");
+                props.onSuccess?.();
             } else {
                 props.snackbarRef.current?.show("Failed to upload shapefile.", "error");
                 setDisableUpload(false);

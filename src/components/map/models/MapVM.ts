@@ -73,7 +73,7 @@ class MapVM {
     ];
     isInit: Boolean = false;
     public readonly api: MapApi;
-    private readonly isDesigner: boolean;
+    private isDesigner: boolean;
     // private readonly fullScreen: FullScreen;
     private legendPanel: any = null;
     // @ts-ignore
@@ -85,7 +85,7 @@ class MapVM {
     private mapToolbar: MapToolbar;
 
 
-    constructor(domRef: IDomRef, isDesigner: boolean) {
+    constructor(domRef: IDomRef, isDesigner: boolean=false) {
         this._domRef = domRef;
         this.isDesigner = isDesigner;
         this.api = new MapApi(domRef.snackBarRef);
@@ -97,11 +97,13 @@ class MapVM {
         })
     }
 
+    setIsDesigner(isDesigner:boolean){
+        this.isDesigner = isDesigner;
+    }
 
     initMap(mapInfo?: IMapInfo) {
         // @ts-ignore
         this.mapInfo = mapInfo;
-
         this.map = new Map({
             controls: defaultControls().extend([
                 // this.fullScreen,
@@ -158,6 +160,9 @@ class MapVM {
     //     return this.attributeTableSelectedRowKey;
     // }
 
+    getLegendPanel(): any {
+        return this.legendPanel;
+    }
 
     getBaseLayer(): any {
         const layers = this.map.getLayers().getArray();

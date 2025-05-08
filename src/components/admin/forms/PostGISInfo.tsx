@@ -1,36 +1,8 @@
-/**
- * PostGISInfo
- * ------------------
- *
- * Form component to add a new Layer Info based on a PostGIS table.
- *
- * Features:
- * - Select Database Connection
- * - List and Select Tables from the DB
- * - Select Layer Category
- * - Add Layer Info linked to the selected DB Table
- * - Support for adding a new Layer Category via embedded form
- *
- * Usage:
- * import PostGISInfo from '@/components/admin/forms/PostGISInfo';
- *
- * <PostGISInfo snackbarRef={snackbarRef} />
- *
- * Dependencies:
- * - DASnackbar (for notifications)
- * - MapApi (for server API calls)
- * - AddLayerCategoryForm (for adding new categories)
- * - LayerCategoryControl (for selecting existing categories)
- */
-
-import * as React from "react";
-import { Box, Button, MenuItem } from "@mui/material";
-import { useState, useMemo, useEffect } from "react";
-import FormControl from "@mui/material/FormControl";
-import InputLabel from "@mui/material/InputLabel";
-import Select, { SelectChangeEvent } from "@mui/material/Select";
-import {DASnackbarHandle} from "@/components/base/DASnackbar";
+import React, { useState, useEffect, useMemo } from "react";
+import { Box, Button, MenuItem, FormControl, InputLabel, Select, SelectChangeEvent } from "@mui/material";
+import { DASnackbarHandle } from "@/components/base/DASnackbar";
 import MapApi, { MapAPIs } from "@/api/MapApi";
+import AddDBConnectionForm from "@/components/admin/forms/AddDBConnectionForm.tsx";
 import LayerCategoryControl, { ILayerCategory } from "./LayerCategoryControl";
 import AddLayerCategoryForm from "./AddLayerCategoryForm";
 
@@ -41,54 +13,53 @@ interface IDBConnection {
 
 interface IProps {
     snackbarRef: React.RefObject<DASnackbarHandle | null>;
+    onSuccess?: () => void;
 }
 
-const PostGISInfo = (props: IProps) => {
-    const [formType, setFormType] = useState<"LayerCategory" | null>(null);
+const PostGISInfo = ({ snackbarRef }: IProps) => {
+    const [formType, setFormType] = useState<"LayerCategory" | "AddDB" | null>(null);
     const [selectedDBId, setSelectedDBId] = useState<string>("");
     const [dbConnections, setDBConnections] = useState<IDBConnection[]>([]);
     const [selectedTable, setSelectedTable] = useState<string>("");
     const [tableList, setTableList] = useState<string[]>([]);
     const [layerCategory, setLayerCategory] = useState<ILayerCategory>();
 
-    const mapApi = useMemo(() => new MapApi(props.snackbarRef), [props.snackbarRef]);
+    const mapApi = useMemo(() => new MapApi(snackbarRef), [snackbarRef]);
 
-    // Load available DB connections
-    useEffect(() => {
+    const loadDBConnections = () => {
         mapApi.get(MapAPIs.DCH_DB_CONNECTION).then((payload) => {
-            if (payload) {
-                setDBConnections(payload);
-            }
+            if (payload) setDBConnections(payload);
         });
-    }, [mapApi]);
+    };
+
+    useEffect(() => {
+        loadDBConnections();
+    }, []);
 
     const handleDBChange = (event: SelectChangeEvent) => {
-        const dbId = event.target.value as string;
+        const dbId = event.target.value;
         setSelectedDBId(dbId);
         setSelectedTable("");
         mapApi.get(MapAPIs.DCH_DB_TABLE_LIST, { db_id: dbId }).then((payload) => {
-            if (payload) {
-                setTableList(payload);
-            }
+            if (payload) setTableList(payload);
         });
     };
 
     const handleTableChange = (event: SelectChangeEvent) => {
-        setSelectedTable(event.target.value as string);
+        setSelectedTable(event.target.value);
     };
 
     const handleAddLayerInfo = () => {
-        mapApi
-            .get(MapAPIs.DCH_SAVE_DB_LAYER_INFO, {
-                db_id: selectedDBId,
-                table_name: selectedTable,
-                layer_category_id: layerCategory?.pk,
-            })
-            .then((payload) => {
-                if (payload) {
-                    props.snackbarRef.current?.show(payload.msg);
-                }
-            });
+        mapApi.get(MapAPIs.DCH_SAVE_DB_LAYER_INFO, {
+            db_id: selectedDBId,
+            table_name: selectedTable,
+            layer_category_id: layerCategory?.pk,
+        }).then((payload) => {
+            if (payload) {
+                snackbarRef.current?.show(payload.msg);
+                props.onSuccess?.();
+            }
+        });
     };
 
     const getForm = () => {
@@ -96,9 +67,18 @@ const PostGISInfo = (props: IProps) => {
             case "LayerCategory":
                 return (
                     <AddLayerCategoryForm
-                        key={"LayerCategoryFormKey"}
-                        snackbarRef={props.snackbarRef}
+                        key="LayerCategoryForm"
+                        snackbarRef={snackbarRef}
                         handleBack={() => setFormType(null)}
+                    />
+                );
+            case "AddDB":
+                return (
+                    <AddDBConnectionForm
+                        key="AddDBForm"
+                        snackbarRef={snackbarRef}
+                        handleBack={() => setFormType(null)}
+                        onConnectionAdded={loadDBConnections}
                     />
                 );
             default:
@@ -106,80 +86,71 @@ const PostGISInfo = (props: IProps) => {
         }
     };
 
-    return (
-        <React.Fragment>
-            {formType !== null ? (
-                getForm()
-            ) : (
-                <React.Fragment>
-                    {/* Database Connection Selector */}
+    return formType !== null ? (
+        getForm()
+    ) : (
+        <>
+            <Box sx={{ margin: "30px" }}>
+                <FormControl fullWidth>
+                    <InputLabel id="db-select-label">Database Connection</InputLabel>
+                    <Select
+                        labelId="db-select-label"
+                        value={selectedDBId}
+                        label="Database Connection"
+                        onChange={handleDBChange}
+                    >
+                        <MenuItem value="">Select</MenuItem>
+                        {dbConnections.map((db) => (
+                            <MenuItem key={db.id} value={db.id}>
+                                {db.name}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                    <Button sx={{ mt: 1 }} onClick={() => setFormType("AddDB")}>
+                        + Add New DB Connection
+                    </Button>
+                </FormControl>
+            </Box>
+
+            {selectedDBId && (
+                <>
                     <Box sx={{ margin: "30px" }}>
                         <FormControl fullWidth>
-                            <InputLabel id="database-connection-input">
-                                Database Connection
-                            </InputLabel>
+                            <InputLabel>Table List</InputLabel>
                             <Select
-                                value={selectedDBId}
-                                label="Database Connection"
-                                onChange={handleDBChange}
+                                value={selectedTable}
+                                label="Table List"
+                                onChange={handleTableChange}
                             >
-                                <MenuItem value={""}></MenuItem>
-                                {dbConnections.map((d: IDBConnection) => (
-                                    <MenuItem key={d.id} value={d.id}>
-                                        {d.name}
+                                {tableList.map((table) => (
+                                    <MenuItem key={table} value={table}>
+                                        {table}
                                     </MenuItem>
                                 ))}
                             </Select>
                         </FormControl>
                     </Box>
 
-                    {/* Table List (only if DB is selected) */}
-                    {selectedDBId && (
-                        <React.Fragment>
-                            <Box sx={{ margin: "30px" }}>
-                                <FormControl fullWidth>
-                                    <InputLabel>Table List</InputLabel>
-                                    <Select
-                                        value={selectedTable}
-                                        label="Table List"
-                                        onChange={handleTableChange}
-                                    >
-                                        {tableList.map((name: string) => (
-                                            <MenuItem key={name} value={name}>
-                                                {name}
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
-                            </Box>
+                    <Box sx={{ margin: "30px" }}>
+                        <LayerCategoryControl
+                            api={mapApi}
+                            setLayerCategory={setLayerCategory}
+                            handleAddLayerCategory={() => setFormType("LayerCategory")}
+                        />
+                    </Box>
 
-                            {/* Layer Category Selector */}
-                            <Box sx={{ margin: "30px" }}>
-                                <LayerCategoryControl
-                                    api={mapApi}
-                                    setLayerCategory={(layerCategory: ILayerCategory) =>
-                                        setLayerCategory(layerCategory)
-                                    }
-                                    handleAddLayerCategory={() => setFormType("LayerCategory")}
-                                />
-                            </Box>
-
-                            {/* Submit Button */}
-                            <Box sx={{ margin: "30px" }}>
-                                <Button
-                                    color="primary"
-                                    variant="contained"
-                                    onClick={handleAddLayerInfo}
-                                    disabled={!selectedTable || !layerCategory}
-                                >
-                                    Add Layer Info
-                                </Button>
-                            </Box>
-                        </React.Fragment>
-                    )}
-                </React.Fragment>
+                    <Box sx={{ margin: "30px" }}>
+                        <Button
+                            variant="contained"
+                            onClick={handleAddLayerInfo}
+                            disabled={!selectedTable || !layerCategory}
+                        >
+                            Add Layer Info
+                        </Button>
+                    </Box>
+                </>
             )}
-        </React.Fragment>
+        </>
     );
 };
 

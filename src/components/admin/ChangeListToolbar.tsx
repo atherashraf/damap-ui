@@ -27,7 +27,7 @@
  */
 
 import { useState, forwardRef, useImperativeHandle } from "react";
-import { AppBar, Toolbar, Tooltip, Button, Select, MenuItem, Box } from "@mui/material";
+import {AppBar, Toolbar, Tooltip, Button, Select, MenuItem, Box, TextField} from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 
 export interface Action {
@@ -51,6 +51,7 @@ interface IProps {
     parent: IChangeListParent | null;
     buttons: IToolbarButton[];
     actions: Action[];
+    onSearchChange?: (text: string) => void; // <-- New
 }
 
 const ChangeListToolbar = forwardRef((props: IProps, ref) => {
@@ -61,6 +62,7 @@ const ChangeListToolbar = forwardRef((props: IProps, ref) => {
     const [actions, setActions] = useState<Action[]>(props.actions);
     const [selectedAction, setSelectedAction] = useState<Action | null>(null);
     const [loading, setLoading] = useState(false);
+    const [searchText, setSearchText] = useState('');
 
     function getBasicButtons(): IToolbarButton[] {
         return [
@@ -128,6 +130,26 @@ const ChangeListToolbar = forwardRef((props: IProps, ref) => {
                             <Box key={btn.id} width="10px" />
                         )
                     )}
+
+                    {/* Search Field */}
+                    <TextField
+                        size="small"
+                        placeholder="Search..."
+                        variant="outlined"
+                        value={searchText}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            setSearchText(value);
+                            props.onSearchChange?.(value); // fire callback
+                        }}
+                        sx={{
+                            minWidth: 200,
+                            backgroundColor: '#fff',
+                            borderRadius: 1,
+                            '& input': { color: '#000' },
+                        }}
+                    />
+
                 </Box>
 
                 {/* Right Actions */}

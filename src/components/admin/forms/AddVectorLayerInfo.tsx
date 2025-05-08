@@ -28,28 +28,53 @@
  */
 
 import { DASnackbarHandle } from "@/components/base/DASnackbar";
-import { Box, Container, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent } from "@mui/material";
+import {
+    Box,
+    Button,
+    Container,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Select,
+    SelectChangeEvent,
+    Stack
+} from "@mui/material";
 import ShpFileUploader from "@/components/admin/forms/ShpFileUploader";
 import PostGISInfo from "@/components/admin/forms/PostGISInfo";
 import {Fragment, RefObject, useState} from "react";
 
 interface IProps {
-    snackbarRef: RefObject<DASnackbarHandle | null>; // ✅ Correctly typed Snackbar Ref
+    snackbarRef: RefObject<DASnackbarHandle | null>;
+    onLayerAdded?: () => void;
 }
 
-const AddVectorLayerInfo = (props: IProps) => {
-    const selectItems = ["Shapefile", "Postgis"]; // Available options
-    const [selectedItem, setSelectedItem] = useState<string>(""); // Selected option
+const AddVectorLayerInfo = ({ snackbarRef, onLayerAdded }: IProps) => {
+    const selectItems = ["Shapefile", "Postgis"];
+    const [selectedItem, setSelectedItem] = useState<string>("");
+
+    const handleClose = () => {
+        setSelectedItem("");
+        onLayerAdded?.(); // Refresh list in parent
+    };
 
     // Function to return the appropriate form based on selection
     const getSelectedForm = () => {
         switch (selectedItem) {
             case "Shapefile":
-                return <ShpFileUploader snackbarRef={props.snackbarRef} />;
+                return (
+                    <ShpFileUploader
+                        snackbarRef={snackbarRef}
+                        onSuccess={handleClose}
+                    />
+                );
             case "Postgis":
-                return <PostGISInfo snackbarRef={props.snackbarRef} />;
+                return (
+                    <PostGISInfo
+                        snackbarRef={snackbarRef}
+                        onSuccess={handleClose}
+                    />
+                );
             default:
-                props.snackbarRef.current?.show("Please select form type");
                 return null;
         }
     };
@@ -57,7 +82,6 @@ const AddVectorLayerInfo = (props: IProps) => {
     return (
         <Fragment>
             <Container maxWidth="lg" sx={{ p: 3 }}>
-                {/* Select Upload Type */}
                 <FormControl fullWidth>
                     <InputLabel>Select Upload Type</InputLabel>
                     <Select
@@ -68,17 +92,25 @@ const AddVectorLayerInfo = (props: IProps) => {
                         }
                     >
                         {selectItems.map((item) => (
-                            <MenuItem key={"menu-" + item} value={item}>
+                            <MenuItem key={`menu-${item}`} value={item}>
                                 {item}
                             </MenuItem>
                         ))}
                     </Select>
                 </FormControl>
 
-                {/* Form based on selected option */}
-                <Box>
+                <Box mt={2}>
                     {getSelectedForm()}
                 </Box>
+
+                {/* Close Button at bottom right */}
+                {selectedItem && (
+                    <Stack direction="row" justifyContent="flex-end" mt={3}>
+                        <Button variant="outlined" onClick={handleClose}>
+                            Close
+                        </Button>
+                    </Stack>
+                )}
             </Container>
         </Fragment>
     );

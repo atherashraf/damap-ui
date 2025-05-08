@@ -40,6 +40,7 @@ export const MapAPIs = Object.freeze({
     DCH_UPDATE_MAP: "api/dch/update_map/{uuid}/",
     DCH_LAYER_CATEGORIES: "api/dch/layer_categories/",
     DCH_ADD_RASTER_INFO: "api/dch/add_raster_layer_info/",
+    DCH_DATA_MODEL_TYPES: "api/dch/raster_data_model_types/",
     DCH_UPLOAD_SHP_FILE: "api/dch/upload_shp_file/",
     DCH_GET_FEATURE_GEOMETRY: "api/dch/get_feature_geometry/{uuid}/{pk_values}/",
     DCH_ADD_MODEL_ROW: "api/dch/add_model_row/",
@@ -61,6 +62,8 @@ export const MapAPIs = Object.freeze({
 
     DCH_ADMIN_LAYER_INFO_EDIT: "admin/layer-info/edit/{id}/",
 
+    DCH_ADD_DB_CONNECTION:"api/dch/add-db-connection",
+    DCH_TEST_DB_CONNECTION:"api/dch/test-db-connection",
     WATER_QUALITY_DATA: "api/lbdc/water_quality_data/",
     LBDC_AOI: "api/lbdc/lbdc_aoi/",
 
@@ -191,18 +194,19 @@ export default class MapApi {
 
     private handleError(response: Response) {
         const ref = this.snackbarRef.current;
+        // console.log("response:", response);
         switch (response.status) {
             case 400:
-                ref?.show("Bad Request. Please check your input.");
+                ref?.show("Bad Request. Please check your input.", "error");
                 break;
             case 401:
-                ref?.show("Unauthorized. Please login again.");
+                ref?.show("Unauthorized. Please login again.", "error");
                 break;
             case 403:
-                ref?.show("Forbidden. You don’t have permission.");
+                ref?.show("Forbidden. You don’t have permission.", "error");
                 break;
             case 500:
-                ref?.show("Server error. Please contact admin.");
+                ref?.show("Server error. Please contact admin.", "error");
                 break;
             default:
                 ref?.show(`Unexpected error: ${response.status}`);

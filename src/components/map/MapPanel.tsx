@@ -38,6 +38,7 @@ const MapPanel = ({isMap, uuid, isEditor,children}: IMapPanelProps) => {
             mapVM.getApi()
                 ?.get(MapAPIs.DCH_MAP_INFO, { uuid })
                 .then((payload: IMapInfo) => {
+                    console.log(payload);
                     const mapInfo: IMapInfo = { ...payload, isEditor };
                     if (!mapVM.isInit) mapVM.initMap(mapInfo);
                     mapVM.setTarget(mapDivId);

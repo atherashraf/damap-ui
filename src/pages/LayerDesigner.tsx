@@ -72,6 +72,7 @@ const LayerDesigner = () => {
                     <SymbologyControl />
                 </Tooltip>
             );
+            mapVM.setIsDesigner(true);
             buttonAdded.current = true;
         }
     }, []);
@@ -79,7 +80,7 @@ const LayerDesigner = () => {
 
     return (
         <React.Fragment>
-            <MapView uuid={layerId || ''} isMap={false} isDesigner={true}>
+            <MapView uuid={layerId || ''} isMap={false}>
                 <AppBar position="static" color="default" elevation={2}>
                     <Toolbar variant="dense">
                         <Typography variant="h6" sx={{flexGrow: 1}}>

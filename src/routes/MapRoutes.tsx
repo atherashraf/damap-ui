@@ -1,6 +1,7 @@
 import {Routes, Route} from "react-router-dom";
 import React, {Suspense} from "react";
 import { AuthGuard } from "@/components/auth/AuthGuard";
+import MapInfoAdmin from "@/pages/admin/MapInfoAdmin.tsx";
 
 
 const DashboardLayout = React.lazy(() => import("@/layouts/DashboardLayout"));
@@ -19,7 +20,7 @@ const MapRoutes = () => (
             <Route element={<DashboardLayout/>}>
                 <Route index element={<MapAdmin/>}/>
                 <Route path="LayerInfo" element={<AuthGuard><LayerInfoAdmin key="layer-info-key"/></AuthGuard>}/>
-                {/*<Route path="MapInfo" element={<AuthGuard><MapInfo key="map-info-key" /></AuthGuard>} />*/}
+                <Route path="MapInfo" element={<AuthGuard><MapInfoAdmin key="map-info-key" /></AuthGuard>} />
 
                 <Route path="designer/:layerId/" element={<AuthGuard><LayerDesigner /></AuthGuard>} />
             </Route>

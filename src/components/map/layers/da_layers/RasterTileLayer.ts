@@ -21,17 +21,33 @@ class RasterTileLayer extends AbstractDALayer {
     });
     this.addLegendGraphic(this.layer);
   }
-  addLegendGraphic(layer: any) {
+  async addLegendGraphic(layer: any) {
     const url = MapApi.getURL(MapAPIs.DCH_LEGEND_GRAPHIC, {
       uuid: this.layerInfo.uuid,
     });
-    layer.legend = { sType: "src", graphic: url, width: "100%" };
-    const img: ol_legend_Item = new olLegendImage({
-      title: this.layerInfo.title,
-      src: url,
-    });
-    this.mapVM.legendPanel.addItem(img);
+
+    try {
+      const res = await fetch(url);
+
+      if (res.status === 200) {
+        layer.legend = { sType: "src", graphic: url, width: "100%" };
+        const img: ol_legend_Item = new olLegendImage({
+          title: this.layerInfo.title,
+          src: url,
+        });
+        this.mapVM.getLegendPanel().addItem(img);
+      } else if (res.status === 204) {
+        this.mapVM.showSnackbar("No legend available for: "+this.layerInfo.title, "warning");
+      } else {
+        // this.mapVM.showSnackbar("Unexpected response for legend:","error");
+        console.error("Unexpected response for legend:", res.status);
+      }
+    } catch (err) {
+      // this.mapVM.showSnackbar("Legend check failed","error");
+      console.error("Legend check failed:", err);
+    }
   }
+
 
   setDataSource() {
     const url = MapApi.getURL(MapAPIs.DCH_LAYER_RASTER, {
@@ -41,7 +57,7 @@ class RasterTileLayer extends AbstractDALayer {
       // url: 'https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?' +
       //     'apikey=873e70e2e69e4a36ae3f2c525f19425e'
       attributions: "Digital Arz Raster Tile Layer",
-      url: `${url}{z}/{x}/{y}`,
+      url: `${url}/{z}/{x}/{y}`,
       crossOrigin: 'anonymous',
       // tileLoadFunction: (imageTile, src) => {
       //     console.log("src", src)

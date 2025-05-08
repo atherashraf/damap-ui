@@ -26,15 +26,15 @@ class SLDStyleParser {
    * @param layer - The OpenLayers layer to apply the parsed style.
    */
   convertSLDTextToOL(sldText: string, layer: LayerWithLegend): void {
-    sldText = sldText.replaceAll("SvgParameter", "CssParameter");
-
+    // sldText = sldText.replaceAll("SvgParameter", "CssParameter");
+    // console.log("SLD text", sldText);
     const olParser = new OlParser();
     const sldParser = new SldParser();
 
     (async () => {
       const geostylerStyle = await sldParser.readStyle(sldText);
 
-
+      // console.log("GeoStyler style", geostylerStyle);
       const renderer = new LegendRenderer({
         overflow: "group",
         styles: geostylerStyle.output ? [geostylerStyle.output] : [],
@@ -52,11 +52,35 @@ class SLDStyleParser {
       }
       const olStyle = await olParser.writeStyle(geostylerStyle.output);
 
-      layer.setStyle(olStyle.output as any);
+      const styleFunction = olStyle.output;
+      if (typeof styleFunction === "function") {
+        const safeStyleFunction = (feature: any, resolution: number) => {
+          const styles = styleFunction(feature, resolution);
+          if (!Array.isArray(styles)) return styles;
+
+          styles.forEach((style) => {
+            const text = style.getText?.();
+            if (text) {
+              if (typeof text.getKeepUpright !== "function") {
+                text.getKeepUpright = () => false;
+              }
+              if (typeof text.getDeclutterMode !== "function") {
+                text.getDeclutterMode = () => "none";
+              }
+            }
+          });
+
+          return styles;
+        };
+
+        layer.setStyle(safeStyleFunction);
+      } else {
+        layer.setStyle(styleFunction as any);
+      }
+
 
       layer.getSource()?.refresh();
-
-      const legendPanel = this.objMvtLayer?.mapVM.legendPanel;
+      const legendPanel = this.objMvtLayer?.mapVM.getLegendPanel();
       if (legendPanel) {
         this.getLegendAsImage(this.legendRenderer, legendPanel, layer);
       }

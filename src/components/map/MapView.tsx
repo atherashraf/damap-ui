@@ -16,8 +16,6 @@ import MapPanel from "@/components/map/MapPanel.tsx";
 interface MapLayoutProps {
     uuid: string;
     isMap: boolean;
-    isDesigner?: boolean;
-    isEditor?: boolean;
     children?: React.ReactNode;
 }
 
@@ -30,8 +28,6 @@ export const mapDivInfo = {
 const MapView: React.FC<React.PropsWithChildren<MapLayoutProps>> = ({
                                                                         uuid,
                                                                         isMap,
-                                                                        isDesigner = false,
-                                                                        isEditor = false,
                                                                         children,
                                                                     }) => {
     const mapDivId = mapDivInfo.mapDivId;
@@ -43,7 +39,6 @@ const MapView: React.FC<React.PropsWithChildren<MapLayoutProps>> = ({
         bottomDrawerRef: useRef(null),
         dialogBoxRef: useRef(null),
         snackBarRef: useRef(null),
-        mapPanelRef: useRef(null),
         loadingRef: useRef(null),
     };
 
@@ -57,7 +52,7 @@ const MapView: React.FC<React.PropsWithChildren<MapLayoutProps>> = ({
 
 
     return (
-        <MapVMProvider domRef={domRefs} isDesigner={isDesigner}>
+        <MapVMProvider domRef={domRefs}>
             <div
                 id="fullscreen"
                 style={{
@@ -81,7 +76,7 @@ const MapView: React.FC<React.PropsWithChildren<MapLayoutProps>> = ({
                 >
                     <CustomAlertBox/>
 
-                    <MapPanel children={children} isMap={isMap} uuid={uuid} isEditor={isEditor}/>
+                    <MapPanel children={children} isMap={isMap} uuid={uuid}/>
 
                     <BottomDrawer ref={domRefs.bottomDrawerRef} target={mapDivId}/>
                 </Paper>

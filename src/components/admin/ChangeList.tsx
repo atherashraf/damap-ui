@@ -1,34 +1,3 @@
-/**
- * ChangeList (MUI version)
- * ------------------------
- *
- * A reusable smart table component using MUI Table.
- * Features:
- * - Compact rows
- * - Actions column at start
- * - Nice small paddings
- * - Editable rows
- * - Integrated with ChangeListToolbar
- * Usage:
- *
- * import ChangeList from './ChangeList';
- *
- * const changeListRef = React.useRef<any>(null);
- *
- * <ChangeList
- *   ref={changeListRef}
- *   columns={columns}
- *   data={rows}
- *   tableWidth="100%"
- *   tableHeight="100%"
- *   buttons={toolbarButtons}
- *   actions={actions}
- *   api={apiInstance}
- *   pkColName="uuid"
- *   modelName="LayerInfo"
- * />
- */
-
 import {useState, useRef, forwardRef, useImperativeHandle} from "react";
 import {
     Table,
@@ -40,9 +9,7 @@ import {
     Paper,
     IconButton,
     Tooltip,
-    TablePagination,
     Checkbox,
-    AppBar, Toolbar,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
@@ -80,11 +47,10 @@ const ChangeList = forwardRef<ChangeListHandle, IProps>((props, ref) => {
         modelName,
         pkColName
     } = props;
+
     const [data, setData] = useState<Row[]>(initialData);
     const [editableRowIndex, setEditableRowIndex] = useState<number | null>(null);
     const [selectedRow, setSelectedRow] = useState<number | null>(null);
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
     const [copiedCell, setCopiedCell] = useState<string | null>(null);
 
     const toolbarRef = useRef<any>(null);
@@ -122,18 +88,42 @@ const ChangeList = forwardRef<ChangeListHandle, IProps>((props, ref) => {
     };
 
     return (
-        <div style={{width: tableWidth, height: tableHeight}}>
-            <ChangeListToolbar
-                ref={toolbarRef}
-                parent={{startEditing: () => setEditableRowIndex(0)}}
-                buttons={buttons}
-                actions={actions}
-            />
-            <TableContainer component={Paper} sx={{maxHeight: tableHeight}}>
+        <div style={{
+            width: tableWidth,
+            height: tableHeight,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden"
+        }}>
+            {/* Sticky Toolbar */}
+            <div style={{
+                position: "sticky",
+                top: 0,
+                zIndex: 10,
+                background: "#f5f5f5"
+            }}>
+                <ChangeListToolbar
+                    ref={toolbarRef}
+                    parent={{startEditing: () => setEditableRowIndex(0)}}
+                    buttons={buttons}
+                    actions={actions}
+                    onSearchChange={(text) => {
+                        const filtered = initialData.filter(row =>
+                            Object.values(row).some(val =>
+                                String(val).toLowerCase().includes(text.toLowerCase())
+                            )
+                        );
+                        setData(filtered);
+                    }}
+                />
+            </div>
+
+            {/* Table Content */}
+            <TableContainer component={Paper} sx={{flexGrow: 1, overflow: "auto"}}>
                 <Table stickyHeader size="small">
                     <TableHead>
                         <TableRow>
-                            <TableCell padding="checkbox"></TableCell>
+                            <TableCell padding="checkbox" />
                             <TableCell>Actions</TableCell>
                             {columns.map(col => (
                                 <TableCell key={col.id}>{col.label}</TableCell>
@@ -141,9 +131,10 @@ const ChangeList = forwardRef<ChangeListHandle, IProps>((props, ref) => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, rowIndex) => {
+                        {data.map((row, rowIndex) => {
                             const isEditing = editableRowIndex === rowIndex;
                             const isSelected = selectedRow === rowIndex;
+
                             return (
                                 <TableRow key={row.id || row.uuid || rowIndex} hover selected={isSelected}>
                                     <TableCell padding="checkbox">
@@ -156,21 +147,28 @@ const ChangeList = forwardRef<ChangeListHandle, IProps>((props, ref) => {
                                     <TableCell>
                                         {isEditing ? (
                                             <IconButton color="success" onClick={() => saveRow(rowIndex)}>
-                                                <SaveIcon/>
+                                                <SaveIcon />
                                             </IconButton>
                                         ) : (
                                             <IconButton color="primary" onClick={() => setEditableRowIndex(rowIndex)}>
-                                                <EditIcon/>
+                                                <EditIcon />
                                             </IconButton>
                                         )}
                                     </TableCell>
                                     {columns.map(col => {
                                         const value = row[col.id];
-                                        const stringValue = typeof value === "object" ? JSON.stringify(value) : String(value ?? "");
+                                        const stringValue = typeof value === "object"
+                                            ? JSON.stringify(value)
+                                            : String(value ?? "");
+
                                         return (
                                             <TableCell
                                                 key={col.id}
-                                                sx={{maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis"}}
+                                                sx={{
+                                                    maxWidth: 200,
+                                                    overflow: "hidden",
+                                                    textOverflow: "ellipsis"
+                                                }}
                                             >
                                                 {isEditing ? (
                                                     <textarea
@@ -184,7 +182,7 @@ const ChangeList = forwardRef<ChangeListHandle, IProps>((props, ref) => {
                                                             resize: "vertical",
                                                             minHeight: "80px",
                                                             maxHeight: "200px",
-                                                            overflow: "auto",
+                                                            overflow: "auto"
                                                         }}
                                                         value={stringValue}
                                                         onChange={_ => handleInputChange(rowIndex, col.id, _.target.value)}
@@ -197,21 +195,19 @@ const ChangeList = forwardRef<ChangeListHandle, IProps>((props, ref) => {
                                                             gap: "4px",
                                                             overflow: "hidden"
                                                         }}>
-                              <span
-                                  style={{
-                                      whiteSpace: "nowrap",
-                                      overflow: "hidden",
-                                      textOverflow: "ellipsis",
-                                      maxWidth: "150px",
-                                  }}
-                              >
-                                {stringValue}
-                              </span>
-                                                            <IconButton size="small"
-                                                                        onClick={() => handleCopy(stringValue)}>
-                                                                {copiedCell === stringValue ?
-                                                                    <CheckIcon fontSize="small"/> :
-                                                                    <ContentCopyIcon fontSize="small"/>}
+                                                            <span style={{
+                                                                whiteSpace: "nowrap",
+                                                                overflow: "hidden",
+                                                                textOverflow: "ellipsis",
+                                                                maxWidth: "150px"
+                                                            }}>
+                                                                {stringValue}
+                                                            </span>
+                                                            <IconButton size="small" onClick={() => handleCopy(stringValue)}>
+                                                                {copiedCell === stringValue
+                                                                    ? <CheckIcon fontSize="small" />
+                                                                    : <ContentCopyIcon fontSize="small" />
+                                                                }
                                                             </IconButton>
                                                         </div>
                                                     </Tooltip>
@@ -225,25 +221,6 @@ const ChangeList = forwardRef<ChangeListHandle, IProps>((props, ref) => {
                     </TableBody>
                 </Table>
             </TableContainer>
-
-            {/* Pagination */}
-            {/* Footer AppBar for Pagination */}
-            <AppBar position="static" color="default" sx={{top: "auto", bottom: 0, height: "64px", mt: 1}}>
-                <Toolbar sx={{justifyContent: "space-between"}}>
-                    <TablePagination
-                        component="div"
-                        count={data.length}
-                        page={page}
-                        onPageChange={(_, newPage) => setPage(newPage)}
-                        rowsPerPage={rowsPerPage}
-                        onRowsPerPageChange={_ => {
-                            setRowsPerPage(parseInt(_.target.value, 10));
-                            setPage(0);
-                        }}
-                        labelRowsPerPage="Rows per page"
-                    />
-                </Toolbar>
-            </AppBar>
         </div>
     );
 });

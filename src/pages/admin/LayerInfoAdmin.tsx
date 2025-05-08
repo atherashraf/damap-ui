@@ -99,6 +99,10 @@ const LayerInfoAdmin = () => {
                         <AddRasterLayerInfo
                             dialogRef={dialogRef}
                             snackbarRef={snackbarRef} // Pass the ref itself
+                            onSuccess={() => {
+                                dialogRef.current?.handleClose();
+                                getTableData(); // ⬅️ Refresh the ChangeList
+                            }}
                         />
                     );
                 },
@@ -111,6 +115,10 @@ const LayerInfoAdmin = () => {
                         "Add Vector Layer",
                         <AddVectorLayerInfo
                             snackbarRef={snackbarRef}
+                            onLayerAdded={() => {
+                                dialogRef.current?.handleClose();
+                                getTableData(); // ⬅️ Refresh the ChangeList
+                            }}
                         />
                     );
                 },
@@ -123,6 +131,10 @@ const LayerInfoAdmin = () => {
                         "Add Layer URL",
                         <AddURLLayerInfo
                             snackbarRef={snackbarRef}
+                            onSuccess={() => {
+                                dialogRef.current?.handleClose();
+                                getTableData(); // ⬅️ Refresh the ChangeList
+                            }}
                         />
                     );
                 },

@@ -60,21 +60,20 @@ export const MapVMContext = createContext<MapVM | null>(null);
 interface IMapVMProviderProps {
     children: React.ReactNode;
     domRef: IDomRef;
-    isDesigner: boolean;
 }
 
 // export const mapVMRef = useRef<MapVM | null>(null);
-export const MapVMProvider = ({children, domRef, isDesigner,}: IMapVMProviderProps) => {
+export const MapVMProvider = ({children, domRef}: IMapVMProviderProps) => {
     const mapVMRef = useRef<MapVM | null>(null);
     const [ready, setReady] = useState(false);
 
     useEffect(() => {
         if (!mapVMRef.current && domRef) {
-            mapVMRef.current = new MapVM(domRef, isDesigner);
+            mapVMRef.current = new MapVM(domRef);
             _globalMapVM = mapVMRef.current
             setReady(true);
         }
-    }, [domRef, isDesigner]);
+    }, [domRef]);
 
     if (!ready) return null;
 

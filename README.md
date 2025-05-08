@@ -201,9 +201,76 @@ import "@/pages/LayerInfoAdmin";
 import "@/pages/MapInfo";
 <MapInfo />
 ```
-
 ---
 
+## 🔧 Backend Integration (FastAPI)
+
+DAMap relies on a backend service (currently using FastAPI) to provide dynamic layer configurations, spatial data, geometry fetching, and feature attributes.
+
+The frontend interacts with the backend via `MapApi`, a centralized API class that wraps HTTP requests to REST endpoints.
+
+### 🌐 DCH API Endpoints
+These are the core API endpoints used by DAMap to interact with the Dynamic Cartographic Hub (DCH) backend. They allow querying layer data, feature geometries, styles, attributes, and map configurations.
+| **Endpoint Key**                 | **Description**                                |
+| -------------------------------- | ---------------------------------------------- |
+| `DCH_LAYER_INFO`                 | Get metadata for a specific layer              |
+| `DCH_ALL_LAYER_INFO`             | Get metadata for all available layers          |
+| `DCH_LAYER_EXTENT`               | Get bounding box extent of a layer             |
+| `DCH_LAYER_MVT`                  | Fetch Mapbox Vector Tiles for a layer          |
+| `DCH_LAYER_WFS`                  | Download features via WFS (GeoJSON, CSV, etc.) |
+| `DCH_LAYER_RASTER`               | Serve raster tile imagery                      |
+| `DCH_GET_STYLE`                  | Retrieve saved style for a layer in a map      |
+| `DCH_SAVE_STYLE`                 | Save or update a custom style (non-SLD)        |
+| `DCH_SAVE_SLD`                   | Upload an SLD style file                       |
+| `DCH_GET_FEATURE_GEOMETRY`       | Get geometry (WKT) of a selected feature       |
+| `DCH_LAYER_FIELDS`               | List available fields (columns) of a layer     |
+| `DCH_LAYER_ATTRIBUTES`           | Get attribute table of a layer                 |
+| `DCH_LAYER_FIELD_DISTINCT_VALUE` | Get unique values for a given field            |
+| `DCH_GET_PIXEL_VALUE`            | Get pixel value from raster layer at point     |
+| `DCH_GET_FEATURE_DETAIL`         | Get full attribute detail for a feature        |
+| `DCH_RASTER_AREA`                | Extract raster stats based on polygon          |
+| `DCH_GET_ALL_LAYERS`             | List all registered layers                     |
+| `DCH_RASTER_DETAIL`              | Metadata and details for raster                |
+| `DCH_PREDEFINED_LIST`            | Fetch predefined style list                    |
+| `DCH_LEGEND_GRAPHIC`             | Get styled legend graphic                      |
+| `DCH_LAYER_CATEGORIES`           | Get all layer category metadata                |
+| `DCH_ADD_RASTER_INFO`            | Register a new raster layer                    |
+| `DCH_ADD_MODEL_ROW`              | Add a new row to an attribute table            |
+| `DCH_DELETE_MODEL_ROW`           | Delete row from attribute table                |
+| `DCH_EDIT_MODEL_ROW`             | Update attribute table row                     |
+| `DCH_DELETE_LAYER_INFO`          | Delete layer from system                       |
+| `DCH_SAVE_MAP`                   | Save new map configuration                     |
+| `DCH_UPDATE_MAP`                 | Update existing map                            |
+| `DCH_DELETE_MAP`                 | Delete a saved map                             |
+| `DCH_MAP_INFO`                   | Retrieve saved map info                        |
+| `DCH_ALL_MAP_INFO`               | List all saved maps                            |
+| `DCH_NAVIGATION_LIST`            | Get layer navigation tree                      |
+| `DCH_NAVIGATION_GEOMETRY`        | Get geometry for selected navigation node      |
+| `DCH_DOWNLOAD_SLD`               | Download uploaded SLD                          |
+| `DCH_DOWNLOAD_DA_STYLE`          | Download custom DA style                       |
+| `DCH_DB_CONNECTION`              | Get list of database connections               |
+| `DCH_DB_TABLE_LIST`              | Get tables from DB connection                  |
+| `DCH_SAVE_DB_LAYER_INFO`         | Register DB layer with category                |
+| `DCH_ADD_URL_LAYER_INFO`         | Register layer via external URL                |
+
+
+### 📦 Example Usage in Frontend
+
+```ts
+const mapVM = getMapVM(); // or use useMapVM() inside a React component
+
+// ✅ Add layer dynamically using endpoint key from MapAPIs
+mapVM.getApi().get(MapAPIs.DCH_LAYER_INFO, { uuid: 'your-layer-uuid' }).then(layerInfo => {
+    mapVM.addDALayer(layerInfo);
+});
+
+// 🛠️ Alternatively, use your own custom endpoint (provide full URL with query string or handle manually)
+mapVM.getApi().get(`/api/layer/info?uuid=your-layer-uuid`).then(layerInfo => {
+    mapVM.addDALayer(layerInfo);
+});
+
+```
+---
 ## 👨‍💻 Developed by
 
 **Ather Ashraf**

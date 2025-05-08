@@ -41,7 +41,9 @@ class DAVectorLayer extends AbstractDALayer {
                 format: "geojson",
             })
             .then((payload: any) => {
+                console.log("wfs payload", payload)
                 if (payload) {
+
                     const binaryData = atob(payload);
                     const uint8ArrayData = new Uint8Array(binaryData.length);
                     for (let i = 0; i < binaryData.length; i++) {

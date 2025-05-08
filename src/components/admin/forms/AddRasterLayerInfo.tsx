@@ -1,42 +1,31 @@
-/**
- * AddRasterLayerInfo
- * ------------------
- *
- * Form for adding a new Raster Layer.
- *
- * Features:
- * - Upload Raster and World files (or specify existing raster path)
- * - Select Layer Category
- * - Upload SLD file
- * - Set Temporal Resolution
- * - Submit form to backend
- * - Navigate to Layer Designer after creation
- * - Close Dialog after creating
- *
- * Usage:
- * Render inside DAFullScreenDialog like:
- *
- * <AddRasterLayerInfo snackbarRef={snackbarRef.current} dialogRef={dialogRef.current} />
- *
- * Dependencies:
- * - MapApi (for API calls)
- * - DASnackbar (notifications)
- * - DAFullScreenDialog (closing dialog)
- */
-
 import * as React from "react";
-import { useState, ChangeEvent } from "react";
-import { Box, Button, TextField, InputLabel, MenuItem, FormControl, Select, SelectChangeEvent } from "@mui/material";
+import {useState, ChangeEvent, useEffect} from "react";
+import {
+    Box,
+    Button,
+    TextField,
+    InputLabel,
+    MenuItem,
+    FormControl,
+    Select,
+    SelectChangeEvent,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import MapApi, { MapAPIs } from "@/api/MapApi.ts";
 import LayerCategoryControl from "./LayerCategoryControl";
 import AddLayerCategoryForm from "./AddLayerCategoryForm";
-import { DASnackbarHandle } from "@/components/base/DASnackbar"; // ✅ Correct import
-import { DAFullScreenDialogHandle } from "@/components/base/DAFullScreenDialog"; // ✅ Correct import
+import { DASnackbarHandle } from "@/components/base/DASnackbar";
+import { DAFullScreenDialogHandle } from "@/components/base/DAFullScreenDialog";
+import MapApi, {MapAPIs} from "@/api/MapApi.ts";
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+
+
 
 interface IProps {
     snackbarRef: React.RefObject<DASnackbarHandle | null>;
     dialogRef: React.RefObject<DAFullScreenDialogHandle | null>;
+    onSuccess?: () => void;
 }
 
 interface ILayerCategory {
@@ -44,23 +33,26 @@ interface ILayerCategory {
     name: string;
 }
 
-const AddRasterLayerInfo: React.FC<IProps> = ({ snackbarRef, dialogRef }) => {
+const AddRasterLayerInfo: React.FC<IProps> = ({ snackbarRef, dialogRef, onSuccess }) => {
     const navigate = useNavigate();
-    const snackbarRefObject = React.useRef(snackbarRef.current);
+    const api = new MapApi(snackbarRef);
 
     const [formType, setFormType] = useState<"LayerCategory" | null>(null);
+    const [rasterType, setRasterType] = useState<"new" | "existing">("new");
     const [rasterFile, setRasterFile] = useState<File>();
-    const [worldFile, setWorldFile] = useState<File>();
-    const [sldFile, setSldFile] = useState<File>();
     const [rasterFilePath, setRasterFilePath] = useState<string>("");
-    const [worldFilePath, setWorldFilePath] = useState<string>("");
-    const [rasterType, setRasterType] = useState("new");
     const [layerTitle, setLayerTitle] = useState<string>("");
     const [selectLayerCat, setSelectLayerCat] = useState<ILayerCategory>();
-    const [temporalRes, setTemporalRes] = useState<string>("");
+    const [temporalRes, setTemporalRes] = useState<Date | null>(null);
+    const [dataModelTypes, setDataModelTypes] = useState<{ key: string; value: string }[]>([]);
+    const [data_model_type, setData_model_type] = useState<string>("");
     const [uuid, setUUID] = useState<string>();
 
-    const api = new MapApi(snackbarRefObject);
+    useEffect(() => {
+        api.get(MapAPIs.DCH_DATA_MODEL_TYPES).then((res) => {
+            setDataModelTypes(res);
+        });
+    }, []);
 
     const handleRasterFileChange = (e: ChangeEvent<HTMLInputElement>) => {
         if (e.target.files?.[0]) {
@@ -69,22 +61,11 @@ const AddRasterLayerInfo: React.FC<IProps> = ({ snackbarRef, dialogRef }) => {
         }
     };
 
-    const handleWorldFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files?.[0]) {
-            setWorldFile(e.target.files[0]);
-            setWorldFilePath(e.target.files[0].name);
-        }
-    };
-
-    const handleSldFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files?.[0]) {
-            setSldFile(e.target.files[0]);
-        }
-    };
-
-    const handleUpdatedToChange = (event: SelectChangeEvent) => {
-        setRasterType(event.target.value);
-        if (event.target.value === "existing") {
+    const handleRasterTypeChange = (event: SelectChangeEvent) => {
+        const val = event.target.value as "new" | "existing";
+        setRasterType(val);
+        if (val === "existing") {
+            setRasterFile(undefined);
             setRasterFilePath("");
         }
     };
@@ -95,23 +76,31 @@ const AddRasterLayerInfo: React.FC<IProps> = ({ snackbarRef, dialogRef }) => {
         const formData = new FormData();
         formData.append("title", layerTitle);
         formData.append("isExisting", (rasterType === "existing").toString());
-
-        if (rasterType === "existing") {
-            formData.append("rasterFilePath", rasterFilePath);
-        } else {
-            if (rasterFile) formData.append("rasterFile", rasterFile);
-            if (worldFile) formData.append("worldFile", worldFile);
-        }
+        formData.append("temporal", temporalRes ? temporalRes.toISOString().split("T")[0] : "");
+        formData.append("data_model_type", data_model_type);
 
         if (selectLayerCat) formData.append("categoryId", selectLayerCat.pk);
-        formData.append("temporal", temporalRes);
-        if (sldFile) formData.append("sldFile", sldFile);
+
+        if (rasterType === "new") {
+            if (!rasterFile) {
+                snackbarRef.current?.show("Please select a raster file.");
+                return;
+            }
+            formData.append("rasterFile", rasterFile);
+        } else {
+            if (!rasterFilePath) {
+                snackbarRef.current?.show("Please enter the server file path.");
+                return;
+            }
+            formData.append("rasterFilePath", rasterFilePath);
+        }
 
         const payload = await api.postFormData(MapAPIs.DCH_ADD_RASTER_INFO, formData);
 
         if (payload) {
-            snackbarRef?.current?.show(payload.msg);
+            snackbarRef.current?.show(payload.msg);
             setUUID(payload.uuid);
+            onSuccess?.();
         }
     };
 
@@ -125,7 +114,6 @@ const AddRasterLayerInfo: React.FC<IProps> = ({ snackbarRef, dialogRef }) => {
             ) : (
                 <Box sx={{ margin: "20px" }}>
                     <form onSubmit={handleSubmit}>
-                        {/* Layer Title */}
                         <Box sx={{ marginBottom: "30px" }}>
                             <TextField
                                 label="Layer Title"
@@ -134,11 +122,9 @@ const AddRasterLayerInfo: React.FC<IProps> = ({ snackbarRef, dialogRef }) => {
                                 value={layerTitle}
                                 onChange={(e) => setLayerTitle(e.target.value)}
                                 required
-                                error={!layerTitle}
                             />
                         </Box>
 
-                        {/* Layer Category */}
                         <Box sx={{ marginBottom: "30px" }}>
                             <LayerCategoryControl
                                 api={api}
@@ -146,14 +132,30 @@ const AddRasterLayerInfo: React.FC<IProps> = ({ snackbarRef, dialogRef }) => {
                                 handleAddLayerCategory={() => setFormType("LayerCategory")}
                             />
                         </Box>
+                        <FormControl variant="standard" fullWidth sx={{ marginBottom: "30px" }}>
+                            <InputLabel>Layer Data Model</InputLabel>
+                            <Select
+                                value={data_model_type}
+                                onChange={(e) => setData_model_type(e.target.value)}
+                                label="Model Type"
+                                required
+                            >
+                                {dataModelTypes.map((type) => (
+                                    <MenuItem key={type.key} value={type.key}>
+                                        {type.value}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
 
-                        {/* Raster Type */}
+
+                        {/* Raster Type Dropdown */}
                         <Box sx={{ marginBottom: "30px" }}>
                             <FormControl variant="standard" fullWidth>
                                 <InputLabel>Raster Type</InputLabel>
                                 <Select
                                     value={rasterType}
-                                    onChange={handleUpdatedToChange}
+                                    onChange={handleRasterTypeChange}
                                     label="Raster Type"
                                 >
                                     <MenuItem value="new">New / Upload</MenuItem>
@@ -162,69 +164,48 @@ const AddRasterLayerInfo: React.FC<IProps> = ({ snackbarRef, dialogRef }) => {
                             </FormControl>
                         </Box>
 
-                        {/* Raster / World Files */}
-                        {rasterType === "new" && (
+                        {/* Conditional Raster Upload or Path Field */}
+                        {rasterType === "new" ? (
                             <Box sx={{ marginBottom: "30px" }}>
                                 <InputLabel>Select Raster File</InputLabel>
                                 <Button variant="contained" component="label">
                                     Upload
                                     <input type="file" hidden onChange={handleRasterFileChange} />
                                 </Button>
+                                {rasterFilePath && <TextField value={rasterFilePath} fullWidth sx={{ mt: 2 }} />}
+                            </Box>
+                        ) : (
+                            <Box sx={{ marginBottom: "30px" }}>
                                 <TextField
-                                    label="Raster File Path"
+                                    label="Raster File Path (on server)"
                                     variant="standard"
                                     fullWidth
                                     value={rasterFilePath}
                                     onChange={(e) => setRasterFilePath(e.target.value)}
                                     required
-                                    error={!rasterFilePath}
-                                    sx={{ mt: 2 }}
                                 />
                             </Box>
                         )}
 
-                        {/* World File */}
-                        {rasterType === "new" && (
-                            <Box sx={{ marginBottom: "30px" }}>
-                                <InputLabel>Select World File</InputLabel>
-                                <Button variant="contained" component="label">
-                                    Upload
-                                    <input type="file" hidden onChange={handleWorldFileChange} />
-                                </Button>
-                                <TextField
-                                    label="World File Path"
-                                    variant="standard"
-                                    fullWidth
-                                    value={worldFilePath}
-                                    sx={{ mt: 2 }}
-                                />
-                            </Box>
-                        )}
-
-                        {/* Temporal Resolution */}
-                        <Box sx={{ marginBottom: "30px" }}>
-                            <InputLabel>Temporal Resolution (YYYY-MM-DD)</InputLabel>
-                            <TextField
-                                variant="standard"
-                                fullWidth
+                        {/* Temporal Field */}
+                        <LocalizationProvider dateAdapter={AdapterDateFns}>
+                            <DatePicker
+                                label="Temporal Resolution"
                                 value={temporalRes}
-                                onChange={(e) => setTemporalRes(e.target.value)}
-                                required
-                                error={!temporalRes}
+                                onChange={(newValue) => {
+                                    setTemporalRes(newValue);
+                                }}
+                                slotProps={{
+                                    textField: {
+                                        variant: "standard",
+                                        fullWidth: true
+                                    }
+                                }}
                             />
-                        </Box>
+                        </LocalizationProvider>
 
-                        {/* SLD */}
-                        <Box sx={{ marginBottom: "30px" }}>
-                            <InputLabel>Select SLD File</InputLabel>
-                            <Button variant="contained" component="label">
-                                Upload
-                                <input type="file" hidden onChange={handleSldFileChange} />
-                            </Button>
-                            {sldFile && <p style={{ color: "black" }}>{sldFile.name}</p>}
-                        </Box>
 
-                        {/* Buttons */}
+                        {/* Action Buttons */}
                         <Box sx={{ marginTop: "30px", display: "flex", gap: 2 }}>
                             <Button type="submit" variant="contained" color="primary">
                                 Create Layer

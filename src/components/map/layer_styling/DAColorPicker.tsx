@@ -1,27 +1,34 @@
-import * as React from "react";
+import React from "react";
 //@ts-ignore
-import { ColorResult, SliderPicker } from "react-color";
-//@ts-ignore
-import Alpha from "react-color/lib/components/alpha/Alpha";
+import { ColorResult, SketchPicker } from "react-color";
 import autoBind from "auto-bind";
+import {
+  Box,
+  Button,
+  Popper,
+  ClickAwayListener,
+  Typography,
+} from "@mui/material";
 
 interface CustomColorPickerProps {
   label?: string;
   color: string | undefined;
   isAlpha: boolean;
-  onChange?: Function;
+  onChange?: (color: string) => void;
 }
 
 interface CustomColorPickerState {
   color: string | undefined;
+  anchorEl: HTMLElement | null;
 }
 
 class DAColorPicker extends React.PureComponent<
-  CustomColorPickerProps,
-  CustomColorPickerState
+    CustomColorPickerProps,
+    CustomColorPickerState
 > {
-  state = {
+  state: CustomColorPickerState = {
     color: this.props.color,
+    anchorEl: null,
   };
 
   constructor(props: CustomColorPickerProps) {
@@ -31,14 +38,24 @@ class DAColorPicker extends React.PureComponent<
 
   handleColorChange(color: ColorResult) {
     let hexColor = color.hex;
-    //@ts-ignore
-    if (this.props?.isAlpha && color?.rgb && color?.rgb?.a > 0.08) {
-      //@ts-ignore
-      hexColor = color.hex + parseInt(String(color?.rgb?.a * 255)).toString(16);
+    if (this.props?.isAlpha && color?.rgb?.a !== undefined) {
+      const alphaHex = Math.round(color.rgb.a * 255)
+          .toString(16)
+          .padStart(2, "0");
+      hexColor = color.hex + alphaHex;
     }
     this.setState({ color: hexColor });
-    if (typeof this.props.onChange !== "undefined")
-      this.props.onChange(hexColor);
+    if (this.props.onChange) this.props.onChange(hexColor);
+  }
+
+  handleButtonClick(event: React.MouseEvent<HTMLElement>) {
+    this.setState({
+      anchorEl: this.state.anchorEl ? null : event.currentTarget,
+    });
+  }
+
+  handleClose() {
+    this.setState({ anchorEl: null });
   }
 
   getColor() {
@@ -46,28 +63,75 @@ class DAColorPicker extends React.PureComponent<
   }
 
   render() {
+    const { label, isAlpha } = this.props;
+    const { anchorEl, color } = this.state;
+    const open = Boolean(anchorEl);
+
     return (
-      <fieldset>
-        {this.props.label && <legend>{this.props.label}</legend>}
+        <Box>
+          {label && (
+              <Typography variant="subtitle2" gutterBottom>
+                {label}
+              </Typography>
+          )}
 
-        <SliderPicker
-          color={this.state.color}
-          onChange={this.handleColorChange}
-        />
-
-        {this.props.isAlpha && (
-          <>
-            <br />
-            <Alpha
-              width={"100%"}
-              color={this.state.color}
-              onChange={this.handleColorChange}
+          <Button
+              variant="outlined"
+              onClick={this.handleButtonClick}
+              sx={{
+                width: 44,
+                height: 36,
+                minWidth: 44,
+                border: "1px solid #ccc",
+                padding: 0,
+              }}
+          >
+            <Box
+                sx={{
+                  width: 28,
+                  height: 28,
+                  backgroundColor: color || "#fff",
+                  border: "1px solid #999",
+                  borderRadius: "50%",
+                  margin: "auto",
+                }}
             />
-          </>
-        )}
+          </Button>
 
-        {/*<AlphaPicker width="100px" onChange={handleColorChange} color={this.state.fillColor}  />*/}
-      </fieldset>
+          <Popper
+              open={open}
+              anchorEl={anchorEl}
+              placement="bottom-start"
+              modifiers={[
+                {
+                  name: 'zIndex',
+                  enabled: true,
+                  phase: 'write',
+                  fn({ state }) {
+                    state.styles.popper.zIndex = '1500';
+                  },
+                },
+              ]}
+              style={{ zIndex: 1500 }} // fallback
+          >
+            <ClickAwayListener onClickAway={this.handleClose}>
+              <Box
+                  p={1}
+                  bgcolor="white"
+                  border="1px solid #ccc"
+                  borderRadius={1}
+                  boxShadow={3}
+                  zIndex={9999}
+              >
+                <SketchPicker
+                    color={color}
+                    onChange={this.handleColorChange}
+                    disableAlpha={!isAlpha}
+                />
+              </Box>
+            </ClickAwayListener>
+          </Popper>
+        </Box>
     );
   }
 }

@@ -119,10 +119,16 @@ const PseudoColor: React.FC<Props> = ({ mapVM, bandInfo }) => {
                     setNoOfClasses(val);
                   }
                 }}
-                InputProps={{
-                  inputMode: "numeric",
-                  inputProps: { min: 1, max: 10 },
+                slotProps={{
+                    input: {
+                        inputProps: {
+                            min: 1,
+                            max: 10,
+                            inputMode: 'numeric',
+                        },
+                    },
                 }}
+
             />
           </FormControl>
         </Box>

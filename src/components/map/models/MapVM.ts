@@ -370,7 +370,7 @@ class MapVM {
     };
 
     isGEELayerExist(uuid: string): boolean {
-        let isExist = false;
+        let isExist;
         isExist = uuid in this.geeLayers
         isExist = isExist && this.isLayerAdded(this.geeLayers[uuid]?.olLayer)
         // console.log("is layer in map", this.isLayerAdded(this.geeLayers[uuid]?.olLayer))

@@ -113,10 +113,9 @@ class DAVectorLayer extends AbstractDALayer {
     //     return this.getSource().get
     // }
     findFeature(col_name: string, col_value: any): Feature | null {
-        const feature = this.getSource()
+        return this.getSource()
             ?.getFeatures()
             ?.find((feat: Feature) => feat.get(col_name) === col_value);
-        return feature;
     }
 
     zoomToFeatures() {

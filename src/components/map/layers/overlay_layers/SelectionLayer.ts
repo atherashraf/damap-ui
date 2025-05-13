@@ -73,7 +73,9 @@ class SelectionLayer extends AbstractOverlayLayer {
         if (clearPreviousSelection) {
             this.clearSelection();
         }
+        console.log("wkt", wkt)
         const features = new WKT().readFeatures(wkt);
+        console.log("features", features)
         this.getSource()?.addFeatures(features);
     }
     addFeature(Feature: Feature, clearPreviousSelection: boolean = true) {

@@ -5,7 +5,7 @@ import LeftDrawer from "@/components/map/drawers/LeftDrawer";
 import DADialogBox from "@/components/base/DADialogBox";
 import {pointShapeTypes} from "@/components/map/layer_styling/vector/symbolizer/PointSymbolizer";
 import DAMapLoading from "@/components/map/widgets/DAMapLoading.tsx";
-import TimeSlider from "@/components/map/widgets/TimeSlider.tsx";
+import TimeSlider from "@/components/map/time_slider/TimeSlider.tsx";
 import {DASnackbarHandle} from "@/components/base/DASnackbar.tsx";
 import BottomDrawer from "@/components/map/drawers/BottomDrawer.tsx";
 import {Column, Row} from "@/types/gridTypeDeclaration.ts";

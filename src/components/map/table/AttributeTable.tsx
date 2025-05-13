@@ -78,6 +78,7 @@ const AttributeTable: React.FC<IDataGridProps> = ({
         if (!row['geom'] && mapVM.isDALayerExists(uuid)) {
             const pkVal = getSelectedRowPKValue(row);
             mapVM.getApi().get(MapAPIs.DCH_GET_FEATURE_GEOMETRY, { uuid, pk_values: pkVal }).then((payload: any) => {
+                // console.log("selected feature", payload);
                 mapVM.getSelectionLayer()?.addWKT2Selection(payload);
                 row['geom'] = payload;
 

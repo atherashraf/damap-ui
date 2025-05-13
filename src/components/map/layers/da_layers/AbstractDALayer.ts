@@ -69,7 +69,7 @@ class AbstractDALayer {
                 lyr.setStyle(this.vectorStyleFunction.bind(this));
                 if (this.layerInfo?.geomType && this.layerInfo?.geomType.length > 0)
                     StylingUtils.addLegendGraphic(lyr, this.style, this.layerInfo?.geomType[0])
-                this.mapVM.legendPanel?.refresh();
+                this.mapVM.getLegendPanel()?.refresh();
             }
         }
     }

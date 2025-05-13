@@ -1,10 +1,12 @@
 import * as React from "react";
-import { IControlProps } from "../../TypeDeclaration";
+import {useMapVM} from "@/components/map/models/MapVMContext.tsx";
 
-const LOISelector = (props: IControlProps) => {
+
+const LOISelector = () => {
   const [layerIds, setLayerIds] = React.useState<string[]>([]);
+  const mapVM = useMapVM();
   window.addEventListener("DALayerAdded", () => {
-    const k: string[] = Object.keys(props.mapVM.daLayers);
+    const k: string[] = Object.keys(mapVM.daLayers);
     setLayerIds(k);
     // props.mapVM.setLayerOfInterest(k[0])
   });
@@ -18,14 +20,14 @@ const LOISelector = (props: IControlProps) => {
           width: "200px",
         }}
         onChange={(e) =>
-          props.mapVM.setLayerOfInterest(e.target.value as string)
+          mapVM.setLayerOfInterest(e.target.value as string)
         }
       >
         <option key={"opt-empty"} value={""}>
           Select Layer of Interest
         </option>
         {layerIds.map((layerId, index) => {
-          const layer = props.mapVM.getDALayer(layerId);
+          const layer = mapVM.getDALayer(layerId);
           return (
             <option key={"opt-" + index} value={layerId}>
               {layer?.getLayerTitle()}

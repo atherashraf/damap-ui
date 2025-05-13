@@ -28,7 +28,7 @@ import AbstractDALayer from "../layers/da_layers/AbstractDALayer.ts";
 
 import autoBind from "auto-bind";
 import DAMapLoading from "@/components/map/widgets/DAMapLoading";
-import TimeSlider from "@/components/map/widgets/TimeSlider";
+import TimeSlider, {IDateRange} from "@/components/map/time_slider/TimeSlider.tsx";
 // import TimeSliderControl from "@/components/controls/TimeSliderControl";
 import DAVectorLayer from "../layers/da_layers/DAVectorLayer.ts";
 import IDWLayer from "../layers/overlay_layers/IDWLayer.ts";
@@ -36,7 +36,7 @@ import OverlayVectorLayer from "../layers/overlay_layers/OverlayVectorLayer.ts";
 import XYZLayer, {IXYZLayerInfo} from "@/components/map/layers/overlay_layers/XYZLayer.ts";
 import BaseLayer from "ol/layer/Base";
 import {DASnackbarHandle} from "@/components/base/DASnackbar.tsx";
-import TimeSliderControl from "@/components/map/widgets/TimeSliderControl.tsx";
+import TimeSliderControl from "@/components/map/time_slider/TimeSliderControl.tsx";
 import BottomDrawer from "@/components/map/drawers/BottomDrawer.tsx";
 import {AlertColor} from "@mui/material";
 
@@ -59,6 +59,7 @@ class MapVM {
     // @ts-ignore
     private map: Map;
     daLayers: IDALayers = {};
+    temporalLayers: IDALayers = {};
     overlayLayers: IOverlays = {};
     geeLayers: IXYZLayers = {}
     xyzLayer: IXYZLayers = {}
@@ -85,7 +86,7 @@ class MapVM {
     private mapToolbar: MapToolbar;
 
 
-    constructor(domRef: IDomRef, isDesigner: boolean=false) {
+    constructor(domRef: IDomRef, isDesigner: boolean = false) {
         this._domRef = domRef;
         this.isDesigner = isDesigner;
         this.api = new MapApi(domRef.snackBarRef);
@@ -97,7 +98,7 @@ class MapVM {
         })
     }
 
-    setIsDesigner(isDesigner:boolean){
+    setIsDesigner(isDesigner: boolean) {
         this.isDesigner = isDesigner;
     }
 
@@ -224,11 +225,13 @@ class MapVM {
         return this._domRef.loadingRef;
     }
 
-    setTimeSliderRef(timeSliderRef: RefObject<TimeSlider>) {
+    setTimeSliderRef(timeSliderRef: RefObject<{
+        setDateRange: (range: IDateRange) => void;
+    }>) {
         this._domRef.timeSliderRef = timeSliderRef;
     }
 
-    getTimeSliderRef(): RefObject<TimeSlider> {
+    getTimeSliderRef(): RefObject<typeof TimeSlider> {
         // @ts-ignore
         return this._domRef.timeSliderRef;
     }
@@ -453,6 +456,7 @@ class MapVM {
                     let daLayer: AbstractDALayer | null;
                     //@ts-ignore
                     this._domRef.snackBarRef.current.show(`Adding ${payload.title} Layer`);
+
                     if (payload?.dataModel === "V") {
                         if (payload.format === "WFS") {
                             daLayer = new DAVectorLayer(payload, this);
@@ -464,6 +468,16 @@ class MapVM {
                     } else {
                         daLayer = new RasterTileLayer(payload, this);
                         this.daLayers[payload.uuid] = daLayer;
+                    }
+                    if (payload.dataURL) {
+                        console.log("layer info of a temporal layer", payload)
+                        // console.log("data url", payload.dataURL)
+
+                        this.temporalLayers[payload.uuid] = daLayer;
+                        const event = new CustomEvent("temporalLayerAdded", {
+                            detail: { uuid: payload.uuid },
+                        });
+                        window.dispatchEvent(event);
                     }
                     const visible = info?.visible !== undefined ? info.visible : true;
                     const opacity = info?.opacity !== undefined ? info.opacity : 1;
@@ -581,8 +595,10 @@ class MapVM {
 
     //@ts-ignore
     addTimeSliderControl(
-        timeSliderRef: RefObject<TimeSlider>,
-        onDateChange: Function
+        timeSliderRef: RefObject<{
+            setDateRange: (range: IDateRange) => void;
+        }>,
+        onDateChange: (date: Date) => void
     ) {
         /***
          *         const timeSliderRef: RefObject<TimeSlider> = React.createRef()
@@ -615,7 +631,7 @@ class MapVM {
     }
 
     /***
-     N
+     New  functionalities
      ***/
 
 
@@ -635,31 +651,22 @@ class MapVM {
         };
     }
 
-    // ============================================================
-    // SECTION: USER Selection LAYER WRAPPERS
-    // ============================================================
 
     getSelectionLayer() {
         return this.selectionLayer;
     }
 
-    // addWKT2Selection(wkt: string) {
-    //     this.interactionLayer?.addWKTFeature(wkt, 'selected');
-    // }
-    //
-    //
-    // highlightFeature(feature: Feature<Geometry>) {
-    //     this.interactionLayer?.highlight(feature);
-    // }
-    //
-    // clearHighlights() {
-    //     this.interactionLayer?.clearHighlight();
-    // }
+    hasTemporalLayers() {
+        return Object.keys(this.temporalLayers).length > 0;
+    }
 
+    getTemporalLayers(uuid: string) {
+        return this.temporalLayers[uuid];
+    }
 
-    // zoomToFeature() {
-    //     this.interactionLayer?.zoomToSelections();
-    // }
+    getTemporalLayerTitles() {
+        return Object.keys(this.temporalLayers).map(uuid => this.temporalLayers[uuid].getLayerTitle())
+    }
 
 
 }

@@ -2,9 +2,9 @@ import * as React from "react";
 import MapView from "@/components/map/MapView.tsx";
 import {useParams} from "react-router-dom";
 import {RefObject, useRef, useEffect} from "react";
-import TimeSlider, {IDateRange} from "@/components/map/widgets/TimeSlider";
+import TimeSlider, {IDateRange} from "@/components/map/time_slider/TimeSlider.tsx";
 import MVTLayer from "@/components/map/layers/da_layers/MVTLayer";
-import TimeSliderControl from "@/components/map/widgets/TimeSliderControl.tsx";
+import TimeSliderControl from "@/components/map/time_slider/TimeSliderControl.tsx";
 import {AppBar, Button,  Toolbar, Tooltip, Typography} from "@mui/material";
 import {getMapVM} from "@/components/map/models/MapVMContext.tsx";
 import SymbologyControl from "@/components/map/toolbar/controls/SymbologyControl.tsx"; // any icon you prefer
@@ -84,7 +84,7 @@ const LayerDesigner = () => {
                 <AppBar position="static" color="default" elevation={2}>
                     <Toolbar variant="dense">
                         <Typography variant="h6" sx={{flexGrow: 1}}>
-                            Map Toolbar
+                            Layer Designer Toolbar
                         </Typography>
                         <Button variant="contained" color="secondary" onClick={handleRandomClick}>
                             Random

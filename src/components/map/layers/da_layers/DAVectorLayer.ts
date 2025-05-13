@@ -7,7 +7,7 @@ import MapApi, {MapAPIs} from "@/api/MapApi";
 import pako from "pako";
 
 import {WKT} from "ol/format";
-import {formatYmdDate} from "@/components/map/widgets/TimeSliderControl";
+import {formatYmdDate} from "@/components/map/time_slider/TimeSliderControl.tsx";
 import {Feature} from "ol";
 
 class DAVectorLayer extends AbstractDALayer {
@@ -41,7 +41,6 @@ class DAVectorLayer extends AbstractDALayer {
                 format: "geojson",
             })
             .then((payload: any) => {
-                console.log("wfs payload", payload)
                 if (payload) {
 
                     const binaryData = atob(payload);

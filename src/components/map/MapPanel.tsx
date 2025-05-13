@@ -6,6 +6,9 @@ import React, {Fragment, useEffect, useRef, useState} from "react";
 import {useMapVM} from "@/components/map/models/MapVMContext.tsx";
 import {MapAPIs} from "@/api/MapApi.ts";
 import {IMapInfo} from "@/types/typeDeclarations.ts";
+import TimeSliderControl from "@/components/map/time_slider/TimeSliderControl.tsx";
+import TimeSlider from "@/components/map/time_slider/TimeSlider.tsx";
+import {Control} from "ol/control";
 
 interface IMapPanelProps {
     isMap: boolean;
@@ -14,7 +17,7 @@ interface IMapPanelProps {
     children?: React.ReactNode;
 }
 
-const MapPanel = ({isMap, uuid, isEditor,children}: IMapPanelProps) => {
+const MapPanel = ({isMap, uuid, isEditor, children}: IMapPanelProps) => {
     const theme = useTheme();
     const [isFullscreen, setIsFullscreen] = useState(false);
     const mapVM = useMapVM();
@@ -22,7 +25,8 @@ const MapPanel = ({isMap, uuid, isEditor,children}: IMapPanelProps) => {
     uuid = uuid || "-1";
     const toolbarRef = useRef<HTMLDivElement>(null);
     const [toolbarHeight, setToolbarHeight] = useState(0);
-
+    const timeSliderRef = useRef<TimeSlider>(null!);
+    const [timeSliderControl, setTimeSliderControl] = useState<Control | null>(null);
     useEffect(() => {
         if (toolbarRef.current) {
             const height = toolbarRef.current.getBoundingClientRect().height;
@@ -33,32 +37,27 @@ const MapPanel = ({isMap, uuid, isEditor,children}: IMapPanelProps) => {
     }, [children]);
 
     useEffect(() => {
-
         if (isMap && uuid && uuid !== "-1") {
             mapVM.getApi()
-                ?.get(MapAPIs.DCH_MAP_INFO, { uuid })
+                ?.get(MapAPIs.DCH_MAP_INFO, {uuid})
                 .then((payload: IMapInfo) => {
-                    console.log(payload);
-                    const mapInfo: IMapInfo = { ...payload, isEditor };
+                    const mapInfo: IMapInfo = {...payload, isEditor};
                     if (!mapVM.isInit) mapVM.initMap(mapInfo);
                     mapVM.setTarget(mapDivId);
                 });
         } else if (isMap) {
-            const mapInfo: IMapInfo = { uuid: uuid || "-1", isEditor, layers: [] };
+            const mapInfo: IMapInfo = {uuid: uuid || "-1", isEditor, layers: []};
             if (!mapVM.isInit) {
                 mapVM.initMap(mapInfo);
                 mapVM.setTarget(mapDivId);
             }
         } else {
-            const info: IMapInfo = { uuid: uuid || "-1", isEditor, layers: [] };
+            const info: IMapInfo = {uuid: uuid || "-1", isEditor, layers: []};
             if (!mapVM.isInit) {
                 mapVM.initMap(info);
                 (async () => {
-                    //@ts-ignore
-                    await mapVM.addDALayer({ uuid });
-                    //@ts-ignore
+                    await mapVM.addDALayer({uuid});
                     const extent = await mapVM.getDALayer(uuid)?.getExtent();
-                    //@ts-ignore
                     mapVM.setMapFullExtent(extent);
                     mapVM.zoomToFullExtent();
                 })();
@@ -69,6 +68,47 @@ const MapPanel = ({isMap, uuid, isEditor,children}: IMapPanelProps) => {
             }
         }
     }, [uuid, isMap, isEditor]);
+
+    useEffect(() => {
+
+        const handleTemporalLayerAdded = (_: any) => {
+            console.log("MapPanel: temporal layers", mapVM.getTemporalLayerTitles());
+
+            //@ts-ignore
+            if (mapVM.hasTemporalLayers() && !timeSliderRef.current?.hasControl) {
+                console.log("MapPanel: adding time slider control");
+                const newControl = new TimeSliderControl({
+                    mapVM,
+                    timeSliderRef,
+                    onDateChange: (selectedDate: Date) => {
+                        console.log("Selected temporal date:", selectedDate.toISOString());
+                    },
+                });
+                mapVM.getMap()?.addControl(newControl);
+                setTimeSliderControl(newControl);
+
+                // Optional: Mark control as added if you use a flag
+                if (timeSliderRef.current) {
+                    (timeSliderRef.current as any).hasControl = true;
+                }
+            }
+        };
+
+        window.addEventListener("temporalLayerAdded", handleTemporalLayerAdded);
+
+        return () => {
+            window.removeEventListener("temporalLayerAdded", handleTemporalLayerAdded);
+        };
+    }, [mapVM]);
+
+
+    useEffect(() => {
+        return () => {
+            if (timeSliderControl) {
+                mapVM.getMap()?.removeControl(timeSliderControl);
+            }
+        };
+    }, [timeSliderControl]);
 
 
     const toggleFullscreen = () => {

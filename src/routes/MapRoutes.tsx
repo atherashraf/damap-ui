@@ -4,12 +4,12 @@ import { AuthGuard } from "@/components/auth/AuthGuard";
 import MapInfoAdmin from "@/pages/admin/MapInfoAdmin.tsx";
 
 
+
 const DashboardLayout = React.lazy(() => import("@/layouts/DashboardLayout"));
 const MapAdmin = React.lazy(() => import("@/pages/MapAdmin"));
 const LayerDesigner = React.lazy(() => import("@/pages/LayerDesigner"));
 const LayerInfoAdmin = React.lazy(() => import("@/pages/admin/LayerInfoAdmin"));
-// const MapInfo = React.lazy(() => import("@/admin/containers/MapInfo"));
-// const DAMap = React.lazy(() => import("@/ol-map/containers/DAMap"));
+const DAMap = React.lazy(() => import("@/pages/DAMap"));
 const LoginForm = React.lazy(() => import("@/components/auth/LoginForm"));
 
 const MapRoutes = () => (
@@ -23,10 +23,11 @@ const MapRoutes = () => (
                 <Route path="MapInfo" element={<AuthGuard><MapInfoAdmin key="map-info-key" /></AuthGuard>} />
 
                 <Route path="designer/:layerId/" element={<AuthGuard><LayerDesigner /></AuthGuard>} />
+                <Route path="ViewMap/:mapId/" element={<DAMap />} />
+                {/*<Route path="EditMap/:mapId/" element={<DAMap isEditor />} />*/}
+
             </Route>
 
-            {/*<Route path="ViewMap/:mapId/" element={<DAMap />} />*/}
-            {/*<Route path="EditMap/:mapId/" element={<DAMap isEditor />} />*/}
             {/*<Route path="*" element={<Navigate to="/" replace />} />*/}
             {/*<Route path="*" element={<Navigate to="/login" replace />} />*/}
 

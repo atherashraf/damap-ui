@@ -5,7 +5,7 @@ import AbstractDALayer from "./AbstractDALayer.ts";
 import MapApi, {MapAPIs} from "@/api/MapApi";
 import TileGrid from "ol/tilegrid/TileGrid";
 import {get as getProjection} from "ol/proj.js";
-import {formatYmdDate} from "@/components/map/widgets/TimeSliderControl";
+import {formatYmdDate} from "@/components/map/time_slider/TimeSliderControl.tsx";
 
 /*****
  *  url format for MVT

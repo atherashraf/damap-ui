@@ -1,11 +1,14 @@
 #!/bin/bash
-
-# Stop on first error
 set -e
 
-echo "📦 Publishing damap v$(node -p \"require('./package.json').version\")"
+echo "📦 Publishing damap v$(node -p 'require("./package.json").version')"
 
-# Step 1: Run build (make sure this compiles to dist/)
+# Step 1: Build directly
+#rm -rf dist
+#npx tsc -p tsconfig.build.json
+#npx tsc -p tsconfig.build.json --listEmittedFiles
+
+#npx vite build
 npm run build
 
 # Step 2: Confirm with the user
@@ -15,11 +18,8 @@ if [[ $confirm != "y" ]]; then
   exit 1
 fi
 
-# Step 3: Publish the package publicly
+# Step 3: Publish publicly
 npm publish --access=public
 
-# Optional: Confirm publish was successful
+# Step 4: Done
 echo "✅ Successfully published damap to npm!"
-
-# Optional: Clean up build artifacts (if needed)
-# rm -rf dist

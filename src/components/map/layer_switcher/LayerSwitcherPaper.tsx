@@ -1,11 +1,12 @@
 import { Box, Paper } from "@mui/material";
 import * as React from "react";
-import MapVM from "../../models/MapVM";
+
 import "./LayerSwitcher.css";
 import { Group } from "ol/layer";
 import LayerSwitcher from "ol-ext/control/LayerSwitcher";
 import { useEffect } from "react";
 import ContextMenu, { IContextMenu } from "./ContextMenu";
+import MapVM from "@/components/map/models/MapVM";
 
 interface LayerSwitcherProps {
   mapVM: MapVM;
@@ -42,22 +43,7 @@ const LayerSwitcherPaper = (props: LayerSwitcherProps) => {
         });
       },
     });
-    // lswitcher.on('change', (e)=>{
-    //     console.log(e)
-    //     alert("changed");
-    // })
-    // Listen to 'remove' event
-    //@ts-ignore
-    // switcher.on('remove', function (event) {
-    //   const layer = event.layer;
-    //   if (layer) {
-    //     mapVM.getMap().removeLayer(layer);
-    //     // Clean up resources
-    //     // Here, you can nullify the layer or perform additional clean-up if needed
-    //     layer.dispose ? layer.dispose() : null; // Example of disposing
-    //     console.log('Layer removed from layer switcher', layer);
-    //   }
-    // });
+
     //@ts-ignore
     switcher.on("drawlist", function (e) {
       const layer: any = e.layer;

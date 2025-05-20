@@ -2,16 +2,17 @@ import * as React from "react";
 import { IconButton, Tooltip } from "@mui/material";
 import InfoIcon from "@mui/icons-material/Info";
 
-import IdentifyResult from "@/components/map/widgets/IdentifyResult.tsx";
-import {useMapVM} from "@/components/map/models/MapVMContext.tsx";
+import IdentifyResult from "@/components/map/widgets/IdentifyResult";
+import {useMapVM} from "@/components/map/models/MapVMContext";
 
 const Identifier = () => {
   const mapVM= useMapVM();
+  const theme = mapVM.getTheme();
   const drawerRef = mapVM.getRightDrawerRef();
   const handleClick = () => {
     drawerRef?.current?.setContent(
       "Identifier",
-      <IdentifyResult mapVM={mapVM}/>
+      <IdentifyResult />
     );
     drawerRef?.current?.openDrawer();
     // props.mapVM.refreshMap();
@@ -20,7 +21,11 @@ const Identifier = () => {
   return (
     <React.Fragment>
       <Tooltip title={"Identify Feature"}>
-        <IconButton sx={{ padding: "3px" }} onClick={handleClick}>
+        <IconButton sx={{ padding: "3px" }}
+                    style={{width: 30, height: 30,
+                      backgroundColor: theme?.palette.secondary.main,
+                      color:theme?.palette.secondary.contrastText}}
+                    onClick={handleClick}>
           <InfoIcon />
         </IconButton>
       </Tooltip>

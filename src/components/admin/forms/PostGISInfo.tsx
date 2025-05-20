@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Box, Button, MenuItem, FormControl, InputLabel, Select, SelectChangeEvent } from "@mui/material";
 import { DASnackbarHandle } from "@/components/base/DASnackbar";
 import MapApi, { MapAPIs } from "@/api/MapApi";
-import AddDBConnectionForm from "@/components/admin/forms/AddDBConnectionForm.tsx";
+import AddDBConnectionForm from "@/components/admin/forms/AddDBConnectionForm";
 import LayerCategoryControl, { ILayerCategory } from "./LayerCategoryControl";
 import AddLayerCategoryForm from "./AddLayerCategoryForm";
 
@@ -16,7 +16,7 @@ interface IProps {
     onSuccess?: () => void;
 }
 
-const PostGISInfo = ({ snackbarRef }: IProps) => {
+const PostGISInfo = ({ snackbarRef, onSuccess }: IProps) => {
     const [formType, setFormType] = useState<"LayerCategory" | "AddDB" | null>(null);
     const [selectedDBId, setSelectedDBId] = useState<string>("");
     const [dbConnections, setDBConnections] = useState<IDBConnection[]>([]);
@@ -57,7 +57,7 @@ const PostGISInfo = ({ snackbarRef }: IProps) => {
         }).then((payload) => {
             if (payload) {
                 snackbarRef.current?.show(payload.msg);
-                props.onSuccess?.();
+                onSuccess?.();
             }
         });
     };

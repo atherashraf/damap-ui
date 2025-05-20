@@ -1,7 +1,7 @@
 import MapApi, {MapAPIs} from "@/api/MapApi";
 import {store} from "@/store";
 import {setCredentials, logout, updateToken} from "@/store/slices/authSlice";
-import {snackbarRef} from "@/utils/snackbarRef.ts";
+import {snackbarRef} from "@/utils/snackbarRef";
 
 export class AuthServices {
     static async performLogin(username: string, password: string): Promise<boolean> {
@@ -35,7 +35,7 @@ export class AuthServices {
 
     static async verifyAccessToken(): Promise<boolean> {
         let token = store.getState().auth.accessToken;
-
+        // console.log("access token:", token);
         if (!token) {
             // console.warn("Access token missing. Trying to refresh...");
 
@@ -59,6 +59,7 @@ export class AuthServices {
         });
 
         return response.status === 200;
+        // return true
     }
 
 

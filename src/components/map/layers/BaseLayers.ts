@@ -1,9 +1,9 @@
-import MapVM from "../models/MapVM.ts";
+import MapVM from "../models/MapVM";
 import TileLayer from "ol/layer/Tile";
 import OSM from "ol/source/OSM";
 import { BingMaps } from "ol/source";
 import { Group } from "ol/layer";
-import { ILayerSources, ILayerSourcesInfo } from "@/types/typeDeclarations.ts";
+import { ILayerSources, ILayerSourcesInfo } from "@/types/typeDeclarations";
 import XYZ from "ol/source/XYZ";
 
 export const baseLayerSources = {

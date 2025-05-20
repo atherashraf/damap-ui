@@ -35,15 +35,15 @@
 
 import * as React from "react";
 import {useNavigate} from "react-router-dom";
-import {Column, Row} from "@/types/gridTypeDeclaration.ts";
-import ChangeList, {ChangeListHandle} from "@/components/admin/ChangeList.tsx"; // ✅ Correct
-import {Action} from "@/components/admin/ChangeListToolbar.tsx"; // ✅ Correct
-import DASnackbar, {DASnackbarHandle} from "@/components/base/DASnackbar.tsx";
-import DAFullScreenDialog, {DAFullScreenDialogHandle} from "@/components/base/DAFullScreenDialog.tsx";
-import MapApi, {MapAPIs} from "@/api/MapApi.ts";
-import AddRasterLayerInfo from "@/components/admin/forms/AddRasterLayerInfo.tsx";
-import AddVectorLayerInfo from "@/components/admin/forms/AddVectorLayerInfo.tsx";
-import AddURLLayerInfo from "@/components/admin/forms/AddURLLayerInfo.tsx";
+import {Column, Row} from "@/types/gridTypeDeclaration";
+import ChangeList, {ChangeListHandle} from "@/components/admin/ChangeList";
+import {Action} from "@/components/admin/ChangeListToolbar";
+import DASnackbar, {DASnackbarHandle} from "@/components/base/DASnackbar";
+import DAFullScreenDialog, {DAFullScreenDialogHandle} from "@/components/base/DAFullScreenDialog";
+import MapApi, {MapAPIs} from "@/api/MapApi";
+import AddRasterLayerInfo from "@/components/admin/forms/AddRasterLayerInfo";
+import AddVectorLayerInfo from "@/components/admin/forms/AddVectorLayerInfo";
+import AddURLLayerInfo from "@/components/admin/forms/AddURLLayerInfo";
 
 // Typed references
 const LayerInfoAdmin = () => {
@@ -193,13 +193,13 @@ const LayerInfoAdmin = () => {
                     ref={changeListRef}
                     columns={columns}
                     data={data}
-                    modelName="LayerInfo"
                     pkColName="uuid"
                     tableHeight="100%"
                     tableWidth="100%"
                     api={api}
                     actions={actions}
                     buttons={[]} // (optional) Add toolbar buttons if needed
+                    saveURL={MapAPIs.DCH_SAVE_LAYER_INFO}
                 />
             )}
 

@@ -9,8 +9,8 @@ import VectorTileLayer from "ol/layer/VectorTile";
 import TileLayer from "ol/layer/Tile";
 import ImageLayer from "ol/layer/Image";
 import SLDStyleParser from "@/components/map/layers/styling/SLDStyleParser";
-import StylingUtils from "../styling/StylingUtils.tsx";
-import {IFeatureStyle, ILayerInfo} from "@/types/typeDeclarations.ts";
+import StylingUtils from "../styling/StylingUtils";
+import {IFeatureStyle, ILayerInfo} from "@/types/typeDeclarations";
 
 class AbstractDALayer {
     dataSource: any;
@@ -25,6 +25,7 @@ class AbstractDALayer {
     features: any[];
     urlParams: string = "";
     resolutions: number[] = [];
+    tileSize: number = 512
 
     constructor(info: ILayerInfo, mapVM: MapVM) {
         autoBind(this);
@@ -219,59 +220,7 @@ class AbstractDALayer {
         return StylingUtils.vectorStyleFunction(feature, this.style);
     }
 
-    // addFeature(feature:any) {
-    //     this.features.push(feature);
-    // }
-    //
-    // addFeatures(features:any) {
-    //     this.features.concat(features);
-    // }
-    //
-    // getFeatureById(id: any) {
-    //     return this.features.find((feature) => feature.properties.id.toString() === id.toString());
-    // }
-    //
-    // getFeaturesById(ids: any) {
-    //     const idSet = new Set(ids);
-    //     return this.features.filter((feature) => idSet.has(feature.properties.id));
-    // }
-    //
-    // getFeatureExtent(feature: any) {
-    //     return turf.bbox(feature.geometry);
-    // }
-    //
-    // getFeatureCentroid(feature) {
-    //     return turf.centroid(feature.geometry);
-    // }
-    //
-    // getGeoJsonFeatureCentroid(geojson) {
-    //     return turf.centroid(geojson);
-    // }
-    //
-    // // getFieldUniqueValue (fieldName) {
-    // //   const source = this.layer.getSource();
-    // //   const fieldValues = [];
-    // //   source.getFeatures().forEach((feature) => {
-    // //     const properties = feature.getProperties();
-    // //     properties && properties[fieldName] && fieldValues.push(properties[fieldName]);
-    // //   });
-    // //   const valueSet = new Set(fieldValues);
-    // //   return valueSet;
-    // // }
-    //
-    // calculateFieldRange(fieldName) {
-    //     const features = this.dataSource.getFeatures();
-    //     let minVal = null, maxVal = null;
-    //     features.forEach((feature, index) => {
-    //         const attributes = feature.get("attributes")?.attributes;
-    //         if (attributes && attributes.hasOwnProperty(fieldName)) {
-    //             const val = attributes[fieldName];
-    //             if (!minVal || minVal > val) minVal = val;
-    //             if (!maxVal || maxVal < val) maxVal = val;
-    //         }
-    //     });
-    //     return [minVal, maxVal];
-    // }
+
     //@ts-ignore
     updateTemporalData(date: Date) {
     }

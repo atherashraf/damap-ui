@@ -1,11 +1,13 @@
-import MapVM from "../../../models/MapVM";
-import { IGeomStyle } from "../../../TypeDeclaration";
+
 import * as React from "react";
 import VectorSymbolizer from "../vector/symbolizer/VectorSymbolizer";
-import { RefObject } from "react";
-import DADialogBox from "../../common/DADialogBox";
+
+
 import { Button, Paper } from "@mui/material";
 import { getPointSVG } from "../vector/symbolizer/PointSymbolizer";
+import MapVM from "@/components/map/models/MapVM";
+import {IGeomStyle} from "@/types/typeDeclarations";
+import {JSX} from "react";
 
 interface SymbologyIconProps {
   mapVM: MapVM;
@@ -18,7 +20,7 @@ interface SymbologyIconProps {
 export const LegendIcons = (props: SymbologyIconProps) => {
   const [style, setStyle] = React.useState<IGeomStyle>(props.style);
   const vectorStyleRef = React.createRef<VectorSymbolizer>();
-  const dialogBoxRef: RefObject<DADialogBox> = props.mapVM.getDialogBoxRef();
+  const dialogBoxRef = props.mapVM.getDialogBoxRef();
 
   React.useEffect(() => {
     setStyle(props.style);

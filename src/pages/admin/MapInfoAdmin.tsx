@@ -1,11 +1,11 @@
 import * as React from "react";
 import {useNavigate} from "react-router-dom";
 import {RefObject} from "react";
-import DASnackbar, { DASnackbarHandle } from "@/components/base/DASnackbar.tsx";
-import ChangeList, { ChangeListHandle } from "@/components/admin/ChangeList.tsx";
-import {Column, Row} from "@/types/gridTypeDeclaration.ts";
-import {Action} from "@/components/admin/ChangeListToolbar.tsx";
-import MapApi, {MapAPIs} from "@/api/MapApi.ts";
+import DASnackbar, { DASnackbarHandle } from "@/components/base/DASnackbar";
+import ChangeList, { ChangeListHandle } from "@/components/admin/ChangeList";
+import {Column, Row} from "@/types/gridTypeDeclaration";
+import {Action} from "@/components/admin/ChangeListToolbar";
+import MapApi, {MapAPIs} from "@/api/MapApi";
 
 const snackbarRef: RefObject<DASnackbarHandle | null> = React.createRef<DASnackbarHandle>();
 const changeListRef = React.createRef<ChangeListHandle>();
@@ -108,8 +108,8 @@ const MapInfo = () => {
                     tableWidth={"100%"}
                     actions={actions}
                     api={api}
-                    modelName={"MapInfo"}
                     pkColName={"uuid"}
+                    saveURL={MapApi.getURL(MapAPIs.DCH_SAVE_MAP_INFO)}
                 />
             ) : (
                 <React.Fragment/>

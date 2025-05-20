@@ -1,9 +1,10 @@
 import autoBind from "auto-bind";
-import { IFeatureStyle, IGeomStyle } from "../../../TypeDeclaration";
+
 
 import BaseStyleForm, { BaseStyleFormProps } from "./BaseStyleForm";
 import VectorSymbolizer from "./symbolizer/VectorSymbolizer";
 import * as React from "react";
+import {IGeomStyle} from "@/types/typeDeclarations";
 
 class SingleStyleForm extends BaseStyleForm {
   vectorStyleRef = React.createRef<VectorSymbolizer>();

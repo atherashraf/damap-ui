@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import * as React from "react";
 import { MapAPIs } from "@/api/MapApi";
-import { DASelect } from "@/components/styled/styledMapComponents.ts";
+import { DASelect } from "@/components/styled/styledMapComponents";
 import { IFeatureStyle, IGeomStyle, IRule } from "@/types/typeDeclarations";
 import PointSymbolizer, {
   IPointSymbolizerState,

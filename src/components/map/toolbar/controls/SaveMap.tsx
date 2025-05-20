@@ -1,8 +1,8 @@
 import * as React from "react";
 import { IconButton, Tooltip } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
-import MapVM from "@/components/map/models/MapVM.ts";
-import MapApi, { MapAPIs } from "@/api/MapApi.ts";
+import MapVM from "@/components/map/models/MapVM";
+import MapApi, { MapAPIs } from "@/api/MapApi";
 
 interface IProps {
     mapVM: MapVM;
@@ -10,10 +10,11 @@ interface IProps {
 
 const SaveMap = (props: IProps) => {
     const handleClick = () => {
-        const mapName = props.mapVM.mapInfo.uuid !== "-1"
-            ? props.mapVM.mapInfo.title
+        const currentMapInfo = props.mapVM?.getMapInfo();
+        const mapName = currentMapInfo?.uuid !== "-1"
+            ? currentMapInfo?.title
             : prompt("Please enter map name");
-        const mapUUID = props.mapVM.mapInfo ? props.mapVM.mapInfo.uuid : "-1";
+        const mapUUID = currentMapInfo?.uuid ?? "-1";
         const extent = props.mapVM.getCurrentExtent();
 
         interface LayerData {

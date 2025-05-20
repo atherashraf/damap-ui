@@ -190,6 +190,81 @@ useEffect(() => {
 
 ```
 
+## 🕒 Add Time Slider Control
+
+To integrate the `TimeSliderControl` with your map:
+
+### 1. Create a `ref` for the time slider
+
+```tsx
+import { useRef } from "react";
+import { TimeSliderHandle } from "./components/TimeSlider";
+
+const timeSliderRef = useRef<TimeSliderHandle>(null!);
+```
+
+---
+
+### 2. Add the control to the map using `MapVM`
+
+```tsx
+const newControl = mapVM.addTimeSliderControl(
+    timeSliderRef,
+    (selectedDate: Date) => {
+        console.log("Selected date:", selectedDate);
+        // Do something with the selected date
+    }
+);
+```
+
+---
+
+### 3. Set the date range (after layer is loaded or from API)
+
+```ts
+const dateRange: IDateRange = {
+    minDate: "2023-09-01", // or new Date("2023-09-01")
+    maxDate: "2023-09-30", // or new Date("2023-09-30")
+};
+
+timeSliderRef.current?.setDateRange(dateRange);
+```
+
+---
+
+### 4. Get the currently selected date (optional)
+
+```ts
+const selectedDate = timeSliderRef.current?.getSelectedDate();
+console.log("Selected Date:", selectedDate?.toISOString());
+```
+
+---
+
+### 5. Get the selected temporal layer (optional)
+
+```ts
+const selectedLayer = timeSliderRef.current?.getSelectedLayer();
+if (selectedLayer) {
+    console.log("Layer UUID:", selectedLayer.uuid);
+    console.log("Layer Title:", selectedLayer.title);
+}
+```
+
+---
+
+### 📘 `IDateRange` Interface
+
+```ts
+export interface IDateRange {
+    minDate: Date | string; // e.g., "2023-09-23"
+    maxDate: Date | string;
+}
+```
+
+Both `Date` objects and ISO date strings are supported.
+
+
 ## ⚙️ Admin Tools (Layer & Map Management)
 
 To manage maps and layers inside DigitalArzNode:
@@ -211,6 +286,8 @@ The frontend interacts with the backend via `MapApi`, a centralized API class th
 
 ### 🌐 DCH API Endpoints
 These are the core API endpoints used by DAMap to interact with the Dynamic Cartographic Hub (DCH) backend. They allow querying layer data, feature geometries, styles, attributes, and map configurations.
+
+
 | **Endpoint Key**                 | **Description**                                |
 | -------------------------------- | ---------------------------------------------- |
 | `DCH_LAYER_INFO`                 | Get metadata for a specific layer              |

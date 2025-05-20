@@ -1,7 +1,8 @@
 import {IconButton, Tooltip} from "@mui/material";
 import LayersIcon from "@mui/icons-material/Layers";
-import LayerSwitcherPaper from "@/components/map/layer_switcher/LayerSwitcherPaper.tsx";
-import {useMapVM} from "@/components/map/models/MapVMContext.tsx";
+import LayerSwitcherPaper from "@/components/map/layer_switcher/LayerSwitcherPaper";
+import {useMapVM} from "@/components/map/models/MapVMContext";
+import {JSX} from "react";
 
 
 /**
@@ -16,6 +17,7 @@ import {useMapVM} from "@/components/map/models/MapVMContext.tsx";
  */
 const LayerSwitcherControl = (): JSX.Element => {
     const mapVM = useMapVM();
+    const theme = mapVM.getTheme();
 
     const handleClick = () => {
         openLayerSwitcher();
@@ -28,7 +30,9 @@ const LayerSwitcherControl = (): JSX.Element => {
 
     return (
         <Tooltip title="Open Layer Switcher">
-            <IconButton sx={{width: 30, height: 30}} onClick={handleClick}>
+            <IconButton style={{width: 30, height: 30,
+                backgroundColor: theme?.palette.secondary.main,
+                color:theme?.palette.secondary.contrastText}} onClick={handleClick}>
                 <LayersIcon/>
             </IconButton>
         </Tooltip>

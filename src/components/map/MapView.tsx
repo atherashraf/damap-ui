@@ -8,14 +8,16 @@ import {IDomRef} from "@/types/typeDeclarations";
 import BottomDrawer from "@/components/map/drawers/BottomDrawer";
 import RightDrawer from "@/components/map/drawers/RightDrawer";
 import LeftDrawer from "./drawers/LeftDrawer";
-import {Paper} from "@mui/material";
-import CustomAlertBox from "@/components/base/CustomAlertBox.tsx";
-import {MapVMProvider} from "@/components/map/models/MapVMContext.tsx";
-import MapPanel from "@/components/map/MapPanel.tsx";
+import {Paper, Theme} from "@mui/material";
+import CustomAlertBox from "@/components/base/CustomAlertBox";
+import {MapVMProvider} from "@/components/map/models/MapVMContext";
+import MapPanel from "@/components/map/MapPanel";
+import {ThemeProvider} from "@mui/material/styles";
 
 interface MapLayoutProps {
     uuid: string;
     isMap: boolean;
+    theme: Theme;
     children?: React.ReactNode;
 }
 
@@ -29,6 +31,7 @@ const MapView: React.FC<React.PropsWithChildren<MapLayoutProps>> = ({
                                                                         uuid,
                                                                         isMap,
                                                                         children,
+                                                                        theme
                                                                     }) => {
     const mapDivId = mapDivInfo.mapDivId;
 
@@ -48,46 +51,47 @@ const MapView: React.FC<React.PropsWithChildren<MapLayoutProps>> = ({
     // }
 
 
-
-
-
     return (
+
         <MapVMProvider domRef={domRefs}>
-            <div
-                id="fullscreen"
-                style={{
-                    display: "flex",
-                    width: "100%",
-                    height: "100%",
-                    flexDirection: "row",
-                    position: "relative",
-                }}
-            >
-                <LeftDrawer ref={domRefs.leftDrawerRef}/>
-
-                <Paper
-                    sx={{
-                        flex: 1,
+            <ThemeProvider theme={theme}>
+                <div
+                    id="fullscreen"
+                    style={{
+                        display: "flex",
+                        width: "100%",
                         height: "100%",
+                        flexDirection: "row",
                         position: "relative",
-                        overflow: "hidden",
                     }}
-                    elevation={6}
                 >
-                    <CustomAlertBox/>
+                    <LeftDrawer ref={domRefs.leftDrawerRef}/>
 
-                    <MapPanel children={children} isMap={isMap} uuid={uuid}/>
+                    <Paper
+                        sx={{
+                            flex: 1,
+                            height: "100%",
+                            position: "relative",
+                            overflow: "hidden",
+                        }}
+                        elevation={6}
+                    >
+                        <CustomAlertBox/>
 
-                    <BottomDrawer ref={domRefs.bottomDrawerRef} target={mapDivId}/>
-                </Paper>
+                        <MapPanel children={children} isMap={isMap} uuid={uuid}/>
+
+                        <BottomDrawer ref={domRefs.bottomDrawerRef} target={mapDivId}/>
+                    </Paper>
 
 
-                <RightDrawer ref={domRefs.rightDrawerRef}/>
-                <DADialogBox ref={domRefs.dialogBoxRef}/>
-                <DASnackbar ref={domRefs.snackBarRef}/>
-                <DAMapLoading ref={domRefs.loadingRef}/>
-            </div>
+                    <RightDrawer ref={domRefs.rightDrawerRef}/>
+                    <DADialogBox ref={domRefs.dialogBoxRef}/>
+                    <DASnackbar ref={domRefs.snackBarRef}/>
+                    <DAMapLoading ref={domRefs.loadingRef}/>
+                </div>
+            </ThemeProvider>
         </MapVMProvider>
+
     );
 };
 

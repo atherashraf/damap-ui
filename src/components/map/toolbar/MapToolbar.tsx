@@ -23,7 +23,8 @@ import { Control } from "ol/control";
 import { createRoot, Root } from "react-dom/client";
 import MapVM from "@/components/map/models/MapVM";
 import type { IMapToolbarProps } from "@/types/typeDeclarations";
-import MapToolbarContainer from "@/components/map/toolbar/MapToolbarContainer.tsx";
+import MapToolbarContainer from "@/components/map/toolbar/MapToolbarContainer";
+import {JSX} from "react";
 
 class MapToolbar extends Control {
     private buttons: JSX.Element[] = [];

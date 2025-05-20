@@ -28,8 +28,8 @@ import React, {
     useEffect,
     useState, ReactNode,
 } from 'react';
-import MapVM from "@/components/map/models/MapVM.ts";
-import {IDomRef} from "@/types/typeDeclarations.ts";
+import MapVM from "@/components/map/models/MapVM";
+import {IDomRef} from "@/types/typeDeclarations";
 
 
 let _globalMapVM: MapVM | null = null;

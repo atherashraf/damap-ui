@@ -1,17 +1,21 @@
 import * as React from "react";
 import {IconButton, Tooltip} from "@mui/material";
 import ZoomInMapIcon from "@mui/icons-material/ZoomInMap";
-import {useMapVM} from "@/components/map/models/MapVMContext.tsx";
+import {useMapVM} from "@/components/map/models/MapVMContext";
 
 
 const Zoom2Extent = () => {
     const mapVM = useMapVM();
 
+    const theme = useMapVM().getTheme();
     return (
         <React.Fragment>
             <Tooltip title={"Zoom to Map Extent"}>
                 <IconButton
                     sx={{padding: "3px"}}
+                    style={{width: 30, height: 30,
+                        backgroundColor: theme?.palette.secondary.main,
+                        color:theme?.palette.secondary.contrastText}}
                     onClick={() => mapVM.zoomToFullExtent()}
                 >
                     <ZoomInMapIcon/>

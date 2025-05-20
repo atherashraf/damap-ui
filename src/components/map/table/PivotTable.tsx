@@ -9,7 +9,7 @@ import Plotly from "plotly.js/dist/plotly-cartesian";
 import createPlotlyComponent from "react-plotlyjs";
 import createPlotlyRenderers from "react-pivottable/PlotlyRenderers";
 
-import { Column, Row } from "@/types/gridTypeDeclaration.ts";
+import { Column, Row } from "@/types/gridTypeDeclaration";
 
 const Plot = createPlotlyComponent(Plotly);
 const PlotlyRenderers = createPlotlyRenderers(Plot);

@@ -1,7 +1,7 @@
 import {RefObject} from "react";
-import {DASnackbarHandle} from "@/components/base/DASnackbar.tsx";
+import {DASnackbarHandle} from "@/components/base/DASnackbar";
 import {store} from "@/store";
-import {AuthServices} from "@/api/authServices.ts";
+import {AuthServices} from "@/api/authServices";
 
 
 
@@ -11,26 +11,26 @@ export const MapAPIs = Object.freeze({
     API_TOKEN: "api/jwt/token/",
     API_REFRESH_ACCESS_TOKEN: "api/jwt/refresh_access_token/",
     API_LOGIN_JSON: "api/jwt/auth/login/json",
-    API_VERIFY_TOKEN: "api/jwt/token/verify",
+    API_VERIFY_TOKEN: "api/jwt/token/verify/",
     DCH_LAYER_INFO: "api/dch/layer_info/{uuid}/",
     DCH_ALL_LAYER_INFO: "api/dch/all_layer_info/",
     DCH_LAYER_EXTENT: "api/dch/layer_extent/{uuid}/",
     DCH_LAYER_MVT: "api/dch/layer_mvt/{uuid}/",
     DCH_LAYER_WFS: "api/dch/wfs/{uuid}/{format}/",
     DCH_LAYER_RASTER: "api/dch/raster_tile/{uuid}",
-    DCH_SAVE_STYLE: "api/dch/save_style/{uuid}/{map_uuid}",
-    DCH_SAVE_SLD: "api/dch/upload_sld_style/{uuid}",
+    DCH_SAVE_STYLE: "api/dch/save_style/{uuid}/{map_uuid}/",
+    DCH_SAVE_SLD: "api/dch/upload_sld_style/{uuid}/",
     DCH_GET_STYLE: "api/dch/get_style/{uuid}/{map_uuid}/",
-    DCH_LAYER_FIELDS: "api/dch/layer_fields/{uuid}",
-    DCH_GEE_LAYER: "api/gee/gee_layer/{layer_type}",
-    DCH_GEE_LAYER_LEGEND: "api/gee/gee_layer_legend/{layer_type}",
-    DCH_LAYER_ATTRIBUTES: "api/dch/layer_attributes/{uuid}",
+    DCH_LAYER_FIELDS: "api/dch/layer_fields/{uuid}/",
+    DCH_GEE_LAYER: "api/gee/gee_layer/{layer_type}/",
+    DCH_GEE_LAYER_LEGEND: "api/gee/gee_layer_legend/{layer_type}/",
+    DCH_LAYER_ATTRIBUTES: "api/dch/layer_attributes/{uuid}/",
     DCH_LAYER_FIELD_DISTINCT_VALUE: "api/dch/layer_field_distinct_values/{uuid}/{field_name}/{field_type}/",
     DCH_MAP_INFO: "api/dch/get_map_info/{uuid}/",
-    DCH_ALL_MAP_INFO: "api/dch/all_map_info",
+    DCH_ALL_MAP_INFO: "api/dch/all_map_info/",
     DCH_LAYER_PIXEL_VALUE: "api/dch/get_pixel_value/{uuid}/{long}/{lat}/",
     DCH_FEATURE_DETAIL: "api/dch/get_feature_detail/{uuid}/{col_name}/{col_val}/",
-    DCH_RASTER_AREA: "api/dch/get_raster_area/{uuid}/{geojson_str}",
+    DCH_RASTER_AREA: "api/dch/get_raster_area/{uuid}/{geojson_str}/",
     DCH_GET_ALL_LAYERS: "api/dch/get_all_layers/",
     DCH_RASTER_DETAIL: "api/dch/get_raster_info/{uuid}/",
     DCH_PREDEFINED_LIST: "api/dch/get_predefined_style_list/",
@@ -61,9 +61,11 @@ export const MapAPIs = Object.freeze({
         "api/dch/navigation_geometry/{map_uuid}/{selected_key}/{node_id}/",
 
     DCH_ADMIN_LAYER_INFO_EDIT: "admin/layer-info/edit/{id}/",
+    DCH_SAVE_LAYER_INFO: "api/dch/save_layer_info/",
+    DCH_SAVE_MAP_INFO: "api/dch/save_map_info/",
 
-    DCH_ADD_DB_CONNECTION:"api/dch/add-db-connection",
-    DCH_TEST_DB_CONNECTION:"api/dch/test-db-connection",
+    DCH_ADD_DB_CONNECTION:"api/dch/add-db-connection/",
+    DCH_TEST_DB_CONNECTION:"api/dch/test-db-connection/",
     WATER_QUALITY_DATA: "api/lbdc/water_quality_data/",
     LBDC_AOI: "api/lbdc/lbdc_aoi/",
 

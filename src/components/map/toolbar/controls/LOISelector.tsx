@@ -1,5 +1,5 @@
 import * as React from "react";
-import {useMapVM} from "@/components/map/models/MapVMContext.tsx";
+import {useMapVM} from "@/components/map/models/MapVMContext";
 
 
 const LOISelector = () => {

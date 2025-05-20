@@ -1,5 +1,6 @@
 import * as React from "react";
-import MapVM from "../../../models/MapVM";
+import MapVM from "@/components/map/models/MapVM";
+
 
 export interface BaseStyleFormProps {
   layerId: string;

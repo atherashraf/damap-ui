@@ -3,6 +3,7 @@ import { Dialog, DialogActions, DialogTitle } from "@mui/material";
 import Button from "@mui/material/Button";
 
 import autoBind from "auto-bind";
+import {JSX} from "react";
 
 interface IProps {}
 

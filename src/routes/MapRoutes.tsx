@@ -1,7 +1,7 @@
 import {Routes, Route} from "react-router-dom";
 import React, {Suspense} from "react";
 import { AuthGuard } from "@/components/auth/AuthGuard";
-import MapInfoAdmin from "@/pages/admin/MapInfoAdmin.tsx";
+import MapInfoAdmin from "@/pages/admin/MapInfoAdmin";
 
 
 

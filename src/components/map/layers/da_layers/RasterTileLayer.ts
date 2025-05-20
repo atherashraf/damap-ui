@@ -1,4 +1,4 @@
-import AbstractDALayer from "./AbstractDALayer.ts";
+import AbstractDALayer from "./AbstractDALayer";
 import TileLayer from "ol/layer/Tile";
 import XYZ from "ol/source/XYZ";
 import MapApi, { MapAPIs } from "@/api/MapApi";

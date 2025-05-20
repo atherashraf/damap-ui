@@ -6,8 +6,8 @@ import {
     Typography,
     CircularProgress,
 } from "@mui/material";
-import { DASnackbarHandle } from "@/components/base/DASnackbar.tsx";
-import MapApi, { MapAPIs } from "@/api/MapApi.ts";
+import { DASnackbarHandle } from "@/components/base/DASnackbar";
+import MapApi, { MapAPIs } from "@/api/MapApi";
 
 interface IProps {
     snackbarRef: React.RefObject<DASnackbarHandle | null>;

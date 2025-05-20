@@ -8,7 +8,7 @@ import {
     Paper,
 } from "@mui/material";
 import {useLocation, useNavigate} from "react-router-dom"; // import useLocation
-import { AuthServices } from "@/api/authServices.ts";
+import { AuthServices } from "@/api/authServices";
 
 const LoginForm = () => {
     const [username, setUsername] = useState("");

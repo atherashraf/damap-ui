@@ -15,6 +15,7 @@
 import * as React from "react";
 import {Slide, AppBar, Toolbar, IconButton, Typography, Paper} from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import {JSX} from "react";
 
 interface LeftDrawerProps {
   initState?: boolean;
@@ -65,7 +66,7 @@ class LeftDrawer extends React.PureComponent<LeftDrawerProps, LeftDrawerState> {
               // border: "black 1px solid"
           }}>
             {/* AppBar for Heading */}
-            <AppBar position="static" color="primary" sx={{ height: "40px" }}>
+            <AppBar position="static" color="secondary" sx={{ height: "40px" }}>
               <Toolbar variant="dense" sx={{ minHeight: "40px !important", p: 0 }}>
                 <Typography variant="h6" sx={{ flexGrow: 1, fontSize: 16, ml: 1 }}>
                   {heading}

@@ -15,7 +15,7 @@ import LayerCategoryControl from "./LayerCategoryControl";
 import AddLayerCategoryForm from "./AddLayerCategoryForm";
 import { DASnackbarHandle } from "@/components/base/DASnackbar";
 import { DAFullScreenDialogHandle } from "@/components/base/DAFullScreenDialog";
-import MapApi, {MapAPIs} from "@/api/MapApi.ts";
+import MapApi, {MapAPIs} from "@/api/MapApi";
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';

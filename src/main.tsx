@@ -17,9 +17,9 @@ const theme = createTheme({
             contrastText: '#ffffff',
         },
         secondary: {
-            main: '#6f0000',       // Deep maroon (your requested color)
-            light: '#9a1a1a',
-            dark: '#450000',
+            main: '#2c4baa',       // Deep maroon (your requested color)
+            light: '#1d41ad',
+            dark: '#0f2667',
             contrastText: '#ffffff',
         },
         background: {

@@ -2,11 +2,10 @@ import {useParams} from "react-router-dom";
 
 // import TimeSlider, { IDateRange } from "../components/controls/TimeSlider";
 // import MVTLayer from "../layers/da_layers/MVTLayer";
-import {AppBar, Button, Toolbar, Tooltip, Typography} from "@mui/material";
+import {AppBar, Button, Toolbar, Typography, useTheme} from "@mui/material";
 import MapView from "@/components/map/MapView";
-import {getMapVM} from "@/components/map/models/MapVMContext.tsx";
-import {useEffect, useRef} from "react";
-import LOISelector from "@/components/map/toolbar/controls/LOISelector.tsx";
+import {getMapVM} from "@/components/map/models/MapVMContext";
+
 
 interface IProps {
     isEditor?: boolean;
@@ -55,21 +54,21 @@ const DAMap = (props: IProps) => {
         mapVM?.showSnackbar("working map VM", "info")
     }
 
-    const buttonAdded = useRef(false);
-    useEffect(() => {
-        const mapVM = getMapVM();
-
-        if (!buttonAdded.current && mapVM?.getMapToolbar) {
-            mapVM.getMapToolbar().addButton(
-                <Tooltip title="Layer of Interest">
-                    <LOISelector />
-                </Tooltip>
-            );
-            mapVM.setIsDesigner(true);
-            buttonAdded.current = true;
-        }
-    }, []);
-
+    // const buttonAdded = useRef(false);
+    // useEffect(() => {
+    //     const mapVM = getMapVM();
+    //
+    //     if (!buttonAdded.current && mapVM?.getMapToolbar) {
+    //         mapVM.getMapToolbar().addButton(
+    //             <Tooltip title="Layer of Interest">
+    //                 <LOISelector />
+    //             </Tooltip>
+    //         );
+    //         mapVM.setIsDesigner(true);
+    //         buttonAdded.current = true;
+    //     }
+    // }, []);
+    const theme = useTheme()
     return (
         <div style={{width: "100%", height: "calc(100% - 30px)"}}>
             {props.isEditor ? (
@@ -77,6 +76,7 @@ const DAMap = (props: IProps) => {
                     // ref={mapViewRef}
                     uuid={mapId || '-1'}
                     isMap={true}
+                    theme={theme}
                 >
                     <AppBar>
                         <Toolbar>
@@ -87,7 +87,7 @@ const DAMap = (props: IProps) => {
                     </AppBar>
                 </MapView>
             ) : (
-                <MapView uuid={mapId || ''} isMap={true}>
+                <MapView uuid={mapId || ''} isMap={true} theme={theme}>
                     <AppBar position="static" color="default" elevation={2}>
                         <Toolbar variant="dense">
                             <Typography variant="h6" sx={{flexGrow: 1}}>

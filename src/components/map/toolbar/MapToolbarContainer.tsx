@@ -61,18 +61,20 @@
  */
 
 
-import React from "react";
+import React, {JSX} from "react";
 
 import type MapVM from "@/components/map/models/MapVM";
 
-import LayerSwitcherControl from "@/components/map/toolbar/controls/LayerSwitcherControl.tsx";
-import NavigationTreeControl from "@/components/map/toolbar/controls/NavigationTreeControl.tsx";
-import Zoom2Extent from "@/components/map/toolbar/controls/Zoom2Extent.tsx";
-import Identifier from "@/components/map/toolbar/controls/Identifier.tsx";
-import RefreshMap from "@/components/map/toolbar/controls/RefreshMap.tsx";
-import ClearSelection from "@/components/map/toolbar/controls/ClearSelection.tsx";
-import AttributeTableControl from "@/components/map/toolbar/controls/AttributeTableControl.tsx";
-import {MapVMInjectProvider} from "@/components/map/models/MapVMContext.tsx";
+import LayerSwitcherControl from "@/components/map/toolbar/controls/LayerSwitcherControl";
+// import NavigationTreeControl from "@/components/map/toolbar/controls/NavigationTreeControl";
+import Zoom2Extent from "@/components/map/toolbar/controls/Zoom2Extent";
+import Identifier from "@/components/map/toolbar/controls/Identifier";
+import RefreshMap from "@/components/map/toolbar/controls/RefreshMap";
+import ClearSelection from "@/components/map/toolbar/controls/ClearSelection";
+import AttributeTableControl from "@/components/map/toolbar/controls/AttributeTableControl";
+import {MapVMInjectProvider} from "@/components/map/models/MapVMContext";
+import LOISelector from "@/components/map/toolbar/controls/LOISelector";
+import {Tooltip} from "@mui/material";
 
 interface Props {
     mapVM: MapVM;
@@ -80,13 +82,14 @@ interface Props {
 }
 
 const MapToolbarContainer: React.FC<Props> = ({ mapVM, dynamicButtons = [] }) => {
+    // const theme = mapVM.getTheme();
     return (
         <MapVMInjectProvider mapVM={mapVM}>
             {/*<AddLayer />*/}
             <LayerSwitcherControl />
             {/* Add more static buttons as needed */}
             {/*<AddClassificationSurface mapVM={mapVM}/>*/}
-            <NavigationTreeControl />
+            {/*<NavigationTreeControl />*/}
             <Zoom2Extent />
             {/*/!*<RasterArea mapVM={mapVM} drawerRef={mapVM?.getRightDrawerRef()}/>*!/*/}
             <RefreshMap />
@@ -105,6 +108,10 @@ const MapToolbarContainer: React.FC<Props> = ({ mapVM, dynamicButtons = [] }) =>
             {dynamicButtons.map((btn, i) => (
                 <React.Fragment key={i}>{btn}</React.Fragment>
             ))}
+
+            <Tooltip title="Layer of Interest">
+                <LOISelector />
+            </Tooltip>
         </MapVMInjectProvider>
     );
 };

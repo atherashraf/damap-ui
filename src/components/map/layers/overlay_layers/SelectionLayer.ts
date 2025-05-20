@@ -4,7 +4,7 @@ import Feature from "ol/Feature";
 import MapVM from "@/components/map/models/MapVM";
 import {Fill, Stroke, Style} from "ol/style";
 import CircleStyle from "ol/style/Circle";
-import {IGeoJSON} from "@/types/typeDeclarations.ts";
+import {IGeoJSON} from "@/types/typeDeclarations";
 import GeoJSON from "ol/format/GeoJSON";
 import autoBind from "auto-bind";
 import {WKT} from "ol/format";
@@ -12,6 +12,7 @@ import AbstractOverlayLayer from "./AbstractOverlayLayer";
 import {buffer} from "ol/extent";
 import StylingUtils from "../styling/StylingUtils";
 import {Geometry} from "ol/geom";
+
 // import {getPointShapes} from "../../components/styling/vector/symbolizer/PointSymbolizer";
 
 class SelectionLayer extends AbstractOverlayLayer {
@@ -78,12 +79,14 @@ class SelectionLayer extends AbstractOverlayLayer {
         console.log("features", features)
         this.getSource()?.addFeatures(features);
     }
+
     addFeature(Feature: Feature, clearPreviousSelection: boolean = true) {
         if (clearPreviousSelection) {
             this.clearSelection();
         }
         this.getSource()?.addFeature(Feature);
     }
+
     addFeatures(features: Feature[], clearPreviousSelection: boolean = true) {
         if (clearPreviousSelection) {
             this.clearSelection();
@@ -96,30 +99,17 @@ class SelectionLayer extends AbstractOverlayLayer {
         let selStyle;
         if (!g_type) g_type = feature.f;
         if (g_type.indexOf("Point") !== -1) {
-            // selStyle = getPointShapes({
-            //     pointShape: "circle",
-            //     pointSize: 7,
-            //     fillColor: "#00000033",
-            //     strokeColor: "#000000",
-            //     strokeWidth: 3.5
-            // })
-            // const flash_icon = require("../../../static/img/circle_blink.gif")
+
             selStyle = new Style({
                 image: new CircleStyle({
                     radius: 7,
-                    displacement: [-10,0],
+                    displacement: [0, 0],
                     fill: new Fill({color: "#ffff00"}),
                     stroke: new Stroke({
                         color: "#481414",
                         width: 1.5,
                     }),
                 }),
-                // image: new Icon({
-                //     anchor: [0.5, 0.5],
-                //     // opacity: 1,
-                //     // src: '/static/assets/img/icons/flashing_circle.gif'
-                //     src: "data:image/gif;base64," + btoa(flash_icon)
-                // })
             });
             StylingUtils.flash(feature, this.mapVM)
         } else if (g_type.indexOf("LineString") !== -1) {
@@ -198,7 +188,7 @@ class SelectionLayer extends AbstractOverlayLayer {
             const bufferedExtent = buffer([minX, minY, maxX, maxY], 20000);
             this.mapVM.zoomToExtent(bufferedExtent);
         } else {
-            this.mapVM.showSnackbar("No valid features to zoom to","warning");
+            this.mapVM.showSnackbar("No valid features to zoom to", "warning");
         }
     }
 

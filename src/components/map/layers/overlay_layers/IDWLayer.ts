@@ -4,11 +4,12 @@ import VectorSource from "ol/source/Vector";
 import GeoJSON from "ol/format/GeoJSON";
 import ImageLayer from "ol/layer/Image";
 import VectorLayer from "ol/layer/Vector";
-import {IGeoJSON, ILayerInfo} from "../../TypeDeclaration";
+
 import {getVectorContext} from "ol/render";
 import {Fill, Style} from "ol/style";
-import MapVM from "../../models/MapVM.ts";
-import AbstractOverlayLayer from "./AbstractOverlayLayer.ts";
+import MapVM from "../../models/MapVM";
+import AbstractOverlayLayer from "./AbstractOverlayLayer";
+import {IGeoJSON, ILayerInfo} from "@/types/typeDeclarations";
 
 class IDWLayer extends AbstractOverlayLayer {
     //@ts-ignore

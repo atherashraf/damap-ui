@@ -29,7 +29,7 @@
 import * as React from "react";
 import {Box, Button, TextField, Typography} from "@mui/material";
 import MapApi, {MapAPIs} from "@/api/MapApi";
-import {DASnackbarHandle} from "@/components/base/DASnackbar.tsx";
+import {DASnackbarHandle} from "@/components/base/DASnackbar";
 
 interface IProps {
     handleBack: () => void;

@@ -8,6 +8,7 @@
 import * as React from 'react';
 import {AppBar, Box, IconButton, Slide, Toolbar, Typography, Paper, CircularProgress} from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import {JSX} from "react";
 
 interface RightDrawerProps {
 }
@@ -105,6 +106,7 @@ class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState
         document.removeEventListener('mousemove', this.handleMouseMove);
         document.removeEventListener('mouseup', this.handleMouseUp);
     }
+
     isOpen() {
         this.state.open;
     }

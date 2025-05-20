@@ -1,14 +1,16 @@
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
-import MapVM from "../../models/MapVM.ts";
+import MapVM from "@/components/map/models/MapVM";
 import autoBind from "auto-bind";
 import {Style} from "ol/style";
-import {IFeatureStyle, IGeoJSON} from "../../TypeDeclaration";
+
 import {Feature} from "ol";
-import StylingUtils from "../styling/StylingUtils.tsx";
+
 import GeoJSON from "ol/format/GeoJSON";
 import {WKT} from "ol/format";
-import AbstractOverlayLayer from "./AbstractOverlayLayer.ts";
+import AbstractOverlayLayer from "./AbstractOverlayLayer";
+import {IFeatureStyle, IGeoJSON} from "@/types/typeDeclarations";
+import StylingUtils from "../styling/StylingUtils";
 
 // import _ from "../../utils/lodash";
 

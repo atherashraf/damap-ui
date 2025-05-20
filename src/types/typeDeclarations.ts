@@ -4,16 +4,16 @@ import RightDrawer from "@/components/map/drawers/RightDrawer";
 import LeftDrawer from "@/components/map/drawers/LeftDrawer";
 import DADialogBox from "@/components/base/DADialogBox";
 import {pointShapeTypes} from "@/components/map/layer_styling/vector/symbolizer/PointSymbolizer";
-import DAMapLoading from "@/components/map/widgets/DAMapLoading.tsx";
-import TimeSlider from "@/components/map/time_slider/TimeSlider.tsx";
-import {DASnackbarHandle} from "@/components/base/DASnackbar.tsx";
-import BottomDrawer from "@/components/map/drawers/BottomDrawer.tsx";
-import {Column, Row} from "@/types/gridTypeDeclaration.ts";
-import AbstractDALayer from "@/components/map/layers/da_layers/AbstractDALayer.ts";
-import OverlayVectorLayer from "@/components/map/layers/overlay_layers/OverlayVectorLayer.ts";
-import IDWLayer from "@/components/map/layers/overlay_layers/IDWLayer.ts";
-import SelectionLayer from "@/components/map/layers/overlay_layers/SelectionLayer.ts";
-import XYZLayer from "@/components/map/layers/overlay_layers/XYZLayer.ts";
+import DAMapLoading from "@/components/map/widgets/DAMapLoading";
+import  {ITimeSliderHandle} from "@/components/map/time_slider/TimeSlider";
+import {DASnackbarHandle} from "@/components/base/DASnackbar";
+import BottomDrawer from "@/components/map/drawers/BottomDrawer";
+import {Column, Row} from "@/types/gridTypeDeclaration";
+import AbstractDALayer from "@/components/map/layers/da_layers/AbstractDALayer";
+import OverlayVectorLayer from "@/components/map/layers/overlay_layers/OverlayVectorLayer";
+import IDWLayer from "@/components/map/layers/overlay_layers/IDWLayer";
+import SelectionLayer from "@/components/map/layers/overlay_layers/SelectionLayer";
+import XYZLayer from "@/components/map/layers/overlay_layers/XYZLayer";
 
 export interface IBaseMapProps {
     mapVM: MapVM;
@@ -32,7 +32,7 @@ export interface IDomRef {
     dialogBoxRef: RefObject<DADialogBox | null>;
     snackBarRef: RefObject<DASnackbarHandle | null>;
     loadingRef: RefObject<DAMapLoading | null>;
-    timeSliderRef?: RefObject<TimeSlider>;
+    timeSliderRef?: RefObject<ITimeSliderHandle>;
 }
 
 export interface IMapToolbarProps {
@@ -67,6 +67,7 @@ export interface ILayerInfo {
     format?: string
     zIndex?: number
     declutter: boolean
+    dateRangeURL?:string
 }
 
 export interface IMapInfo {

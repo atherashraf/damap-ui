@@ -16,7 +16,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import CheckIcon from "@mui/icons-material/Check";
 import ChangeListToolbar, {Action, IToolbarButton} from "./ChangeListToolbar";
-import {Column, Row} from "@/types/gridTypeDeclaration.ts";
+import {Column, Row} from "@/types/gridTypeDeclaration";
 import MapApi from "@/api/MapApi";
 
 export interface ChangeListHandle {
@@ -31,8 +31,9 @@ interface IProps {
     tableWidth?: string | number;
     buttons?: IToolbarButton[];
     actions?: Action[];
-    modelName: string;
+    modelName?: string;
     pkColName: string;
+    saveURL: string
 }
 
 const ChangeList = forwardRef<ChangeListHandle, IProps>((props, ref) => {
@@ -44,7 +45,6 @@ const ChangeList = forwardRef<ChangeListHandle, IProps>((props, ref) => {
         actions = [],
         tableHeight = "100%",
         tableWidth = "100%",
-        modelName,
         pkColName
     } = props;
 
@@ -69,8 +69,7 @@ const ChangeList = forwardRef<ChangeListHandle, IProps>((props, ref) => {
 
     const saveRow = async (rowIndex: number) => {
         const rowData = data[rowIndex];
-        const payload = await api.post("/your-save-endpoint", {
-            modelName,
+        const payload = await api.post(props.saveURL, {
             pk: {colName: pkColName, colValue: rowData[pkColName]},
             rowData
         });

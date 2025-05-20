@@ -1,6 +1,6 @@
 import { Tile } from "ol/layer";
 import XYZ from "ol/source/XYZ";
-import MapVM from "../../models/MapVM.ts";
+import MapVM from "@/components/map/models/MapVM";
 
 export interface IXYZLayerInfo {
     title: string;

@@ -2,7 +2,7 @@ import OlParser from "geostyler-openlayers-parser";
 import SldParser from "geostyler-sld-parser";
 import LegendRenderer from "geostyler-legend/dist/LegendRenderer/LegendRenderer";
 import olLegendImage from "ol-ext/legend/Image";
-import AbstractDALayer from "@/components/map/layers/da_layers/AbstractDALayer.ts";
+import AbstractDALayer from "@/components/map/layers/da_layers/AbstractDALayer";
 import VectorLayer from "ol/layer/Vector";
 
 interface LayerWithLegend extends VectorLayer {

@@ -1,17 +1,15 @@
-import { Control } from "ol/control.js";
-import { createRoot } from "react-dom/client";
-import { RefObject } from "react";
-import MapVM from "../models/MapVM.ts";
-import TimeSlider, {IDateRange} from "./TimeSlider.tsx";
+import {Control} from "ol/control.js";
+import {createRoot} from "react-dom/client";
+import {RefObject} from "react";
+import MapVM from "../models/MapVM";
+import TimeSlider, {ITimeSliderHandle} from "./TimeSlider";
 
 
 interface IControlOptions {
     target?: any;
     mapVM: MapVM;
-    timeSliderRef: RefObject<{
-        setDateRange: (range: IDateRange) => void;
-    }>;
-    onDateChange: (date: Date) => void;
+    timeSliderRef: RefObject<ITimeSliderHandle>;
+    onDateChange?: (date: Date) => void;
 }
 
 export const formatYmdDate = (date: Date) => {
@@ -23,7 +21,7 @@ export const formatYmdDate = (date: Date) => {
 
 class TimeSliderControl extends Control {
     constructor(opt_options: IControlOptions) {
-        const options: IControlOptions = opt_options || {};
+        const options: IControlOptions = opt_options || {} as IControlOptions;
 
         const element: HTMLDivElement = document.createElement("div");
         element.style.position = "absolute";
@@ -40,9 +38,26 @@ class TimeSliderControl extends Control {
                 ref={options.timeSliderRef}
                 mapVM={options.mapVM}
                 onDateChange={options.onDateChange}
+
             />
         );
-
+        // ✅ Safely access ref after render
+        let attempts = 0;
+        const maxAttempts = 5;
+        const intervalId = setInterval(() => {
+            const current = options.timeSliderRef.current;
+            if (current) {
+                (current as any).hasControl = true;
+                clearInterval(intervalId); // ✅ Stop checking
+                console.log("✅ TimeSliderControl successfully initialized.");
+            } else {
+                attempts++;
+                if (attempts >= maxAttempts) {
+                    clearInterval(intervalId); // ❌ Stop after 5 tries
+                    console.warn("⚠️ TimeSliderControl ref not available after multiple attempts.");
+                }
+            }
+        }, 100); // Check every 50ms (total 250ms max)
         super({
             element: element,
             target: options.target,

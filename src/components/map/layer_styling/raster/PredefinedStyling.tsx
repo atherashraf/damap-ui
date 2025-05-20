@@ -4,7 +4,6 @@ import MapVM from "@/components/map/models/MapVM";
 import { MapAPIs } from "@/api/MapApi";
 import DASelectButton from "@/components/map/widgets/DASelectButton";
 import { MouseEventHandler } from "react";
-import LegendGridJqx from "../atoms/LegendGridJqx";
 
 interface IProps {
   mapVM: MapVM;
@@ -49,9 +48,9 @@ const PredefinedStyling = (props: IProps) => {
                 onChange={(e) => setStyleName(e.target.value as string)}
               />
             </Box>
-            <Box sx={{ flex: 1 }}>
-              <LegendGridJqx />
-            </Box>
+            {/*<Box sx={{ flex: 1 }}>*/}
+            {/*  <LegendGridJqx />*/}
+            {/*</Box>*/}
           </>
         ),
       });

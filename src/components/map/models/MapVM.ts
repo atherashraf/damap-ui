@@ -4,43 +4,46 @@ import "@/assets/css/da-ol.css";
 import Map from "ol/Map.js";
 import View from "ol/View.js";
 import {defaults as defaultControls} from "ol/control";
-import BaseLayers from "../layers/BaseLayers.ts";
-import MapToolbar from "@/components/map/toolbar/MapToolbar.tsx";
-import MVTLayer from "../layers/da_layers/MVTLayer.ts";
+import BaseLayers from "../layers/BaseLayers";
+import MapToolbar from "@/components/map/toolbar/MapToolbar";
+import MVTLayer from "../layers/da_layers/MVTLayer";
 import MapApi, {MapAPIs} from "@/api/MapApi";
-import {RefObject} from "react";
+import {JSX, RefObject} from "react";
 import {
     IFeatureStyle,
     IDomRef,
     ILayerInfo,
     IMapInfo,
-} from "@/types/typeDeclarations.ts";
-import RightDrawer from "@/components/map/drawers/RightDrawer.tsx";
-import LeftDrawer from "@/components/map/drawers/LeftDrawer.tsx";
+} from "@/types/typeDeclarations";
+import RightDrawer from "@/components/map/drawers/RightDrawer";
+import LeftDrawer from "@/components/map/drawers/LeftDrawer";
 import DADialogBox from "@/components/base/DADialogBox";
 // @ts-ignore
 import Legend from "ol-ext/control/Legend";
 // @ts-ignore
 import ol_legend_Legend from "ol-ext/legend/Legend";
-import RasterTileLayer from "../layers/da_layers/RasterTileLayer.ts";
-import AbstractDALayer from "../layers/da_layers/AbstractDALayer.ts";
+import RasterTileLayer from "@/components/map/layers/da_layers/RasterTileLayer";
+import AbstractDALayer from "@/components/map/layers/da_layers/AbstractDALayer";
 
 
 import autoBind from "auto-bind";
 import DAMapLoading from "@/components/map/widgets/DAMapLoading";
-import TimeSlider, {IDateRange} from "@/components/map/time_slider/TimeSlider.tsx";
-// import TimeSliderControl from "@/components/controls/TimeSliderControl";
-import DAVectorLayer from "../layers/da_layers/DAVectorLayer.ts";
-import IDWLayer from "../layers/overlay_layers/IDWLayer.ts";
-import OverlayVectorLayer from "../layers/overlay_layers/OverlayVectorLayer.ts";
-import XYZLayer, {IXYZLayerInfo} from "@/components/map/layers/overlay_layers/XYZLayer.ts";
+import {ITimeSliderHandle} from "@/components/map/time_slider/TimeSlider";
+import DAVectorLayer from "@/components/map/layers/da_layers/DAVectorLayer";
+import IDWLayer from "@/components/map/layers/overlay_layers/IDWLayer";
+import OverlayVectorLayer from "@/components/map/layers/overlay_layers/OverlayVectorLayer";
+import XYZLayer, {IXYZLayerInfo} from "@/components/map/layers/overlay_layers/XYZLayer";
 import BaseLayer from "ol/layer/Base";
-import {DASnackbarHandle} from "@/components/base/DASnackbar.tsx";
-import TimeSliderControl from "@/components/map/time_slider/TimeSliderControl.tsx";
-import BottomDrawer from "@/components/map/drawers/BottomDrawer.tsx";
-import {AlertColor} from "@mui/material";
+import {DASnackbarHandle} from "@/components/base/DASnackbar";
+import BottomDrawer from "@/components/map/drawers/BottomDrawer";
+import {AlertColor, Theme} from "@mui/material";
 
-import SelectionLayer from "@/components/map/layers/overlay_layers/SelectionLayer.ts";
+import SelectionLayer from "@/components/map/layers/overlay_layers/SelectionLayer";
+import {Column, Row} from "@/types/gridTypeDeclaration";
+import {Feature} from "ol";
+import _ from "@/utils/lodash";
+import TimeSliderControl from "@/components/map/time_slider/TimeSliderControl";
+import timeSliderControl from "@/components/map/time_slider/TimeSliderControl";
 
 
 export interface IDALayers {
@@ -56,6 +59,7 @@ interface IXYZLayers {
 }
 
 class MapVM {
+
     // @ts-ignore
     private map: Map;
     daLayers: IDALayers = {};
@@ -84,6 +88,7 @@ class MapVM {
     private attributeTableScrollTop: number = 0;
     private selectionLayer: SelectionLayer | undefined;
     private mapToolbar: MapToolbar;
+    private _theme: Theme | undefined;
 
 
     constructor(domRef: IDomRef, isDesigner: boolean = false) {
@@ -123,18 +128,20 @@ class MapVM {
                 this.mapExtent = mapInfo?.extent;
             }
 
-            mapInfo?.layers?.forEach(async (layer: {
+            mapInfo?.layers?.forEach(async (layerInfo: {
                 uuid: string;
                 style?: IFeatureStyle;
                 visible?: boolean;
                 isBase?: boolean;
                 key?: string
             }, index) => {
-                if (layer.uuid !== "-1") await this.addDALayer(layer, index);
-                else if (layer.isBase) {
-                    baseLayer = layer.key;
+                if (layerInfo.uuid !== "-1") {
+                    await this.addDALayer(layerInfo, index);
+                    if (index == 0) this.setLayerOfInterest(layerInfo.uuid, false);
+                } else if (layerInfo.isBase) {
+                    baseLayer = layerInfo.key;
                 } else {
-                    console.log("weather layer", layer)
+                    console.log("weather layer", layerInfo)
                 }
             });
         }
@@ -167,7 +174,7 @@ class MapVM {
 
     getBaseLayer(): any {
         const layers = this.map.getLayers().getArray();
-        let currentBaseLayer = null;
+        let currentBaseLayer: BaseLayer | null = null;
         layers.forEach(function (layer) {
             if (layer.get('title') === "Base Layers" && layer.getVisible()) {
                 // If it's the layer group and it's visible, get the base layer within the group
@@ -225,13 +232,11 @@ class MapVM {
         return this._domRef.loadingRef;
     }
 
-    setTimeSliderRef(timeSliderRef: RefObject<{
-        setDateRange: (range: IDateRange) => void;
-    }>) {
+    setTimeSliderRef(timeSliderRef: RefObject<ITimeSliderHandle>) {
         this._domRef.timeSliderRef = timeSliderRef;
     }
 
-    getTimeSliderRef(): RefObject<typeof TimeSlider> {
+    getTimeSliderRef(): RefObject<ITimeSliderHandle> {
         // @ts-ignore
         return this._domRef.timeSliderRef;
     }
@@ -469,13 +474,13 @@ class MapVM {
                         daLayer = new RasterTileLayer(payload, this);
                         this.daLayers[payload.uuid] = daLayer;
                     }
-                    if (payload.dataURL) {
-                        console.log("layer info of a temporal layer", payload)
+                    if (payload.dateRangeURL) {
+                        // console.log("layer info of a temporal layer", payload)
                         // console.log("data url", payload.dataURL)
 
                         this.temporalLayers[payload.uuid] = daLayer;
                         const event = new CustomEvent("temporalLayerAdded", {
-                            detail: { uuid: payload.uuid },
+                            detail: {uuid: payload.uuid},
                         });
                         window.dispatchEvent(event);
                     }
@@ -593,47 +598,41 @@ class MapVM {
     }
 
 
-    //@ts-ignore
-    addTimeSliderControl(
-        timeSliderRef: RefObject<{
-            setDateRange: (range: IDateRange) => void;
-        }>,
-        onDateChange: (date: Date) => void
-    ) {
-        /***
-         *         const timeSliderRef: RefObject<TimeSlider> = React.createRef()
-         *         mapVM?.addTimeSliderControl(timeSliderRef, onDateChange);
-         *         const minDate = new Date();
-         *         minDate.setDate(minDate.getDate() - 10)
-         *         const s: IDateRange = {
-         *             minDate: minDate,
-         *             maxDate: new Date()
-         *         }
-         *         setTimeout(() => timeSliderRef?.current?.setDateRange(s), 2000)
-         */
-        this.setTimeSliderRef(timeSliderRef);
-        //@ts-ignore
-        const map = this.getMap();
-
-        if (map && timeSliderRef) {
-            // setMapVM(mapViewRef.current?.getMapVM());
-            // const url = MapApi.getURL(AppAPIs.FF_DISCHARGE_DATE_RANGE)
-            const slider = new TimeSliderControl({
-                //@ts-ignore
-                mapVM: this,
-                timeSliderRef: timeSliderRef,
-                onDateChange: onDateChange,
-            });
-            //@ts-ignore
-            map.addControl(slider);
-            return slider;
-        }
-    }
-
     /***
      New  functionalities
      ***/
 
+
+
+
+
+    getSelectionLayer() {
+        return this.selectionLayer;
+    }
+
+    hasTemporalLayers() {
+        return Object.keys(this.temporalLayers).length > 0;
+    }
+
+    addTimeSliderControl(timeSliderRef, onDateChange?: (selectedDate: Date) => void): timeSliderControl {
+        console.log("MapPanel: adding time slider control");
+        const timeSliderControl = new TimeSliderControl({
+            mapVM: this,
+            timeSliderRef,
+            onDateChange
+        });
+        this.getMap()?.addControl(timeSliderControl);
+        this.setTimeSliderRef(timeSliderRef)
+        return timeSliderControl
+    }
+
+    getTemporalLayers(uuid: string) {
+        return this.temporalLayers[uuid];
+    }
+
+    getTemporalLayerTitles() {
+        return Object.keys(this.temporalLayers).map(uuid => this.temporalLayers[uuid].getLayerTitle())
+    }
 
     setAttributeTableState(state: { selectedRowKey?: string | null; scrollTop?: number }) {
         if ('selectedRowKey' in state) {
@@ -651,24 +650,82 @@ class MapVM {
         };
     }
 
+    openAttributeTable = (tableHeight = 250) => {
+        const bottomDrawer = this.getBottomDrawerRef();
+        const drawerRef = bottomDrawer.current;
+        if (!drawerRef) return;
 
-    getSelectionLayer() {
-        return this.selectionLayer;
+        const uuid = this.getLayerOfInterest();
+        if (!uuid) {
+            this.showSnackbar("Please select a layer to view its attributes");
+            return;
+        }
+
+        if (drawerRef.isOpen()) {
+            if (drawerRef.isHidden?.()) {
+                drawerRef.handleUnhide?.();
+            }
+            return;
+        }
+
+        if (this.isDALayerExists(uuid)) {
+            this.getApi()
+                .get(MapAPIs.DCH_LAYER_ATTRIBUTES, {uuid})
+                .then((payload: { columns: Column[]; rows: Row[]; pkCols: string[] }) => {
+                    if (payload) {
+                        bottomDrawer?.current?.requestAttributeTable({
+                            columns: payload.columns,
+                            rows: payload.rows,
+                            pkCols: payload.pkCols,
+                            tableHeight: tableHeight,
+                        });
+                    } else {
+                        drawerRef.closeDrawer();
+                        this.getSnackbarRef()?.current?.show("No attribute found");
+                    }
+                })
+                .catch(() => {
+                    drawerRef.closeDrawer();
+                    this.getSnackbarRef()?.current?.show("No attribute found");
+                });
+        } else if (this.isOverlayLayerExist(uuid)) {
+            const overlayLayer = this.getOverlayLayer(uuid);
+            const features = overlayLayer.getFeatures();
+            const columns: Column[] = [];
+            const rows: Row[] = [];
+            features?.forEach((feature: Feature, index) => {
+                const id = feature.getId();
+                const properties = feature.getProperties();
+                if (index === 0) {
+                    Object.keys(properties).forEach((key) => {
+                        columns.push({
+                            disablePadding: false,
+                            id: key,
+                            label: key,
+                            type: _.checkPrimitivesType(properties[key]),
+                        });
+                    });
+                }
+                //@ts-ignore
+                rows.push({...properties, rowId: parseFloat(id)});
+            });
+
+            bottomDrawer?.current?.requestAttributeTable({
+                columns,
+                rows,
+                pkCols: ["id"],
+                tableHeight: tableHeight,
+            });
+        }
+    };
+
+    setTheme(theme: Theme) {
+        this._theme = theme
     }
 
-    hasTemporalLayers() {
-        return Object.keys(this.temporalLayers).length > 0;
+    getTheme(): Theme | undefined {
+        return this._theme
     }
-
-    getTemporalLayers(uuid: string) {
-        return this.temporalLayers[uuid];
-    }
-
-    getTemporalLayerTitles() {
-        return Object.keys(this.temporalLayers).map(uuid => this.temporalLayers[uuid].getLayerTitle())
-    }
-
-
 }
 
 export default MapVM;

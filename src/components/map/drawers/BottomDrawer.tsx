@@ -1,7 +1,9 @@
-import * as React from 'react';
 import { Box, IconButton, CircularProgress, Slide } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import {AttributeTableRequest} from "@/types/typeDeclarations";
+import AttributeTable from "@/components/map/table/AttributeTable";
+import {JSX, PureComponent} from "react";
 
 
 
@@ -18,7 +20,7 @@ interface BottomDrawerState {
     isHidden: boolean;
 }
 
-class BottomDrawer extends React.PureComponent<BottomDrawerProps, BottomDrawerState> {
+class BottomDrawer extends PureComponent<BottomDrawerProps, BottomDrawerState> {
     // originalMapHeight: number | null = null;
 
     constructor(props: BottomDrawerProps) {
@@ -108,6 +110,25 @@ class BottomDrawer extends React.PureComponent<BottomDrawerProps, BottomDrawerSt
         document.addEventListener('mousemove', moveHandler);
         document.addEventListener('mouseup', upHandler);
     };
+
+    requestAttributeTable = (request: AttributeTableRequest) => {
+        const  {columns, rows, pkCols, } = request;
+        const tableHeight = request.tableHeight || 200
+        const toolbarHeight = 100; // Adjust if needed
+        const drawerHeight = toolbarHeight + tableHeight ;
+        const attributeGrid = (
+            <AttributeTable
+                columns={columns}
+                data={rows}
+                pkCols={pkCols}
+                tableHeight={tableHeight}
+            />);
+        // const bottomDrawer = this.getBottomDrawerRef()
+        // bottomDrawer?.current.setContent(attributeGrid);
+        // bottomDrawer?.current.openDrawer(drawerHeight );
+        this.setContent(attributeGrid);
+        this.openDrawer(drawerHeight)
+    }
 
     render() {
         const { open, paperHeight, content, isLoading, isHidden } = this.state;

@@ -1,11 +1,42 @@
 {
-  "extends": "./tsconfig.app.json",
   "compilerOptions": {
-    "noEmit": false,
-    "emitDeclarationOnly": false,
-    "outDir": "dist",
+    "target": "ES6",
+    "module": "ESNext",
+    "moduleResolution": "node",         // ✅ Use Node-style for better .d.ts path resolution
+    "lib": ["DOM", "ESNext"],
     "declaration": true,
-    "declarationMap": true
+    "emitDeclarationOnly": true,
+    "declarationMap": true,            // ❌ Optional, but typically skipped in library dist
+    "outDir": "./dist",
+    "rootDir": "./src",
+
+    "jsx": "react-jsx",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "importHelpers": true,
+
+    "strict": true,                     // ✅ Recommended for clean typings
+    "noImplicitAny": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": true,
+    "forceConsistentCasingInFileNames": true,
+    "removeComments": true,
+
+    "isolatedModules": true,
+    "allowImportingTsExtensions": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "moduleDetection": "force",
   },
   "include": ["src"]
 }

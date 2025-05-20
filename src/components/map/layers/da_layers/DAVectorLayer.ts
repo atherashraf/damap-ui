@@ -1,13 +1,13 @@
-import AbstractDALayer from "./AbstractDALayer.ts";
+import AbstractDALayer from "./AbstractDALayer";
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 import GeoJSON from "ol/format/GeoJSON";
-import {IGeoJSON} from "@/types/typeDeclarations.ts";
-import MapApi, {MapAPIs} from "@/api/MapApi";
+import {IGeoJSON} from "@/types/typeDeclarations";
+import  {MapAPIs} from "@/api/MapApi";
 import pako from "pako";
 
 import {WKT} from "ol/format";
-import {formatYmdDate} from "@/components/map/time_slider/TimeSliderControl.tsx";
+import {formatYmdDate} from "@/components/map/time_slider/TimeSliderControl";
 import {Feature} from "ol";
 
 class DAVectorLayer extends AbstractDALayer {
@@ -130,7 +130,7 @@ class DAVectorLayer extends AbstractDALayer {
         if (date.toString() !== "Invalid Date") {
             const params = "date=" + formatYmdDate(date);
             const apiURL = this.layerInfo.dataURL;
-            const url = apiURL && MapApi.getURL(apiURL) + "?" + params;
+            const url = apiURL + "?" + params;
             if (url) {
                 this.mapVM
                     .getApi()

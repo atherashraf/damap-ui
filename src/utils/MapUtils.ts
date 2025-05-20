@@ -3,10 +3,10 @@ import { MapAPIs } from "@/api/MapApi";
 import GeoJSON from "ol/format/GeoJSON";
 
 import "@/assets/css/side-drawer.css";
-import MapVM from "@/components/map/models/MapVM.ts";
+import MapVM from "@/components/map/models/MapVM";
 import {Layer} from "ol/layer";
 import {Source} from "ol/source";
-import mapVM from "@/components/map/models/MapVM.ts";
+import mapVM from "@/components/map/models/MapVM";
 import "@/assets/css/identifier-table.css"
 
 class MapUtils {

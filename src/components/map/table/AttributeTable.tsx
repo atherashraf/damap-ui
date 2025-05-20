@@ -1,19 +1,18 @@
 import React, {useRef, useState, useMemo, useEffect} from "react";
 import {
     Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton,
-    Toolbar, Typography, useTheme, TextField, Tooltip, alpha
+    Toolbar, Typography,  TextField, Tooltip, alpha
 } from "@mui/material";
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import CloseIcon from '@mui/icons-material/Close';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { WKT } from "ol/format";
-import * as XLSX from "xlsx";
-import DAFullScreenDialog, { DAFullScreenDialogHandle } from "@/components/base/DAFullScreenDialog.tsx";
-import { MapAPIs } from "@/api/MapApi.ts";
-import MapVM from "@/components/map/models/MapVM.ts";
-import PivotTable from "@/components/map/table/PivotTable.tsx";
-import {Column, Row} from "@/types/gridTypeDeclaration.ts";
+import DAFullScreenDialog, { DAFullScreenDialogHandle } from "@/components/base/DAFullScreenDialog";
+import { MapAPIs } from "@/api/MapApi";
+import PivotTable from "@/components/map/table/PivotTable";
+import {Column, Row} from "@/types/gridTypeDeclaration";
+import {getMapVM} from "@/components/map/models/MapVMContext";
 
 
 
@@ -23,22 +22,24 @@ interface IDataGridProps {
     data: Row[];
     tableHeight: number;
     pkCols: string[];
-    mapVM: MapVM;
     pivotTableSrc?: string;
 }
 
 
 
 const AttributeTable: React.FC<IDataGridProps> = ({
-                                                      columns, data, tableHeight, pkCols, mapVM
+                                                      columns, data, tableHeight, pkCols,
                                                   }: IDataGridProps) => {
+    const mapVM =getMapVM();
     const containerRef = useRef<HTMLDivElement>(null);
     const { selectedRowKey, scrollTop } = mapVM.getAttributeTableState();
     const selectedRowKeyRef = useRef<string | null>(selectedRowKey);
     const [, forceUpdate] = useState(0); // dummy state to trigger re-render
     const [searchText, setSearchText] = useState('');
     const dialogRef = useRef<DAFullScreenDialogHandle>(null);
-    const theme = useTheme();
+
+    const theme = mapVM.getTheme()
+
 
     const getSelectedRowPKValue = (row: Row) =>
         pkCols.map(col => row[col]).join('__');
@@ -64,6 +65,7 @@ const AttributeTable: React.FC<IDataGridProps> = ({
             node.addEventListener('scroll', onScroll);
             return () => node.removeEventListener('scroll', onScroll);
         }
+        return () => {};
     }, []);
 
     const handleRowDoubleClick = (row: Row) => {
@@ -118,19 +120,32 @@ const AttributeTable: React.FC<IDataGridProps> = ({
     };
 
     const handleExport = () => {
-        const exportData = filteredData.map(row => {
-            const cleanedRow: Record<string, any> = {};
-            columns.forEach(col => {
-                cleanedRow[col.label] = row[col.id];
-            });
-            return cleanedRow;
-        });
+        // Prepare CSV header
+        const header = columns.map(col => `"${col.label}"`).join(",") + "\n";
 
-        const worksheet = XLSX.utils.json_to_sheet(exportData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Export");
-        XLSX.writeFile(workbook, "attribute_data.xlsx");
+        // Prepare CSV rows
+        const rows = filteredData.map(row =>
+            columns.map(col => {
+                const cell = row[col.id];
+                // Escape quotes in cell values
+                const escaped = typeof cell === "string" ? cell.replace(/"/g, '""') : cell;
+                return `"${escaped}"`;
+            }).join(",")
+        ).join("\n");
+
+        // Combine header and rows
+        const csvContent = header + rows;
+
+        // Create blob and trigger download
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        link.href =  URL.createObjectURL(blob);
+        link.setAttribute("download", "attribute_data.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
+
 
     const filteredData = useMemo(() => {
         if (!searchText) return data;
@@ -163,7 +178,7 @@ const AttributeTable: React.FC<IDataGridProps> = ({
     return (
         <Box>
             <Toolbar sx={{
-                backgroundColor: theme.palette.secondary.main,
+                backgroundColor: theme?.palette.secondary.main,
                 boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
                 borderRadius: '6px',
                 minHeight: '36px !important',
@@ -171,19 +186,19 @@ const AttributeTable: React.FC<IDataGridProps> = ({
                 py: 0.5,
                 gap: 1,
                 flexWrap: 'wrap'
-            }}>
+            }} >
                 <IconButton key="zoom-btn" title="Zoom to Selection" onClick={handleZoom}>
-                    <ZoomInIcon sx={{ color: theme.palette.secondary.contrastText }} />
+                    <ZoomInIcon sx={{ color: theme?.palette.secondary.contrastText }} />
                 </IconButton>
                 <IconButton key="clear-btn" title="Clear Selection" onClick={handleClear}>
-                    <CloseIcon sx={{ color: theme.palette.secondary.contrastText }} />
+                    <CloseIcon sx={{ color: theme?.palette.secondary.contrastText }} />
                 </IconButton>
                 <IconButton key="pivot-btn" title="Pivot Table" onClick={handlePivot}>
-                    <TableChartIcon sx={{ color: theme.palette.secondary.contrastText }} />
+                    <TableChartIcon sx={{ color: theme?.palette.secondary.contrastText }} />
                 </IconButton>
-                <Tooltip title="Export to Excel" key="export-btn">
+                <Tooltip title="Export to CSV" key="export-btn">
                     <IconButton onClick={handleExport}>
-                        <FileDownloadIcon sx={{ color: theme.palette.secondary.contrastText }} />
+                        <FileDownloadIcon sx={{ color: theme?.palette.secondary.contrastText }} />
                     </IconButton>
                 </Tooltip>
 
@@ -197,7 +212,7 @@ const AttributeTable: React.FC<IDataGridProps> = ({
                         width: 220,
                         backgroundColor: '#fff',
                         borderRadius: 1,
-                        '& input': { color: theme.palette.secondary.main },
+                        '& input': { color: theme?.palette.secondary.main },
                     }}
                     value={searchText}
                     onChange={e => setSearchText(e.target.value)}
@@ -206,7 +221,7 @@ const AttributeTable: React.FC<IDataGridProps> = ({
                 <Typography
                     key="row-count"
                     variant="subtitle2"
-                    sx={{ ml: 2, color: theme.palette.secondary.contrastText }}
+                    sx={{ ml: 2, color: theme?.palette.secondary.contrastText }}
                 >
                     Rows: {filteredData.length}
                 </Typography>
@@ -256,11 +271,11 @@ const AttributeTable: React.FC<IDataGridProps> = ({
                                         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
                                     },
                                     ...(isSelected(row) && {
-                                        bgcolor: `${alpha(theme.palette.secondary.light, 0.9)} !important`,
-                                        boxShadow: `0 3px 10px ${alpha(theme.palette.secondary.main, 0.6)}`,
-                                        color: theme.palette.secondary.contrastText,
+                                        bgcolor: `${theme && alpha(theme?.palette?.secondary.light, 0.9)} !important`,
+                                        boxShadow: `0 3px 10px ${theme && alpha(theme?.palette.secondary.main, 0.6)}`,
+                                        color: theme?.palette.secondary.contrastText,
                                         '& td': {
-                                            color: theme.palette.secondary.contrastText,
+                                            color: theme?.palette.secondary.contrastText,
                                             fontWeight: 500,
                                         },
                                     }),

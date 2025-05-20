@@ -1,7 +1,7 @@
 import MapVM from "@/components/map/models/MapVM";
 import * as React from "react";
-import {DAFieldSet, DASelect} from "@/components/styled/styledMapComponents.ts";
-import PseudoColor from "./raster/PseudoColor.tsx";
+import {DAFieldSet, DASelect} from "@/components/styled/styledMapComponents";
+import PseudoColor from "./raster/PseudoColor";
 import {MapAPIs} from "@/api/MapApi";
 import {
     FormControl,
@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 // import PredefinedStyling from "./raster/PredefinedStyling";
 import SLDForm from "./SLDForm";
-import MinMaxStretch from "@/components/map/layer_styling/raster/MinMaxStretch.tsx";
+import MinMaxStretch from "@/components/map/layer_styling/raster/MinMaxStretch";
 
 interface IRasterStylingProps {
     mapVM: MapVM;

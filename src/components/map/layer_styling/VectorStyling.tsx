@@ -6,7 +6,7 @@ import {
   MenuItem,
   SelectChangeEvent,
 } from "@mui/material";
-import { DAFieldSet, DASelect } from "@/components/styled/styledMapComponents.ts";
+import { DAFieldSet, DASelect } from "@/components/styled/styledMapComponents";
 import SingleStyleForm from "./vector/SingleStyleForm";
 import DensityStyleForm from "./vector/DensityStyleForm";
 import MultipleStyleForm from "./vector/MultipleStyleForm";

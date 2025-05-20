@@ -1,13 +1,12 @@
-import {mapDivInfo} from "@/components/map/MapView.tsx";
-import {IconButton, useTheme} from "@mui/material";
+import {mapDivInfo} from "@/components/map/MapView";
+import {alpha, IconButton, useTheme} from "@mui/material";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import React, {Fragment, useEffect, useRef, useState} from "react";
-import {useMapVM} from "@/components/map/models/MapVMContext.tsx";
-import {MapAPIs} from "@/api/MapApi.ts";
-import {IMapInfo} from "@/types/typeDeclarations.ts";
-import TimeSliderControl from "@/components/map/time_slider/TimeSliderControl.tsx";
-import TimeSlider from "@/components/map/time_slider/TimeSlider.tsx";
+import {useMapVM} from "@/components/map/models/MapVMContext";
+import {MapAPIs} from "@/api/MapApi";
+import {IMapInfo} from "@/types/typeDeclarations";
+import {ITimeSliderHandle} from "@/components/map/time_slider/TimeSlider";
 import {Control} from "ol/control";
 
 interface IMapPanelProps {
@@ -25,8 +24,23 @@ const MapPanel = ({isMap, uuid, isEditor, children}: IMapPanelProps) => {
     uuid = uuid || "-1";
     const toolbarRef = useRef<HTMLDivElement>(null);
     const [toolbarHeight, setToolbarHeight] = useState(0);
-    const timeSliderRef = useRef<TimeSlider>(null!);
+    const timeSliderRef = useRef<ITimeSliderHandle>(null!);
     const [timeSliderControl, setTimeSliderControl] = useState<Control | null>(null);
+
+    const style = document.createElement('style');
+    style.innerHTML = `.ol-control {
+                background-color: ${alpha(theme.palette.secondary.dark, 0.2)} !important;
+                color: ${theme.palette.secondary.contrastText} !important;
+          }
+          .ol-control button {
+                background-color: ${theme.palette.secondary.main} !important;
+                color: ${theme.palette.secondary.contrastText} !important;
+                min-width: 30px;
+                min-height: 30px;
+                color: white !important;
+            }`;
+    document.head.appendChild(style);
+
     useEffect(() => {
         if (toolbarRef.current) {
             const height = toolbarRef.current.getBoundingClientRect().height;
@@ -44,6 +58,7 @@ const MapPanel = ({isMap, uuid, isEditor, children}: IMapPanelProps) => {
                     const mapInfo: IMapInfo = {...payload, isEditor};
                     if (!mapVM.isInit) mapVM.initMap(mapInfo);
                     mapVM.setTarget(mapDivId);
+
                 });
         } else if (isMap) {
             const mapInfo: IMapInfo = {uuid: uuid || "-1", isEditor, layers: []};
@@ -67,30 +82,20 @@ const MapPanel = ({isMap, uuid, isEditor, children}: IMapPanelProps) => {
                 // mapVM.setDomRef(domRefs);
             }
         }
+        mapVM.setTheme(theme)
     }, [uuid, isMap, isEditor]);
 
     useEffect(() => {
 
         const handleTemporalLayerAdded = (_: any) => {
-            console.log("MapPanel: temporal layers", mapVM.getTemporalLayerTitles());
 
-            //@ts-ignore
             if (mapVM.hasTemporalLayers() && !timeSliderRef.current?.hasControl) {
-                console.log("MapPanel: adding time slider control");
-                const newControl = new TimeSliderControl({
-                    mapVM,
-                    timeSliderRef,
-                    onDateChange: (selectedDate: Date) => {
-                        console.log("Selected temporal date:", selectedDate.toISOString());
-                    },
-                });
-                mapVM.getMap()?.addControl(newControl);
+                // const onDateChange = (selectedDate: Date) => {
+                //     console.log("Selected temporal date:", selectedDate.toISOString());
+                // }
+                const newControl = mapVM.addTimeSliderControl(timeSliderRef);
                 setTimeSliderControl(newControl);
 
-                // Optional: Mark control as added if you use a flag
-                if (timeSliderRef.current) {
-                    (timeSliderRef.current as any).hasControl = true;
-                }
             }
         };
 

@@ -8,10 +8,11 @@ import {AuthServices} from "@/api/authServices";
 // API endpoint constants
 export const MapAPIs = Object.freeze({
     API_OAUTH_LOGIN: "api/jwt/oauth/login/{type}/",
-    API_TOKEN: "api/jwt/token/",
-    API_REFRESH_ACCESS_TOKEN: "api/jwt/refresh_access_token/",
-    API_LOGIN_JSON: "api/jwt/auth/login/json",
-    API_VERIFY_TOKEN: "api/jwt/token/verify/",
+    API_TOKEN: "api/auth/jwt/token/",
+    API_REFRESH_ACCESS_TOKEN: "api/auth/jwt/refresh_access_token/",
+    API_LOGIN_JSON: "api/auth/jwt/login/json",
+    API_VERIFY_TOKEN: "api/auth/jwt/token/verify",
+
     DCH_LAYER_INFO: "api/dch/layer_info/{uuid}/",
     DCH_ALL_LAYER_INFO: "api/dch/all_layer_info/",
     DCH_LAYER_EXTENT: "api/dch/layer_extent/{uuid}/",

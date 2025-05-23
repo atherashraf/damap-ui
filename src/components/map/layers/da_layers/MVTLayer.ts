@@ -39,7 +39,7 @@ class MVTLayer extends AbstractDALayer {
     }
 
     tileUrlFunction(tileCoord: any) {
-        let url = `${this.getDataURL()}{tileSize}/{z}/{x}/{y}/?${this.urlParams}`;
+        let url = `${this.getDataURL()}{tileSize}/{z}/{x}/{y}?${this.urlParams}`;
         let cols: string[] = [];
         if (
             this.style &&
@@ -64,7 +64,7 @@ class MVTLayer extends AbstractDALayer {
         if (url.includes("{uuid}") && this.layerInfo.uuid) {
             finalUrl = finalUrl.replace("{uuid}", this.layerInfo.uuid);
         }
-        console.log("final url", finalUrl)
+        // console.log("final url", finalUrl)
 
         return finalUrl;
 

@@ -6,6 +6,7 @@ import ChangeList, { ChangeListHandle } from "@/components/admin/ChangeList";
 import {Column, Row} from "@/types/gridTypeDeclaration";
 import {Action} from "@/components/admin/ChangeListToolbar";
 import MapApi, {MapAPIs} from "@/api/MapApi";
+import {Box, Paper, Typography} from "@mui/material";
 
 const snackbarRef: RefObject<DASnackbarHandle | null> = React.createRef<DASnackbarHandle>();
 const changeListRef = React.createRef<ChangeListHandle>();
@@ -112,7 +113,13 @@ const MapInfo = () => {
                     saveURL={MapApi.getURL(MapAPIs.DCH_SAVE_MAP_INFO)}
                 />
             ) : (
-                <React.Fragment/>
+                <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                    <Paper elevation={3} sx={{padding: 3}}>
+                        <Typography variant="h6" align="center" color="text.secondary">
+                            No Data Available
+                        </Typography>
+                    </Paper>
+                </Box>
             )}
             <DASnackbar ref={snackbarRef}/>
         </React.Fragment>

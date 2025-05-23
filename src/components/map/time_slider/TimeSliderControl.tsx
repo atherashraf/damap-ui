@@ -49,7 +49,7 @@ class TimeSliderControl extends Control {
             if (current) {
                 (current as any).hasControl = true;
                 clearInterval(intervalId); // ✅ Stop checking
-                console.log("✅ TimeSliderControl successfully initialized.");
+                // console.log("✅ TimeSliderControl successfully initialized.");
             } else {
                 attempts++;
                 if (attempts >= maxAttempts) {

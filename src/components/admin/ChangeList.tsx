@@ -73,10 +73,11 @@ const ChangeList = forwardRef<ChangeListHandle, IProps>((props, ref) => {
             pk: {colName: pkColName, colValue: rowData[pkColName]},
             rowData
         });
-
         if (payload) {
             api.snackbarRef?.current?.show("Saved successfully", "success");
             setEditableRowIndex(null);
+        }else{
+            api.snackbarRef?.current?.show("fail to save data please correct it", "error");
         }
     };
 

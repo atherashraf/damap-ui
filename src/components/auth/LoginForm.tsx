@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useRef, useState} from "react";
 import {
     Box,
     TextField,
@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import {useLocation, useNavigate} from "react-router-dom"; // import useLocation
 import { AuthServices } from "@/api/authServices";
+import DASnackbar, {DASnackbarHandle} from "@/components/base/DASnackbar";
 
 const LoginForm = () => {
     const [username, setUsername] = useState("");
@@ -17,7 +18,7 @@ const LoginForm = () => {
 
     const navigate = useNavigate();
     const location = useLocation(); // Get the current location
-
+    const snackbarRef = useRef<DASnackbarHandle>(null)
     // Get the intended path the user wanted to access
     const from = (location.state as { from?: Location })?.from?.pathname || "/";
 
@@ -29,6 +30,9 @@ const LoginForm = () => {
 
         if (result) {
             navigate(from); // 🔥 Go back to the page the user originally tried to access
+        }else{
+            // alert("Invalid username or password");
+            snackbarRef.current?.show("Invalid username or password", "error");
         }
         setLoading(false);
     };
@@ -70,6 +74,7 @@ const LoginForm = () => {
                     {loading ? <CircularProgress size={24} /> : "Login"}
                 </Button>
             </Box>
+            <DASnackbar ref={snackbarRef} />
         </Paper>
     );
 };

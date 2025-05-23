@@ -615,7 +615,7 @@ class MapVM {
     }
 
     addTimeSliderControl(timeSliderRef, onDateChange?: (selectedDate: Date) => void): timeSliderControl {
-        console.log("MapPanel: adding time slider control");
+        // console.log("MapPanel: adding time slider control");
         const timeSliderControl = new TimeSliderControl({
             mapVM: this,
             timeSliderRef,

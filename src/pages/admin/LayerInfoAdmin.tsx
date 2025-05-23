@@ -44,6 +44,7 @@ import MapApi, {MapAPIs} from "@/api/MapApi";
 import AddRasterLayerInfo from "@/components/admin/forms/AddRasterLayerInfo";
 import AddVectorLayerInfo from "@/components/admin/forms/AddVectorLayerInfo";
 import AddURLLayerInfo from "@/components/admin/forms/AddURLLayerInfo";
+import {Box, Paper, Typography} from "@mui/material";
 
 // Typed references
 const LayerInfoAdmin = () => {
@@ -188,7 +189,9 @@ const LayerInfoAdmin = () => {
     return (
         <React.Fragment>
             {/* Table */}
-            {columns.length > 0 && (
+
+
+            {columns.length > 0 ? (
                 <ChangeList
                     ref={changeListRef}
                     columns={columns}
@@ -198,9 +201,17 @@ const LayerInfoAdmin = () => {
                     tableWidth="100%"
                     api={api}
                     actions={actions}
-                    buttons={[]} // (optional) Add toolbar buttons if needed
+                    buttons={[]}
                     saveURL={MapAPIs.DCH_SAVE_LAYER_INFO}
                 />
+            ) : (
+                <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                    <Paper elevation={3} sx={{padding: 3}}>
+                        <Typography variant="h6" align="center" color="text.secondary">
+                            No Data Available
+                        </Typography>
+                    </Paper>
+                </Box>
             )}
 
             {/* Snackbar Notifications */}

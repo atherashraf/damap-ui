@@ -28,7 +28,7 @@
 
 import { useState, forwardRef, useImperativeHandle } from "react";
 import {AppBar, Toolbar, Tooltip, Button, Select, MenuItem, Box, TextField} from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
+// import EditIcon from "@mui/icons-material/Edit";
 
 export interface Action {
     name: string;
@@ -66,14 +66,14 @@ const ChangeListToolbar = forwardRef((props: IProps, ref) => {
 
     function getBasicButtons(): IToolbarButton[] {
         return [
-            {
-                id: "edit-button",
-                title: "Edit",
-                imgSrc: EditIcon,
-                onClick: () => {
-                    props.parent?.startEditing();
-                },
-            },
+            // {
+            //     id: "edit-button",
+            //     title: "Edit",
+            //     imgSrc: EditIcon,
+            //     onClick: () => {
+            //         props.parent?.startEditing();
+            //     },
+            // },
         ];
     }
 

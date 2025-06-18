@@ -4,7 +4,7 @@ import {useParams} from "react-router-dom";
 // import MVTLayer from "../layers/da_layers/MVTLayer";
 import {AppBar, Button, Toolbar, Typography, useTheme} from "@mui/material";
 import MapView from "@/components/map/MapView";
-import {getMapVM} from "@/components/map/models/MapVMContext";
+import {getMapVM} from "@/hooks/MapVMContext";
 
 
 interface IProps {

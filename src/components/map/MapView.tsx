@@ -10,7 +10,7 @@ import RightDrawer from "@/components/map/drawers/RightDrawer";
 import LeftDrawer from "./drawers/LeftDrawer";
 import {Paper, Theme} from "@mui/material";
 import CustomAlertBox from "@/components/base/CustomAlertBox";
-import {MapVMProvider} from "@/components/map/models/MapVMContext";
+import {MapVMProvider} from "@/hooks/MapVMContext";
 import MapPanel from "@/components/map/MapPanel";
 import {ThemeProvider} from "@mui/material/styles";
 

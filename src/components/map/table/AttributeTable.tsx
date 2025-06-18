@@ -12,7 +12,7 @@ import DAFullScreenDialog, { DAFullScreenDialogHandle } from "@/components/base/
 import { MapAPIs } from "@/api/MapApi";
 import PivotTable from "@/components/map/table/PivotTable";
 import {Column, Row} from "@/types/gridTypeDeclaration";
-import {getMapVM} from "@/components/map/models/MapVMContext";
+import {getMapVM} from "@/hooks/MapVMContext";
 
 
 

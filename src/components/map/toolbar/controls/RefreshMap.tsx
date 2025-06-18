@@ -1,7 +1,7 @@
 
 import { IconButton, Tooltip } from "@mui/material";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
-import {useMapVM} from "@/components/map/models/MapVMContext";
+import {useMapVM} from "@/hooks/MapVMContext";
 
 const RefreshMap = () => {
   const mapVM = useMapVM();

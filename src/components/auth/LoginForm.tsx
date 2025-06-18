@@ -21,14 +21,16 @@ const LoginForm = () => {
     const snackbarRef = useRef<DASnackbarHandle>(null)
     // Get the intended path the user wanted to access
     const from = (location.state as { from?: Location })?.from?.pathname || "/";
-
+    // console.log(from);
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
 
         const result = await AuthServices.performLogin(username, password);
-
+        // console.log(result)
         if (result) {
+            snackbarRef.current?.show("Login Successful routing to "+ from, "success");
+
             navigate(from); // 🔥 Go back to the page the user originally tried to access
         }else{
             // alert("Invalid username or password");

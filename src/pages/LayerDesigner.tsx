@@ -6,7 +6,7 @@ import { useRef, useEffect} from "react";
 // import MVTLayer from "@/components/map/layers/da_layers/MVTLayer";
 // import TimeSliderControl from "@/components/map/time_slider/TimeSliderControl";
 import {AppBar, Button, IconButton, Toolbar, Tooltip, Typography, useTheme} from "@mui/material";
-import {getMapVM} from "@/components/map/models/MapVMContext";
+import {getMapVM} from "@/hooks/MapVMContext";
 import SymbologyControl from "@/components/map/toolbar/controls/SymbologyControl";
 import AddIcon from "@mui/icons-material/Add"; // any icon you prefer
 

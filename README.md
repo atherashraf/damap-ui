@@ -11,7 +11,17 @@
 ```bash
 npm install damap
 ```
+For peer dependencies, install
 
+```bash
+npm install \
+@emotion/react@^11.0.0 \
+@emotion/styled@^11.0.0 \
+@mui/material@^7.0.0 \
+ol@^10.5.0 \
+ol-ext@^4.0.31
+
+```
 ### 2. Environment Variables
 
 Create a `.env` file in the root of your project with one of the following configurations:
@@ -347,6 +357,7 @@ mapVM.getApi().get(`/api/layer/info?uuid=your-layer-uuid`).then(layerInfo => {
 });
 
 ```
+
 ---
 ## 👨‍💻 Developed by
 

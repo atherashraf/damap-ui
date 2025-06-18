@@ -3,7 +3,7 @@ import DesignServicesIcon from "@mui/icons-material/DesignServices";
 import { IconButton, Tooltip } from "@mui/material";
 
 import SymbologySetting from "@/components/map/layer_styling/SymbologySetting";
-import {useMapVM} from "@/components/map/models/MapVMContext";
+import {useMapVM} from "@/hooks/MapVMContext";
 
 const SymbologyControl = () => {
   const mapVM = useMapVM();

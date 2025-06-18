@@ -3,7 +3,7 @@ import {alpha, IconButton, useTheme} from "@mui/material";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import React, {Fragment, useEffect, useRef, useState} from "react";
-import {useMapVM} from "@/components/map/models/MapVMContext";
+import {useMapVM} from "@/hooks/MapVMContext";
 import {MapAPIs} from "@/api/MapApi";
 import {IMapInfo} from "@/types/typeDeclarations";
 import {ITimeSliderHandle} from "@/components/map/time_slider/TimeSlider";

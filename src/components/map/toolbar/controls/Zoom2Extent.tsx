@@ -1,7 +1,7 @@
 import * as React from "react";
 import {IconButton, Tooltip} from "@mui/material";
 import ZoomInMapIcon from "@mui/icons-material/ZoomInMap";
-import {useMapVM} from "@/components/map/models/MapVMContext";
+import {useMapVM} from "@/hooks/MapVMContext";
 
 
 const Zoom2Extent = () => {

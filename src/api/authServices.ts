@@ -21,8 +21,9 @@ export class AuthServices {
                 return false
             }
             const data = await response.json();
-            const {accessToken, refreshToken, userInfo} = data;
-
+            // console.log("data:", data);
+            const {token, userInfo} = data;
+            const {accessToken, refreshToken} = token;
             store.dispatch(setCredentials({accessToken, refreshToken, user: userInfo}));
             snackbarRef.current?.show("Welcome " + userInfo.name + "!");
             return true

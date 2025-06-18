@@ -7,6 +7,6 @@ export const store = configureStore({
     },
 });
 
-export type RootState = ReturnType<typeof store.getState>;
+export type MapRootState = ReturnType<typeof store.getState>;
 export type MapDispatch = typeof store.dispatch;
 

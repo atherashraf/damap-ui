@@ -12,8 +12,9 @@ import MenuIcon from "@mui/icons-material/Menu";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import LoginIcon from "@mui/icons-material/Login";
 import { useNavigate } from "react-router-dom";
-import { useMapDispatch, useMapSelector } from "@/store/hooks";
+
 import { logout } from "@/store/slices/authSlice";
+import { useMapDispatch, useMapSelector } from "@/hooks/storeHooks";
 // import { performLogin } from "@/utils/authUtils";
 
 export default function xDAAppBar(props: { snackbarRef: React.RefObject<any> }) {

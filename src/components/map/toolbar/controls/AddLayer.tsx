@@ -23,7 +23,7 @@ import { Box, CircularProgress, IconButton, Tooltip } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import AddLayerPanel from "../../AddLayerPanel";
 import { MapAPIs } from "@/api/MapApi";
-import {useMapVM} from "@/components/map/models/MapVMContext";
+import {useMapVM} from "@/hooks/MapVMContext";
 
 
 

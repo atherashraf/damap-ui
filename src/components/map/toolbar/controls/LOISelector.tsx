@@ -1,5 +1,5 @@
 import * as React from "react";
-import {useMapVM} from "@/components/map/models/MapVMContext";
+import {useMapVM} from "@/hooks/MapVMContext";
 
 
 const LOISelector = () => {

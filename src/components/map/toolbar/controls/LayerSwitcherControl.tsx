@@ -1,7 +1,7 @@
 import {IconButton, Tooltip} from "@mui/material";
 import LayersIcon from "@mui/icons-material/Layers";
 import LayerSwitcherPaper from "@/components/map/layer_switcher/LayerSwitcherPaper";
-import {useMapVM} from "@/components/map/models/MapVMContext";
+import {useMapVM} from "@/hooks/MapVMContext";
 import {JSX} from "react";
 
 

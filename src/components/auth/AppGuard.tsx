@@ -1,9 +1,10 @@
 import { JSX, useEffect, useState } from "react";
 import { CircularProgress, Box } from "@mui/material";
-import { useMapDispatch } from "@/store/hooks";
+
 import { logout } from "@/store/slices/authSlice";
 import { AuthServices } from "@/api/authServices";
-import { useNavigate, useLocation } from "react-router-dom"; // ✅ add these
+import { useNavigate, useLocation } from "react-router-dom";
+import {useMapDispatch} from "@/hooks/storeHooks"; // ✅ add these
 
 const AppGuard = ({ children }: { children: JSX.Element }) => {
     const dispatch = useMapDispatch();

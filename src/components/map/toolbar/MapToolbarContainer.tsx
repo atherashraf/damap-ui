@@ -72,7 +72,7 @@ import Identifier from "@/components/map/toolbar/controls/Identifier";
 import RefreshMap from "@/components/map/toolbar/controls/RefreshMap";
 import ClearSelection from "@/components/map/toolbar/controls/ClearSelection";
 import AttributeTableControl from "@/components/map/toolbar/controls/AttributeTableControl";
-import {MapVMInjectProvider} from "@/components/map/models/MapVMContext";
+import {MapVMInjectProvider} from "@/hooks/MapVMContext";
 import LOISelector from "@/components/map/toolbar/controls/LOISelector";
 import {Tooltip} from "@mui/material";
 

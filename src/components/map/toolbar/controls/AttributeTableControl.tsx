@@ -1,7 +1,7 @@
 import * as React from "react";
 import {IconButton, Tooltip} from "@mui/material";
 import TableChartIcon from "@mui/icons-material/TableChart";
-import {useMapVM} from "@/components/map/models/MapVMContext";
+import {useMapVM} from "@/hooks/MapVMContext";
 
 
 export const maxTableHeight = 300;

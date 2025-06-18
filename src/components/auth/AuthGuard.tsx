@@ -23,12 +23,12 @@
 
 import {Navigate, useLocation} from "react-router-dom";
 import { useSelector } from "react-redux";
-import { RootState } from "@/store";
+import { MapRootState } from "@/store";
 import {JSX} from "react";
 
 export const AuthGuard = ({ children }: { children: JSX.Element }) => {
     const token =
-        useSelector((state: RootState) => state.auth.accessToken) ||
+        useSelector((state: MapRootState) => state.auth.accessToken) ||
         localStorage.getItem("accessToken");
     const location = useLocation(); // Capture the current location
 

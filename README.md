@@ -107,14 +107,17 @@ const mapRef = useRef();
 const mapUUID = "your-map-uuid";
 
 <MapView ref={mapRef} uuid={mapUUID} isMap={true}>
-  <Appbar>
-    <Button variant="contained">Custom Toolbar Button</Button>
-  </Appbar>
+    <AppBar position="static" color="primary">
+        <Toolbar variant="dense">
+            <Button variant="contained">Custom Toolbar Button</Button>
+        </Toolbar>
+    </AppBar>
 </MapView>
 ```
 
 ### 🧠 Access the Map ViewModel
-Use the useMapVM() hook (inside React components) or getMapVM() (outside) to interact with the map:
+Use the useMapVM() hook (inside React components) 
+or getMapVM() (outside) to interact with the map:
 
 
 

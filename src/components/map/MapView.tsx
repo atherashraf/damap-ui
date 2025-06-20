@@ -13,6 +13,9 @@ import CustomAlertBox from "@/components/base/CustomAlertBox";
 import {MapVMProvider} from "@/hooks/MapVMContext";
 import MapPanel from "@/components/map/MapPanel";
 import {ThemeProvider} from "@mui/material/styles";
+import 'ol/ol.css';
+import 'ol-ext/dist/ol-ext.css';
+
 
 interface MapLayoutProps {
     uuid: string;

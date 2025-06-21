@@ -10,7 +10,7 @@ interface IProps {
     isEditor?: boolean;
 }
 
-const AdminMap = (props: IProps) => {
+const DAMap = (props: IProps) => {
     const {mapId = ''} = useParams();
 
 
@@ -50,4 +50,4 @@ const AdminMap = (props: IProps) => {
     );
 };
 
-export default AdminMap;
+export default DAMap;

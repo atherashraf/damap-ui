@@ -8,7 +8,7 @@ import './assets/css/all-css.css';
 export { default as MapInfoAdmin } from './pages/admin/MapInfoAdmin';
 export { default as LayerInfoAdmin } from './pages/admin/LayerInfoAdmin';
 export { default as LayerDesigner } from "./pages/LayerDesigner";
-export { default as DAMap } from './pages/DAMap';
+export { default as AdminMap } from './pages/AdminMap';
 
 
 // -------------------------

@@ -2,13 +2,13 @@ import {Control} from "ol/control.js";
 import {createRoot} from "react-dom/client";
 import {RefObject} from "react";
 import MapVM from "../models/MapVM";
-import TimeSlider, {ITimeSliderHandle} from "./TimeSlider";
+import TimeSlider, {TimeSliderHandle} from "./TimeSlider";
 
 
 interface IControlOptions {
     target?: any;
     mapVM: MapVM;
-    timeSliderRef: RefObject<ITimeSliderHandle>;
+    timeSliderRef: RefObject<TimeSliderHandle>;
     onDateChange?: (date: Date) => void;
 }
 

@@ -28,7 +28,7 @@ import AbstractDALayer from "@/components/map/layers/da_layers/AbstractDALayer";
 
 import autoBind from "auto-bind";
 import DAMapLoading from "@/components/map/widgets/DAMapLoading";
-import {ITimeSliderHandle} from "@/components/map/time_slider/TimeSlider";
+import {TimeSliderHandle} from "@/components/map/time_slider/TimeSlider";
 import DAVectorLayer from "@/components/map/layers/da_layers/DAVectorLayer";
 import IDWLayer from "@/components/map/layers/overlay_layers/IDWLayer";
 import OverlayVectorLayer from "@/components/map/layers/overlay_layers/OverlayVectorLayer";
@@ -232,11 +232,11 @@ class MapVM {
         return this._domRef.loadingRef;
     }
 
-    setTimeSliderRef(timeSliderRef: RefObject<ITimeSliderHandle>) {
+    setTimeSliderRef(timeSliderRef: RefObject<TimeSliderHandle>) {
         this._domRef.timeSliderRef = timeSliderRef;
     }
 
-    getTimeSliderRef(): RefObject<ITimeSliderHandle> {
+    getTimeSliderRef(): RefObject<TimeSliderHandle> {
         // @ts-ignore
         return this._domRef.timeSliderRef;
     }

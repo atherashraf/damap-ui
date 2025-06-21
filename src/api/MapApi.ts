@@ -1,7 +1,7 @@
 import {RefObject} from "react";
 import {DASnackbarHandle} from "@/components/base/DASnackbar";
-import {store} from "@/store";
-import {AuthServices} from "@/api/authServices";
+import {AuthServices} from "@/damap";
+
 
 
 
@@ -127,7 +127,7 @@ export default class MapApi {
 
 
     async getHeaders(isJson = true): Promise<Headers> {
-        const token = store.getState().auth.accessToken;
+        const token = AuthServices.getAccessToken();
         const headers = new Headers();
 
         if (isJson) headers.append("Content-Type", "application/json");

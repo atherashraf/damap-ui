@@ -21,23 +21,14 @@
  *  />
  */
 
-import {Navigate, useLocation} from "react-router-dom";
-import { useSelector } from "react-redux";
-import { MapRootState } from "@/store";
-import {JSX} from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { JSX } from "react";
+import AuthServices from "@/api/authServices";
+
 
 export const AuthGuard = ({ children }: { children: JSX.Element }) => {
-    const token =
-        useSelector((state: MapRootState) => state.auth.accessToken) ||
-        localStorage.getItem("accessToken");
-    const location = useLocation(); // Capture the current location
+    const token = AuthServices.getAccessToken();
+    const location = useLocation();
 
-    // If token exists, allow access to the children
-    // Otherwise, redirect to login page with the original location saved in state
     return token ? children : <Navigate to="/login" state={{ from: location }} replace />;
 };
-    // console.log("token", token);
-//     return token ? children : <Navigate to="/login" />;
-// };
-
-

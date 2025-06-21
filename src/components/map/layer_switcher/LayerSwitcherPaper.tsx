@@ -1,7 +1,7 @@
 import { Box, Paper } from "@mui/material";
 import * as React from "react";
 
-import "./LayerSwitcher.css";
+import "@/assets/css/LayerSwitcher.css"
 import { Group } from "ol/layer";
 import LayerSwitcher from "ol-ext/control/LayerSwitcher";
 import { useEffect } from "react";

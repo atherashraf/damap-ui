@@ -31,14 +31,14 @@ interface ITimeSliderProps {
     onDateChange?: (date: Date) => void;
 }
 
-export interface ITimeSliderHandle {
+export interface TimeSliderHandle {
     setDateRange: (range: IDateRange) => void;
     getSelectedDate?: () => Date | null;
     getSelectedLayer?: () => AbstractDALayer | null;
     hasControl: boolean
 }
 
-const TimeSlider = forwardRef<ITimeSliderHandle, ITimeSliderProps>((props, ref) => {
+const TimeSlider = forwardRef<TimeSliderHandle, ITimeSliderProps>((props, ref) => {
     const {mapVM} = props;
 
     const [selectedLayerUUID, setSelectedLayerUUID] = useState<string>("");

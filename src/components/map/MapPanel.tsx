@@ -6,7 +6,7 @@ import React, {Fragment, useEffect, useRef, useState} from "react";
 import {useMapVM} from "@/hooks/MapVMContext";
 import {MapAPIs} from "@/api/MapApi";
 import {IMapInfo} from "@/types/typeDeclarations";
-import {ITimeSliderHandle} from "@/components/map/time_slider/TimeSlider";
+import {TimeSliderHandle} from "@/components/map/time_slider/TimeSlider";
 import {Control} from "ol/control";
 
 interface IMapPanelProps {
@@ -24,7 +24,7 @@ const MapPanel = ({isMap, uuid, isEditor, children}: IMapPanelProps) => {
     uuid = uuid || "-1";
     const toolbarRef = useRef<HTMLDivElement>(null);
     const [toolbarHeight, setToolbarHeight] = useState(0);
-    const timeSliderRef = useRef<ITimeSliderHandle>(null!);
+    const timeSliderRef = useRef<TimeSliderHandle>(null!);
     const [timeSliderControl, setTimeSliderControl] = useState<Control | null>(null);
 
     const style = document.createElement('style');

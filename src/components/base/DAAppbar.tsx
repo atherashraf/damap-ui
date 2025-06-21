@@ -12,15 +12,10 @@ import MenuIcon from "@mui/icons-material/Menu";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import LoginIcon from "@mui/icons-material/Login";
 import { useNavigate } from "react-router-dom";
+import AuthServices from "@/api/authServices";
 
-import { logout } from "@/store/slices/authSlice";
-import { useMapDispatch, useMapSelector } from "@/hooks/storeHooks";
-// import { performLogin } from "@/utils/authUtils";
-
-export default function xDAAppBar(props: { snackbarRef: React.RefObject<any> }) {
-    const dispatch = useMapDispatch();
+export default function DAAppBar(props: { snackbarRef: React.RefObject<any> }) {
     const navigate = useNavigate();
-    const user = useMapSelector((state) => state.auth.user);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
     const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -32,15 +27,17 @@ export default function xDAAppBar(props: { snackbarRef: React.RefObject<any> }) 
     };
 
     const handleLogout = () => {
-        dispatch(logout());
+        AuthServices.performLogout();
         props.snackbarRef?.current?.show("Logout Success!");
         navigate("/login");
     };
 
     const handleLogin = async () => {
         navigate("/login");
-
     };
+
+    const isLoggedIn = AuthServices.isLoggedIn();
+    const user = isLoggedIn ? AuthServices.getUser() : null;
 
     return (
         <Box sx={{ flexGrow: 1 }}>
@@ -56,7 +53,7 @@ export default function xDAAppBar(props: { snackbarRef: React.RefObject<any> }) 
                         <MenuIcon />
                     </IconButton>
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                        {user ? `Welcome ${user.name}` : ""}
+                        {isLoggedIn && user ? `Welcome ${user.name}` : ""}
                     </Typography>
                     <div>
                         <IconButton
@@ -67,7 +64,7 @@ export default function xDAAppBar(props: { snackbarRef: React.RefObject<any> }) 
                             onClick={handleMenu}
                             color="inherit"
                         >
-                            {user ? <AccountCircle /> : <LoginIcon />}
+                            {isLoggedIn ? <AccountCircle /> : <LoginIcon />}
                         </IconButton>
                         <Menu
                             id="menu-appbar"
@@ -84,10 +81,10 @@ export default function xDAAppBar(props: { snackbarRef: React.RefObject<any> }) 
                             <MenuItem
                                 onClick={() => {
                                     handleClose();
-                                    user ? handleLogout() : handleLogin();
+                                    isLoggedIn ? handleLogout() : handleLogin();
                                 }}
                             >
-                                {user ? "Logout" : "Login"}
+                                {isLoggedIn ? "Logout" : "Login"}
                             </MenuItem>
                         </Menu>
                     </div>

@@ -5,7 +5,7 @@ import LeftDrawer from "@/components/map/drawers/LeftDrawer";
 import DADialogBox from "@/components/base/DADialogBox";
 import {pointShapeTypes} from "@/components/map/layer_styling/vector/symbolizer/PointSymbolizer";
 import DAMapLoading from "@/components/map/widgets/DAMapLoading";
-import  {ITimeSliderHandle} from "@/components/map/time_slider/TimeSlider";
+import  {TimeSliderHandle} from "@/components/map/time_slider/TimeSlider";
 import {DASnackbarHandle} from "@/components/base/DASnackbar";
 import BottomDrawer from "@/components/map/drawers/BottomDrawer";
 import {Column, Row} from "@/types/gridTypeDeclaration";
@@ -32,7 +32,7 @@ export interface IDomRef {
     dialogBoxRef: RefObject<DADialogBox | null>;
     snackBarRef: RefObject<DASnackbarHandle | null>;
     loadingRef: RefObject<DAMapLoading | null>;
-    timeSliderRef?: RefObject<ITimeSliderHandle>;
+    timeSliderRef?: RefObject<TimeSliderHandle>;
 }
 
 export interface IMapToolbarProps {

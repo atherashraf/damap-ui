@@ -1,9 +1,9 @@
-import {defineConfig, loadEnv} from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
-import {resolve} from 'path';
-import {viteStaticCopy} from "vite-plugin-static-copy";
+import { resolve } from 'path';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
-export default defineConfig(({mode}) => {
+export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd());
 
     return {
@@ -29,6 +29,7 @@ export default defineConfig(({mode}) => {
         build: {
             outDir: 'dist',
             emptyOutDir: false,
+            sourcemap: true,
             lib: {
                 entry: resolve(__dirname, 'src/damap.ts'),
                 name: 'damap',
@@ -36,7 +37,22 @@ export default defineConfig(({mode}) => {
                 formats: ['es', 'cjs'],
             },
             rollupOptions: {
-                external: ['react', 'react-dom'],
+                external: [
+                    'react',
+                    'react-dom',
+                    'react-router-dom',
+                    '@mui/material',
+                    '@mui/lab',
+                    '@mui/icons-material',
+                    '@mui/x-date-pickers',
+                    '@emotion/react',
+                    '@emotion/styled',
+                    'ol',
+                    'ol-ext',
+                    'react-pivottable',
+                    'plotly.js',
+                    'react-plotly.js',
+                ],
                 output: {
                     globals: {
                         react: 'React',

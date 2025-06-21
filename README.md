@@ -1,6 +1,7 @@
 # DAMapUI
 
-> Vite-based React UI for Digital Arz Maps. Built on top of OpenLayers and fully integrated with DigitalArzNode for map visualization, analysis, and interaction.
+> Vite-based React UI for Digital Arz Maps. Built on top of OpenLayers and fully integrated with DigitalArzNode for map
+> visualization, analysis, and interaction.
 
 ---
 
@@ -11,7 +12,8 @@
 ```bash
 npm install damap
 ```
-For peer dependencies, install
+
+For peer dependencies, install:
 
 ```bash
 npm install \
@@ -20,8 +22,8 @@ npm install \
 @mui/material@^7.0.0 \
 ol@^10.5.0 \
 ol-ext@^4.0.31
-
 ```
+
 ### 2. Environment Variables
 
 Create a `.env` file in the root of your project with one of the following configurations:
@@ -35,8 +37,7 @@ VITE_BING_MAPS_KEY=*********************************
 VITE_APP_NAME=DAMap #or your App Name
 ```
 
-* Use this when your backend is hosted at a full domain URL (e.g., production on whhdrm.club).
-* The app will use this URL directly for all API requests.
+Use this when your backend is hosted at a full domain URL (e.g., production on whhdrm.club).
 
 #### ✅ Option 2: Using Local Network or IP with Port and Endpoint
 
@@ -47,19 +48,21 @@ VITE_BING_MAPS_KEY=*********************************
 VITE_APP_NAME=DAMap #or your App Name
 ```
 
-* Use this in a **local/WAN setup** where only the port is known.
+Use this in a **local/WAN setup** where only the port is known.
+
 ---
 
 ## DAMap Architecture Model
 
-The architecture of DAMap follows the MVVM (Model–View–ViewModel) design pattern, where:
+DAMap follows the MVVM (Model–View–ViewModel) design pattern:
 
-- **View** consists of React components like `MapView`, `LeftDrawer`, `RightDrawer`, and `TimeSlider`.
-- **ViewModel** is represented by the `MapVM` class, which manages map state, layer logic, interaction handling, and UI communication.
-- **Model** includes the underlying `Map` object from OpenLayers and associated layers such as `BaseLayers`, `HighlightLayer`, and `DALayer`.
+* **View**: React components like `MapView`, `LeftDrawer`, `RightDrawer`, `TimeSlider`.
+* **ViewModel**: The `MapVM` class managing state, logic, and interactions.
+* **Model**: OpenLayers `Map` and layers like `BaseLayers`, `HighlightLayer`, `DALayer`.
 
 ![DAMap Architecture Model](./readme_damap_architecture.png)
 
+---
 
 ## 🧱 Folder Structure
 
@@ -67,25 +70,24 @@ The architecture of DAMap follows the MVVM (Model–View–ViewModel) design pat
 damap-ui/
 ├── public/                      # Static assets
 ├── src/
-│   ├── api/                     # API abstraction layer
-│   ├── assets/                  # Images, icons, logos, etc.
+│   ├── api/                     # API abstraction
+│   ├── assets/                  # Images/icons/logos
 │   ├── components/
-│   │   ├── admin/               # Admin-specific components
-│   │   ├── auth/                # Authentication components
-│   │   ├── base/                # Base/shared UI components (snackbar, dialogs, etc.)
-│   │   ├── map/                 # Map-related components (MapView, drawers, tools)
-│   │   └── styled/              # Styled MUI or layout components
-│   ├── hooks/                   # Custom React hooks
-│   ├── layouts/                 # Layout components
-│   ├── pages/
-│   │   └── admin/               # Admin pages like MapAdmin, LayerDesigner
-│   ├── routes/                  # App routing setup
-│   ├── services/                # Data fetching, service layers
-│   ├── store/                   # Redux store config and slices
-│   ├── types/                   # TypeScript declarations
-│   ├── utils/                   # Utility functions
-│   ├── App.tsx                  # Root App component
-│   └── index.tsx                # Main entry point
+│   │   ├── admin/               # Admin-specific
+│   │   ├── auth/                # Authentication
+│   │   ├── base/                # UI base components
+│   │   ├── map/                 # Map modules
+│   │   └── styled/              # Styled MUI components
+│   ├── hooks/                   # Custom hooks
+│   ├── layouts/                 # Layout wrappers
+│   ├── pages/                   # Main pages
+│   ├── routes/                  # App routing
+│   ├── services/                # External APIs
+│   ├── store/                   # Redux store & slices
+│   ├── types/                   # TypeScript types
+│   ├── utils/                   # Utilities
+│   ├── App.tsx
+│   └── index.tsx
 ├── .env
 ├── package.json
 ├── tsconfig.json
@@ -95,13 +97,14 @@ damap-ui/
 
 ---
 
-## 🗺️ Map View and Map View Model  Usage
-### 🧱 Embed the MapView Component
+## 🗺️ Map View and ViewModel
 
-Import and use the `MapView` component:
+### 🧱 Embed MapView Component
 
 ```tsx
-import MapView from "@/components/map/MapView.tsx";
+import {MapView} from "damap";
+import {AppBar, Button, Toolbar} from "@mui/material";
+import 'damap/damap.css'
 
 const mapRef = useRef();
 const mapUUID = "your-map-uuid";
@@ -115,39 +118,107 @@ const mapUUID = "your-map-uuid";
 </MapView>
 ```
 
-### 🧠 Access the Map ViewModel
-Use the useMapVM() hook (inside React components) 
-or getMapVM() (outside) to interact with the map:
-
-
+### 🧠 Use ViewModel Functions
 
 ```tsx
-import {useMapVM} from "@/components/map/model/MapVMContext.tsx";
-const mapVM =useMapVM();
-mapVM.addDALayer({ uuid: selectedOption });
+import {useMapVM} from "damap";
+
+const mapVM = useMapVM();
+mapVM.addDALayer({uuid: selectedOption});
 mapVM.zoomToFullExtent();
 ```
 
 ---
 
-## 🧩 Add New Button to Map Toolbar
-The MapToolbar in the map interface supports dynamic extension, allowing developers to programmatically add new buttons—such as tools, toggles, or actions—to the toolbar from anywhere in the application.
+## 🧰 Map Toolbar System
 
-To ensure the button is only added once, use a useRef() guard inside a useEffect().
+The `MapToolbarContainer` is the central component for rendering OpenLayers-based toolbar buttons. It uses React
+Context (`MapVMInjectProvider`) to inject the `MapVM` instance into all child components, allowing your buttons to
+access the map without prop-drilling.
 
-ℹ️ Note: Use getMapVM() if you're outside React’s component tree (e.g., utility files). Use useMapVM() if you're inside a React component.
-### ✅ Example (Using getMapVM() in React Lifecycle)
+---
+
+### ✅ Basic Usage
+
+You can render it inside your app like this:
+
+```tsx
+import {MapToolbarContainer} from 'damap';
+
+<MapToolbarContainer mapVM={mapVM}/>
+```
+
+Or attach it dynamically to a DOM element:
+
+```tsx
+import {createRoot} from 'react-dom/client';
+import {MapToolbarContainer} from 'damap';
+
+const root = createRoot(domElement);
+root.render(<MapToolbarContainer mapVM={mapVM} dynamicButtons={[<MyButton/>]}/>);
+```
+
+---
+
+### 🔧 Built-in Toolbar Buttons (Auto-included)
+
+| Component               | Description                               |
+|-------------------------|-------------------------------------------|
+| `LayerSwitcherControl`  | Toggle visibility of map layers           |
+| `Zoom2Extent`           | Zoom to the full extent of the map        |
+| `RefreshMap`            | Reload all visible DALayers               |
+| `ClearSelection`        | Clear selected/highlighted features       |
+| `Identifier`            | Identify and inspect clicked map features |
+| `AttributeTableControl` | Opens a drawer with tabular view          |
+| `LOISelector`           | Choose Layer of Interest (LOI)            |
+
+These buttons are included by default when using `MapToolbarContainer`.
+
+---
+
+### ➕ Dynamic Buttons via `dynamicButtons`
+
+You can pass your custom buttons using the `dynamicButtons` prop:
+
+```tsx
+<MapToolbarContainer mapVM={mapVM} dynamicButtons={[<MyCustomButton/>]}/>
+```
+
+Example of a custom button using `useMapVM`:
+
+```tsx
+import {IconButton, Tooltip} from "@mui/material";
+import BuildIcon from '@mui/icons-material/Build';
+import {useMapVM} from 'damap';
+
+const MyCustomButton = () => {
+    const mapVM = useMapVM();
+    return (
+        <Tooltip title="Zoom to Extent">
+            <IconButton onClick={() => mapVM.zoomToFullExtent()}>
+                <BuildIcon/>
+            </IconButton>
+        </Tooltip>
+    );
+};
+```
+
+---
+
+### 🧠 Runtime Injection (via `getMapVM().getMapToolbar()`)
+
+If you prefer to inject a toolbar button at runtime after the map has loaded:
+
 ```tsx
 import {useEffect, useRef} from "react";
 import {IconButton, Tooltip} from "@mui/material";
-import BuildIcon from '@mui/icons-material/Build'; // any icon you prefer
-import {getMapVM} from "@/components/map/models/MapVMContext";
+import BuildIcon from '@mui/icons-material/Build';
+import {getMapVM} from "damap";
 
 const buttonAdded = useRef(false);
 
 useEffect(() => {
     const mapVM = getMapVM();
-
     if (!buttonAdded.current && mapVM?.getMapToolbar) {
         mapVM.getMapToolbar().addButton(
             <Tooltip title="Custom Tool">
@@ -160,216 +231,250 @@ useEffect(() => {
     }
 }, []);
 ```
-### 🔧 Built-in Toolbar Buttons 
 
-In addition to custom buttons, the system comes with several built-in buttons that can be added dynamically via addButton(...) or by uncommenting them inside the MapToolbarContainer.
+---
 
-These components provide commonly used tools for interaction, layer management, and map control.
+### 📦 Optional / On-Demand Buttons
 
-#### 🧰 Available Buttons
-
-| Component                     | Description                                                         |
-| ----------------------------- | ------------------------------------------------------------------- |
-| `AddLayer`                    | Opens a dialog to add a new data layer (DALayer) to the map.        |
-| `LayerSwitcherControl`        | Toggles visibility of individual layers.                            |
-| `NavigationTreeControl`       | Displays a hierarchical tree of all map layers.                     |
-| `Zoom2Extent`                 | Zooms the map to its full configured extent.                        |
-| `RefreshMap`                  | Refreshes all data layers currently loaded on the map.              |
-| `ClearSelection`              | Clears currently selected/highlighted features.                     |
-| `Identifier`                  | Enables click-based identify tool to inspect feature attributes.    |
-| `AttributeTableControl`       | Opens the attribute table for the currently selected layer.         |
-| `CommentButton` ✅             | Opens the comment panel for user discussions or notes on layers.    |
-| `SaveMap` 🔒                  | Saves the current map design (typically used in map designer mode). |
-| `LOISelector` 🔍              | Lets users choose a Layer of Interest (LOI) from a dropdown.        |
-| `SymbologyControl` 🎨         | Opens a symbology editor for changing layer style.                  |
-| `RasterArea` 🖊️              | Enables polygon drawing for raster-based analysis or clipping.      |
-| `AddClassificationSurface` 🌍 | Loads land classification or AI-based surfaces (like NDVI, LULC).   |
-
-### 🧪 Example: Adding the Available Button Dynamically
-```tsx 
-import { useEffect, useRef } from "react";
-import CommentButton from "@/components/map/toolbar/controls/CommentButton";
-import { getMapVM } from "@/components/map/models/MapVMContext";
-
-const commentBtnAdded = useRef(false);
-
-useEffect(() => {
-    const mapVM = getMapVM();
-    if (!commentBtnAdded.current) {
-        mapVM.getMapToolbar()?.addButton(<CommentButton />);
-        commentBtnAdded.current = true;
-    }
-}, []);
-
-```
-
-## 🕒 Add Time Slider Control
-
-To integrate the `TimeSliderControl` with your map:
-
-### 1. Create a `ref` for the time slider
+These buttons are available but not included by default in the toolbar. You can inject them via `dynamicButtons` or
+include them manually. Some of them are only available for authorized users:
 
 ```tsx
-import { useRef } from "react";
-import { TimeSliderHandle } from "./components/TimeSlider";
+import {
+    AddLayer,
+    // SaveMap,                 // 🔐 Admin-only
+    // SymbologyControl,        // 🔐 Admin-only
+    // RasterArea,
+    // AddClassificationSurface,
+    // CommentButton
+} from 'damap';
+```
+
+| Optional Button            | Description                             |
+|----------------------------|-----------------------------------------|
+| `AddLayer`                 | Add new DALayer dynamically             |
+| `CommentButton`            | View/Submit comments on layers/features |
+| `SaveMap` 🔐               | Save current map config (admin only)    |
+| `SymbologyControl` 🔐      | Open symbology editor for map layers    |
+| `RasterArea`               | Draw polygon for raster zonal stats     |
+| `AddClassificationSurface` | Add LULC, NDVI, or AI-generated layers  |
+
+> **Note**: You can expose admin-only buttons via a separate file like `adminExports.ts` if needed.
+
+---
+
+### 🛠 Accessing `MapVM` in Your Buttons
+
+Use `useMapVM()` from `"damap"` to access the map controller inside any custom toolbar button.
+
+```tsx
+import {useMapVM} from 'damap';
+import {IconButton, Tooltip} from "@mui/material";
+import BuildIcon from "@mui/icons-material/Build";
+
+const MyCustomButton = () => {
+    const mapVM = useMapVM();
+    return (
+        <Tooltip title="Custom Action">
+            <IconButton onClick={() => mapVM.zoomToFullExtent()}>
+                <BuildIcon/>
+            </IconButton>
+        </Tooltip>
+    );
+};
+```
+
+## 🕒 Time Slider Usage
+
+The `TimeSlider` component allows users to visualize and select temporal data over a range of dates for layers that support time-based filtering.
+
+---
+
+### 🧱 Step 1: Create a Ref
+
+```tsx
+import { useRef } from 'react';
+import { TimeSliderHandle } from 'damap';
 
 const timeSliderRef = useRef<TimeSliderHandle>(null!);
 ```
 
 ---
 
-### 2. Add the control to the map using `MapVM`
+### 📦 Step 2: Add the TimeSlider Component
 
 ```tsx
-const newControl = mapVM.addTimeSliderControl(
-    timeSliderRef,
-    (selectedDate: Date) => {
-        console.log("Selected date:", selectedDate);
-        // Do something with the selected date
-    }
-);
+import { TimeSlider } from 'damap';
+
+<TimeSlider
+  ref={timeSliderRef}
+  mapVM={mapVM}
+  onDateChange={(date: Date) => {
+    console.log("User selected:", date);
+  }}
+/>
 ```
+
+The `onDateChange` is optional. If omitted, the selected layer will automatically update using `updateTemporalData(date)`.
 
 ---
 
-### 3. Set the date range (after layer is loaded or from API)
+### 🗓️ Step 3: Set Date Range (Optional)
+
+You can manually set a custom date range if needed:
 
 ```ts
-const dateRange: IDateRange = {
-    minDate: "2023-09-01", // or new Date("2023-09-01")
-    maxDate: "2023-09-30", // or new Date("2023-09-30")
-};
-
-timeSliderRef.current?.setDateRange(dateRange);
+timeSliderRef.current?.setDateRange({
+  minDate: '2023-09-01',
+  maxDate: '2023-09-30',
+});
 ```
 
 ---
 
-### 4. Get the currently selected date (optional)
+### 📅 Step 4: Get Selected Date
 
 ```ts
 const selectedDate = timeSliderRef.current?.getSelectedDate();
-console.log("Selected Date:", selectedDate?.toISOString());
 ```
+
+Returns the current selected date (based on slider or calendar).
 
 ---
 
-### 5. Get the selected temporal layer (optional)
+### 🗂️ Step 5: Get Selected Layer
 
 ```ts
 const selectedLayer = timeSliderRef.current?.getSelectedLayer();
-if (selectedLayer) {
-    console.log("Layer UUID:", selectedLayer.uuid);
-    console.log("Layer Title:", selectedLayer.title);
-}
+```
+
+Returns the `AbstractDALayer` selected in the dropdown, or `null`.
+
+---
+
+### ✅ Exported in `damap.ts`
+
+To use `TimeSlider`, ensure the following is exported from `damap.ts`:
+
+```ts
+export { default as TimeSlider } from "@/components/map/widgets/TimeSlider";
+export type { TimeSliderHandle } from "@/components/map/widgets/TimeSlider";
 ```
 
 ---
 
-### 📘 `IDateRange` Interface
+### 💡 Tip
+
+`TimeSlider` fetches its min/max date range automatically from the selected layer’s `layerInfo.dateRangeURL` if available.
+
+If `onDateChange` is provided → it notifies your handler.  
+If omitted → the layer is auto-updated internally with `updateTemporalData(date)`.
+
+---
+
+This makes `TimeSlider` perfect for dashboards and map views requiring historical layer interaction.
+
+
+## 🔐 Authorization
+
+DAMap provides built-in support for authentication via `AuthServices` and `AuthGuard`.
+
+### ✅ Check Login Status in External Apps
 
 ```ts
-export interface IDateRange {
-    minDate: Date | string; // e.g., "2023-09-23"
-    maxDate: Date | string;
+import {AuthServices} from "damap";
+
+if (AuthServices.isLoggedIn()) {
+    // User is authenticated
+} else {
+    // Redirect or show login
 }
 ```
 
-Both `Date` objects and ISO date strings are supported.
-
-
-## ⚙️ Admin Tools (Layer & Map Management)
-
-To manage maps and layers inside DigitalArzNode:
+### ✅ Protect Routes with AuthGuard (Lazy Loaded)
 
 ```tsx
-import "@/pages/LayerInfoAdmin";
-<LayerInfoAdmin />
+import {Suspense, lazy} from "react";
+import {AuthGuard} from "damap";
 
-import "@/pages/MapInfo";
-<MapInfo />
+const LayerInfoAdmin = lazy(() => import("./pages/admin/LayerInfoAdmin"));
+const MapInfoAdmin = lazy(() => import("./pages/admin/MapInfoAdmin"));
+
+<Route path="/layer-admin" element={
+    <AuthGuard>
+        <Suspense fallback={<div>Loading...</div>}>
+            <LayerInfoAdmin/>
+        </Suspense>
+    </AuthGuard>
+}/>
+
+<Route path="/map-admin" element={
+    <AuthGuard>
+        <Suspense fallback={<div>Loading...</div>}>
+            <MapInfoAdmin/>
+        </Suspense>
+    </AuthGuard>
+}/>
 ```
+
+### ✅ Perform Login and Logout
+
+```ts
+// Login
+AuthServices.performLogin(token, refreshToken);
+
+// Logout
+AuthServices.performLogout();
+```
+
+### ✅ Refresh Access Token (Optional)
+
+```ts
+await AuthServices.refreshAccessToken();
+```
+
+Use `AuthServices.getAccessToken()` and `AuthServices.getRefreshToken()` for token-based API calls.
+
+---
+
+## ⚙️ Admin Tools
+
+```tsx
+import LayerInfoAdmin from "@/pages/LayerInfoAdmin";
+
+<LayerInfoAdmin/>
+
+import MapInfo from "@/pages/MapInfo";
+
+<MapInfo/>
+```
+
 ---
 
 ## 🔧 Backend Integration (FastAPI)
 
-DAMap relies on a backend service (currently using FastAPI) to provide dynamic layer configurations, spatial data, geometry fetching, and feature attributes.
+DAMap uses FastAPI for:
 
-The frontend interacts with the backend via `MapApi`, a centralized API class that wraps HTTP requests to REST endpoints.
+* Dynamic layer configuration
+* Attribute & geometry retrieval
+* Raster operations
 
-### 🌐 DCH API Endpoints
-These are the core API endpoints used by DAMap to interact with the Dynamic Cartographic Hub (DCH) backend. They allow querying layer data, feature geometries, styles, attributes, and map configurations.
-
-
-| **Endpoint Key**                 | **Description**                                |
-| -------------------------------- | ---------------------------------------------- |
-| `DCH_LAYER_INFO`                 | Get metadata for a specific layer              |
-| `DCH_ALL_LAYER_INFO`             | Get metadata for all available layers          |
-| `DCH_LAYER_EXTENT`               | Get bounding box extent of a layer             |
-| `DCH_LAYER_MVT`                  | Fetch Mapbox Vector Tiles for a layer          |
-| `DCH_LAYER_WFS`                  | Download features via WFS (GeoJSON, CSV, etc.) |
-| `DCH_LAYER_RASTER`               | Serve raster tile imagery                      |
-| `DCH_GET_STYLE`                  | Retrieve saved style for a layer in a map      |
-| `DCH_SAVE_STYLE`                 | Save or update a custom style (non-SLD)        |
-| `DCH_SAVE_SLD`                   | Upload an SLD style file                       |
-| `DCH_GET_FEATURE_GEOMETRY`       | Get geometry (WKT) of a selected feature       |
-| `DCH_LAYER_FIELDS`               | List available fields (columns) of a layer     |
-| `DCH_LAYER_ATTRIBUTES`           | Get attribute table of a layer                 |
-| `DCH_LAYER_FIELD_DISTINCT_VALUE` | Get unique values for a given field            |
-| `DCH_GET_PIXEL_VALUE`            | Get pixel value from raster layer at point     |
-| `DCH_GET_FEATURE_DETAIL`         | Get full attribute detail for a feature        |
-| `DCH_RASTER_AREA`                | Extract raster stats based on polygon          |
-| `DCH_GET_ALL_LAYERS`             | List all registered layers                     |
-| `DCH_RASTER_DETAIL`              | Metadata and details for raster                |
-| `DCH_PREDEFINED_LIST`            | Fetch predefined style list                    |
-| `DCH_LEGEND_GRAPHIC`             | Get styled legend graphic                      |
-| `DCH_LAYER_CATEGORIES`           | Get all layer category metadata                |
-| `DCH_ADD_RASTER_INFO`            | Register a new raster layer                    |
-| `DCH_ADD_MODEL_ROW`              | Add a new row to an attribute table            |
-| `DCH_DELETE_MODEL_ROW`           | Delete row from attribute table                |
-| `DCH_EDIT_MODEL_ROW`             | Update attribute table row                     |
-| `DCH_DELETE_LAYER_INFO`          | Delete layer from system                       |
-| `DCH_SAVE_MAP`                   | Save new map configuration                     |
-| `DCH_UPDATE_MAP`                 | Update existing map                            |
-| `DCH_DELETE_MAP`                 | Delete a saved map                             |
-| `DCH_MAP_INFO`                   | Retrieve saved map info                        |
-| `DCH_ALL_MAP_INFO`               | List all saved maps                            |
-| `DCH_NAVIGATION_LIST`            | Get layer navigation tree                      |
-| `DCH_NAVIGATION_GEOMETRY`        | Get geometry for selected navigation node      |
-| `DCH_DOWNLOAD_SLD`               | Download uploaded SLD                          |
-| `DCH_DOWNLOAD_DA_STYLE`          | Download custom DA style                       |
-| `DCH_DB_CONNECTION`              | Get list of database connections               |
-| `DCH_DB_TABLE_LIST`              | Get tables from DB connection                  |
-| `DCH_SAVE_DB_LAYER_INFO`         | Register DB layer with category                |
-| `DCH_ADD_URL_LAYER_INFO`         | Register layer via external URL                |
-
-
-### 📦 Example Usage in Frontend
+Example API usage:
 
 ```ts
-const mapVM = getMapVM(); // or use useMapVM() inside a React component
-
-// ✅ Add layer dynamically using endpoint key from MapAPIs
-mapVM.getApi().get(MapAPIs.DCH_LAYER_INFO, { uuid: 'your-layer-uuid' }).then(layerInfo => {
-    mapVM.addDALayer(layerInfo);
+const mapVM = getMapVM();
+mapVM.getApi().get("/api/layer/info", {uuid: "uuid"}).then(info => {
+    mapVM.addDALayer(info);
 });
-
-// 🛠️ Alternatively, use your own custom endpoint (provide full URL with query string or handle manually)
-mapVM.getApi().get(`/api/layer/info?uuid=your-layer-uuid`).then(layerInfo => {
-    mapVM.addDALayer(layerInfo);
-});
-
 ```
 
 ---
+
 ## 👨‍💻 Developed by
 
 **Ather Ashraf**
 Geospatial Data Scientist and AI Specialist
 
-* 📧 Email: [atherashraf@gmail.com](mailto:atherashraf@gmail.com)
-* 🌐 LinkedIn: [https://sa.linkedin.com/in/ather-ashraf](https://sa.linkedin.com/in/ather-ashraf)
-* 📜 Google Scholar: [View Profile](https://scholar.google.com.pk/citations?user=XbqhyrsAAAAJ&hl=en)
-* 📱 WhatsApp: +966557252342 | +923224785104
-
----
+* 📧 [atherashraf@gmail.com](mailto:atherashraf@gmail.com)
+* 🌐 [LinkedIn](https://sa.linkedin.com/in/ather-ashraf)
+* 📱 +966557252342 | +923224785104

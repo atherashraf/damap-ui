@@ -1,14 +1,14 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { logout } from "@/store/slices/authSlice";
 import { useNavigate } from "react-router-dom";
+import AuthServices from "@/api/authServices";
 
 const Logout = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
     useEffect(() => {
-        dispatch(logout());        // ✅ clears redux + localStorage
+        AuthServices.performLogout(navigate)
         navigate("/");        // ✅ redirect
     }, [dispatch, navigate]);
 

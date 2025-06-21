@@ -227,3 +227,4 @@ class BottomDrawer extends PureComponent<BottomDrawerProps, BottomDrawerState> {
 }
 
 export default BottomDrawer;
+export type BottomDrawerHandle = typeof BottomDrawer.prototype;

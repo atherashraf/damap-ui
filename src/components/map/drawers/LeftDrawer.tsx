@@ -101,3 +101,5 @@ class LeftDrawer extends React.PureComponent<LeftDrawerProps, LeftDrawerState> {
 }
 
 export default LeftDrawer;
+
+export type LeftDrawerHandle = typeof LeftDrawer.prototype;

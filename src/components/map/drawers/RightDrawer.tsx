@@ -108,81 +108,95 @@ class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState
     }
 
     isOpen() {
-        this.state.open;
+        return this.state.open; // you were missing 'return'
     }
 
     render() {
-        const {open, heading, content, width, isLoading} = this.state;
+        const { open, heading, content, width, isLoading } = this.state;
 
         return (
-            <Slide direction="left" in={open} mountOnEnter unmountOnExit>
-                <Box
-                    sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        width: `${width}px`,
-                        minWidth: '200px',
-                        bgcolor: 'background.paper',
-                        height: '100%',
-                        boxShadow: 4,
-                        borderLeft: '1px solid #ccc',
-                    }}
-                >
-                    <AppBar
-                        position="static"
-                        color="secondary"
-                        sx={{height: 40, justifyContent: 'center'}}
-                    >
-                        <Toolbar variant="dense" sx={{minHeight: '40px !important', px: 1}}>
-                            <Typography variant="h6" sx={{flexGrow: 1, fontSize: 16}}>
-                                {heading}
-                            </Typography>
-                            <IconButton size="small" onClick={this.closeDrawer} sx={{color: 'white'}}>
-                                <CloseIcon fontSize="small"/>
-                            </IconButton>
-                        </Toolbar>
-                    </AppBar>
+            <>
+                {open && (
+                    <div
+                        onMouseDown={this.handleMouseDown}
+                        style={{
+                            position: 'fixed',
+                            top: 0,
+                            bottom: 0,
+                            right: `${width}px`,
+                            width: '6px',
+                            cursor: 'ew-resize',
+                            backgroundColor: '#e0e0e0',
+                            zIndex: 1301, // above Slide but below AppBar
+                        }}
+                        onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#d0d0d0')}
+                        onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#e0e0e0')}
+                    />
+                )}
 
-                    <Paper
+                <Slide direction="left" in={open} mountOnEnter unmountOnExit>
+                    <Box
                         sx={{
                             display: 'flex',
                             flexDirection: 'column',
-                            width: '100%',
+                            width: `${width}px`,
+                            minWidth: '200px',
+                            bgcolor: 'background.paper',
                             height: '100%',
-                            overflowY: 'auto',
-                            boxShadow: '-4px 0px 12px rgba(0,0,0,0.2)', // Leftward shadow
-                            borderTopLeftRadius: 8,
-                            borderBottomLeftRadius: 8,
+                            boxShadow: 4,
+                            borderLeft: '1px solid #ccc',
+                            position: 'fixed',
+                            right: 0,
+                            top: 0,
+                            zIndex: 1300,
                         }}
-                        elevation={0}
                     >
+                        <AppBar
+                            position="static"
+                            color="secondary"
+                            sx={{ height: 40, justifyContent: 'center' }}
+                        >
+                            <Toolbar variant="dense" sx={{ minHeight: '40px !important', px: 1 }}>
+                                <Typography variant="h6" sx={{ flexGrow: 1, fontSize: 16 }}>
+                                    {heading}
+                                </Typography>
+                                <IconButton size="small" onClick={this.closeDrawer} sx={{ color: 'white' }}>
+                                    <CloseIcon fontSize="small" />
+                                </IconButton>
+                            </Toolbar>
+                        </AppBar>
 
-                        <div
-                            onMouseDown={this.handleMouseDown}
-                            style={{
-                                width: '6px',
-                                cursor: 'ew-resize',
-                                backgroundColor: '#e0e0e0',
-                                borderRight: '1px solid #bbb',
-                                transition: 'background-color 0.2s',
+                        <Paper
+                            sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                width: '100%',
+                                height: '100%',
+                                overflowY: 'auto',
+                                boxShadow: '-4px 0px 12px rgba(0,0,0,0.2)',
+                                borderTopLeftRadius: 8,
+                                borderBottomLeftRadius: 8,
                             }}
-                            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#d0d0d0')}
-                            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#e0e0e0')}
-                        />
-                        <Box sx={{flexGrow: 1, p: 2, display: 'flex', justifyContent: 'center'}}>
-                            {isLoading ? (
-                                <CircularProgress size={40} thickness={4}/>
-                            ) : (
-                                content
-                            )}
-                        </Box>
-                    </Paper>
-                </Box>
-            </Slide>
+                            elevation={0}
+                        >
+                            <Box sx={{ flexGrow: 1, p: 2, display: 'flex', justifyContent: 'center' }}>
+                                {isLoading ? (
+                                    <CircularProgress size={40} thickness={4} />
+                                ) : (
+                                    content
+                                )}
+                            </Box>
+                        </Paper>
+                    </Box>
+                </Slide>
+            </>
         );
     }
+
 
 
 }
 
 export default RightDrawer;
+// 👇 Use a different name for the type
+export type RightDrawerHandle = typeof RightDrawer.prototype;

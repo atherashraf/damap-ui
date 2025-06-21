@@ -40,7 +40,9 @@ export { default as AuthServices } from './api/authServices';  // ✅ Auth servi
 // -------------------------
 export { default as DASnackbar } from './components/base/DASnackbar';
 export type { DASnackbarHandle } from './components/base/DASnackbar';
-
+export type {RightDrawerHandle} from './components/map/drawers/RightDrawer';
+export type {BottomDrawerHandle} from './components/map/drawers/BottomDrawer';
+export type {LeftDrawerHandle} from './components/map/drawers/LeftDrawer';
 
 // -------------------------
 // ✅ Map Layers

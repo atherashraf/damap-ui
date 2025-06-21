@@ -1,0 +1,20 @@
+/** all-css.css**/
+/* ✅ Local component styles */
+@import './attribute-table.css';
+@import './custom-alert.css';
+@import './da-map-loading.css';
+@import './da-ol.css';
+@import './identifier-table.css';
+@import './LayerSwitcher.css';
+@import './ol-control.css';
+@import './side-drawer.css';
+
+/* ✅ Node module styles */
+@import 'ol/ol.css';
+@import 'ol-ext/dist/ol-ext.css';
+
+
+
+
+
+

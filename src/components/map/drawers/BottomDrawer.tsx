@@ -25,7 +25,6 @@ class BottomDrawer extends PureComponent<BottomDrawerProps, BottomDrawerState> {
 
     constructor(props: BottomDrawerProps) {
         super(props);
-        ;
 
         this.state = {
             open: false,

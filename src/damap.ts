@@ -50,6 +50,19 @@ export type {LeftDrawerHandle} from './components/map/drawers/LeftDrawer';
 export * from './components/map/layers/overlay_layers';
 export * from './components/map/layers/da_layers';
 
+export { pointShapeTypes } from './components/map/layer_styling/vector/symbolizer/PointSymbolizer'
+
+export type { IFeatureStyle } from './types/typeDeclarations'
+export type { IGeomStyle } from'./types/typeDeclarations'
+export type { ILayerSourcesInfo } from './types/typeDeclarations'
+export type { ILayerInfo } from'./types/typeDeclarations'
+export type { IMapInfo } from './types/typeDeclarations'
+export type { IMapToolbarProps}  from'./types/typeDeclarations'
+
+export type { IGeoJSON } from'./types/typeDeclarations'
+export type { IRule } from './types/typeDeclarations'
+export type { IFilter}  from'./types/typeDeclarations'
+
 
 // -------------------------
 // ✅ Table Components (Named Exports)

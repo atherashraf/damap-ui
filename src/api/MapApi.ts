@@ -1,7 +1,7 @@
 import {RefObject} from "react";
 import {DASnackbarHandle} from "@/components/base/DASnackbar";
 import {AuthServices} from "@/damap";
-
+import pako from "pako";
 
 
 
@@ -136,17 +136,21 @@ export default class MapApi {
         return headers;
     }
 
-    async get(api: string, params: any = {}, isJSON = true) {
-        return await this.request("GET", api, null, params, isJSON);
+    async get(api: string, params: any = {}, options: { isJSON?: boolean; isGzip?: boolean } = {}) {
+        const { isJSON = true, isGzip = false } = options;
+        return await this.request("GET", api, null, params, isJSON, true, isGzip);
     }
 
-    async post(api: string, data: any, params: any = {}, isJSON = true) {
-        return await this.request("POST", api, data, params, isJSON);
+    async post(api: string, data: any, params: any = {}, options: { isJSON?: boolean; isGzip?: boolean } = {}) {
+        const { isJSON = true, isGzip = false } = options;
+        return await this.request("POST", api, data, params, isJSON, true, isGzip);
     }
 
-    async postFormData(api: string, formData: FormData, params: any = {}, isJSON = true) {
-        return await this.request("POST", api, formData, params, isJSON, false);
+    async postFormData(api: string, formData: FormData, params: any = {}, options: { isJSON?: boolean; isGzip?: boolean } = {}) {
+        const { isJSON = true, isGzip = false } = options;
+        return await this.request("POST", api, formData, params, isJSON, false, isGzip);
     }
+
 
     private async request(
         method: "GET" | "POST",
@@ -154,7 +158,8 @@ export default class MapApi {
         data: any = null,
         params: any = {},
         isJSON = true,
-        useJsonHeader = true
+        useJsonHeader = true,
+        isGzip = false // ✅ NEW FLAG
     ): Promise<any> {
         const url = MapApi.getURL(api, params);
         let headers = await this.getHeaders(useJsonHeader);
@@ -163,11 +168,13 @@ export default class MapApi {
             method,
             headers,
             credentials: "same-origin",
-            body: method === "POST" && data && !(data instanceof FormData) ? JSON.stringify(data) : data,
+            body: method === "POST" && data && !(data instanceof FormData)
+                ? JSON.stringify(data)
+                : data,
         });
 
+        // Token refresh logic
         if (response.status === 401) {
-
             const newToken = await AuthServices.refreshAccessToken();
             if (newToken) {
                 headers = await this.getHeaders(useJsonHeader);
@@ -175,7 +182,9 @@ export default class MapApi {
                     method,
                     headers,
                     credentials: "same-origin",
-                    body: method === "POST" && data && !(data instanceof FormData) ? JSON.stringify(data) : data,
+                    body: method === "POST" && data && !(data instanceof FormData)
+                        ? JSON.stringify(data)
+                        : data,
                 });
             }
         }
@@ -185,15 +194,31 @@ export default class MapApi {
             return null;
         }
 
+        // No content
         const contentType = response.headers.get("content-type");
         if (!contentType || response.status === 204) return null;
 
+        // ✅ GZIP case
+        if (isGzip || contentType.includes("application/gzip")) {
+            const buffer = await response.arrayBuffer();
+            try {
+                const decompressed = pako.ungzip(new Uint8Array(buffer), { to: "string" });
+                const parsed = JSON.parse(decompressed);
+                return isJSON ? parsed?.payload || parsed : parsed;
+            } catch (err) {
+                console.error("Failed to decompress or parse GZIP response:", err);
+                return null;
+            }
+        }
+
+        // ✅ Standard JSON or text
         const res = isJSON && contentType.includes("application/json")
             ? await response.json()
             : await response.text();
 
         return isJSON ? res?.payload || res : res;
     }
+
 
     private handleError(response: Response) {
         const ref = this.snackbarRef.current;

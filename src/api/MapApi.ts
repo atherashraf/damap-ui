@@ -68,7 +68,9 @@ export const MapAPIs = Object.freeze({
     DCH_ADD_DB_CONNECTION:"api/dch/add-db-connection/",
     DCH_TEST_DB_CONNECTION:"api/dch/test-db-connection/",
     WATER_QUALITY_DATA: "api/lbdc/water_quality_data/",
+    /** test apis **/
     LBDC_AOI: "api/lbdc/lbdc_aoi/",
+    FF_FLOW_NETWORK_GRAPH: "api/ff/flow_network_graph/",
 
     // LBDC_DISCHARGE:"https://irrigation.punjab.gov.pk/admin/api/fetch_LBDC_Discharge.php?"
 });

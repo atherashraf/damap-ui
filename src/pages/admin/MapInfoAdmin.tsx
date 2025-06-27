@@ -20,7 +20,7 @@ const MapInfo = () => {
     const getRowData = React.useCallback(() => {
         return changeListRef.current?.getSelectedRowData();
     },[]);
-    console.log("rowData", getRowData());
+
     const getSelectedUUID = React.useCallback(() => {
         const rowData = getRowData();
         if (rowData) {

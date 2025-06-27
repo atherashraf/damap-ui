@@ -40,6 +40,7 @@ export interface TimeSliderHandle {
 
 const TimeSlider = forwardRef<TimeSliderHandle, ITimeSliderProps>((props, ref) => {
     const {mapVM} = props;
+    const sliderRef = useRef<HTMLSpanElement | null>(null); // MUI Slider renders as a <span>
 
     const [selectedLayerUUID, setSelectedLayerUUID] = useState<string>("");
     const [currentDayOffset, setCurrentDayOffset] = useState<number>(0);
@@ -170,6 +171,38 @@ const TimeSlider = forwardRef<TimeSliderHandle, ITimeSliderProps>((props, ref) =
         }
     };
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (!minDate || !maxDate) return;
+
+            const maxOffset = getDayOffset(maxDate, minDate);
+
+            if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+                setCurrentDayOffset((prev) => {
+                    const next = Math.max(prev - 1, 0);
+                    const nextDate = getDateFromOffset(next);
+                    if (nextDate) onDateChange(nextDate);
+                    return next;
+                });
+            } else if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+                setCurrentDayOffset((prev) => {
+                    const next = Math.min(prev + 1, maxOffset);
+                    const nextDate = getDateFromOffset(next);
+                    if (nextDate) onDateChange(nextDate);
+                    return next;
+                });
+            }
+        };
+
+        // Attach global listener
+        window.addEventListener("keydown", handleKeyDown);
+
+        // Cleanup on unmount
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [minDate, maxDate]); // make sure to track these as dependencies
+
 
     return (
         <Box
@@ -290,6 +323,7 @@ const TimeSlider = forwardRef<TimeSliderHandle, ITimeSliderProps>((props, ref) =
                                         {/* Slider */}
                                         <Slider
                                             value={currentDayOffset}
+                                            ref={sliderRef}
                                             min={0}
                                             max={getDayOffset(maxDate, minDate)}
                                             step={1}

@@ -75,11 +75,35 @@ class SelectionLayer extends AbstractOverlayLayer {
         if (clearPreviousSelection) {
             this.clearSelection();
         }
-        console.log("wkt", wkt)
-        const features = new WKT().readFeatures(wkt);
-        console.log("features", features)
-        this.getSource()?.addFeatures(features);
+
+        console.log("Original WKT:", wkt);
+
+        let srid = "EPSG:3857"; // default
+        let cleanWkt = wkt;
+
+        // Clean SRID if present (e.g. "SRID=4326;POLYGON(...)")
+        const sridMatch = wkt.match(/^SRID=(\d+);(.*)$/i);
+        if (sridMatch) {
+            const epsgCode = sridMatch[1];
+            srid = `EPSG:${epsgCode}`;
+            cleanWkt = sridMatch[2];
+        }
+
+        try {
+            const features = new WKT().readFeatures(cleanWkt, {
+                dataProjection: srid,
+                featureProjection: "EPSG:3857",
+            });
+
+            console.log("Parsed features:", features);
+            this.getSource()?.addFeatures(features);
+        } catch (err) {
+            console.error("Failed to parse WKT:", err);
+            this.mapVM.showSnackbar("Failed to parse WKT geometry", "error");
+        }
     }
+
+
 
     addFeature(Feature: Feature, clearPreviousSelection: boolean = true) {
         if (clearPreviousSelection) {

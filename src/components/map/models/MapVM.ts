@@ -404,7 +404,8 @@ class MapVM {
     addOverlayLayer(overlayLayer: IDWLayer | OverlayVectorLayer | SelectionLayer) {
 
         const layer = overlayLayer.olLayer
-        const key = layer.get("name") || layer.get("title")
+        const key = layer.get("title")
+
         if (!key) {
             console.warn("Overlay layer must have a 'name' or 'title' property.");
             return;

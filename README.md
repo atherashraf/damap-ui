@@ -103,19 +103,29 @@ damap-ui/
 
 ```tsx
 import {MapView} from "damap";
-import {AppBar, Button, Toolbar} from "@mui/material";
+import {AppBar,  Toolbar} from "@mui/material";
 import 'damap/damap.css'
+import {useTheme} from "@mui/material/styles";
 
-const mapRef = useRef();
-const mapUUID = "your-map-uuid";
 
-<MapView ref={mapRef} uuid={mapUUID} isMap={true}>
-    <AppBar position="static" color="primary">
-        <Toolbar variant="dense">
-            <Button variant="contained">Custom Toolbar Button</Button>
-        </Toolbar>
-    </AppBar>
-</MapView>
+
+const App = () => {
+    const mapUUID = "-1";
+    const theme = useTheme()
+    return (
+        <Box sx={{height: '500px'}}>
+            <MapView uuid={mapUUID} isMap={true} theme={theme}>
+                <AppBar position="static" color="secondary">
+                    <Toolbar variant="dense">
+                            <Button variant="contained">Custom Toolbar Button</Button>
+                    </Toolbar>
+                </AppBar>
+            </MapView>
+        </Box>
+    )
+}
+
+export default App;
 ```
 
 ### 🧠 Use ViewModel Functions

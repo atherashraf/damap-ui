@@ -18,8 +18,8 @@ import 'ol-ext/dist/ol-ext.css';
 
 
 interface MapLayoutProps {
-    uuid: string;
-    isMap: boolean;
+    uuid?: string;
+    isMap?: boolean;
     theme: Theme;
     children?: React.ReactNode;
 }
@@ -31,8 +31,8 @@ export const mapDivInfo = {
 };
 
 const MapView: React.FC<React.PropsWithChildren<MapLayoutProps>> = ({
-                                                                        uuid,
-                                                                        isMap,
+                                                                        uuid="-1",
+                                                                        isMap=true,
                                                                         children,
                                                                         theme
                                                                     }) => {

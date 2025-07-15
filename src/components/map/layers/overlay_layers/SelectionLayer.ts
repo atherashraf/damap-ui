@@ -26,11 +26,12 @@ class SelectionLayer extends AbstractOverlayLayer {
         autoBind(this);
     }
 
-    createSelectionLayer() {
-        const title = "sel_layer";
+    createSelectionLayer(title: string = "sel_layer") {
+        // const title = "sel_layer";
         this.olLayer = new VectorLayer({
             // @ts-ignore
             title: title,
+            name: title,
             displayInLayerSwitcher: false,
             source: new VectorSource(),
             style: this.getSelectStyle,
@@ -160,9 +161,14 @@ class SelectionLayer extends AbstractOverlayLayer {
     zoomToFeature(feature: Feature<Geometry>) {
         const geom = feature.getGeometry();
         if (geom) {
-            const extent = buffer(geom.getExtent(), 2000);
+            const extent = geom.getExtent();
+            console.log("zooming to extent", extent)
             if (extent.every((v) => Number.isFinite(v))) {
-                this.mapVM.zoomToExtent(extent);
+                this.mapVM.getMap().getView().fit(extent, {
+                    padding: [50, 50, 50, 50], // top, right, bottom, left
+                    duration: 500, // optional animation
+                    maxZoom: 18 // optional zoom limit
+                });
             } else {
                 this.mapVM.showSnackbar("Invalid extent from feature", "warning");
             }

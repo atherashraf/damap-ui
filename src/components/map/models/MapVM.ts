@@ -355,6 +355,7 @@ class MapVM {
     zoomToExtent(extent: number[]) {
         // @ts-ignore
         this.map.getView().fit(extent, this.map.getSize());
+        // this.map.getView().fit(extent, { padding: [20, 20, 20, 20], duration: 500 });
     }
 
     getCurrentExtent() {
@@ -403,7 +404,11 @@ class MapVM {
     addOverlayLayer(overlayLayer: IDWLayer | OverlayVectorLayer | SelectionLayer) {
 
         const layer = overlayLayer.olLayer
-        const key = layer.get("name")
+        const key = layer.get("name") || layer.get("title")
+        if (!key) {
+            console.warn("Overlay layer must have a 'name' or 'title' property.");
+            return;
+        }
 
         if (!(key in this.overlayLayers)) {
             this.overlayLayers[key] = overlayLayer;
@@ -411,8 +416,9 @@ class MapVM {
         }
     }
 
-    getOverlayLayer(uuid: string) {
-        return this.overlayLayers[uuid]
+    getOverlayLayer(key: string) {
+        //either name or title of the layer
+        return this.overlayLayers[key]
     }
 
     getOverlayLayerByTitle(title: string) {

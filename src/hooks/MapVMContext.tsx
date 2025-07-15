@@ -38,7 +38,7 @@ export const getMapVM = (): MapVM => {
     if (!_globalMapVM) {
         throw new Error("getMapVM(): MapVM has not been initialized.");
     }
-    return _globalMapVM;
+    return _globalMapVM;``
 };
 
 /**

@@ -12,13 +12,14 @@ import {formatYmdDate} from "@/components/map/time_slider/TimeSliderControl";
  */
 
 class MVTLayer extends AbstractDALayer {
-    setLayer() {
+    async setLayer() {
         const me = this;
         const {title, uuid} = this.layerInfo || {};
         const declutter =
             this.layerInfo.layerSetting && "declutter" in this.layerInfo.layerSetting
                 ? this.layerInfo.layerSetting["declutter"] === "true"
                 : true;
+        console.log("layerInfo", this.layerInfo)
         this.layer = new VectorTileLayer({
             //@ts-ignore
             name: uuid,
@@ -29,9 +30,12 @@ class MVTLayer extends AbstractDALayer {
             //@ts-ignore
             style: this?.vectorStyleFunction?.bind(me),
             declutter: declutter,
+            extent: this.layerInfo.extent3857 ??  this.mapVM?.mapExtent ?? undefined  // ✅ Add this line
         });
         this.setSlDStyleAndLegendToLayer();
     }
+
+
 
     getDataSource(): VectorTileSource {
         // @ts-ignore

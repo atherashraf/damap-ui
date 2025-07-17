@@ -1,6 +1,6 @@
 import React, {useRef, useState, useMemo, useEffect} from "react";
 import {
-    Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton,
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton,
     Toolbar, Typography,  TextField, Tooltip, alpha
 } from "@mui/material";
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
@@ -108,8 +108,13 @@ const AttributeTable: React.FC<IDataGridProps> = ({
 
     const handlePivot = async () => {
         dialogRef.current?.handleClickOpen();
+        // dialogRef.current?.setContent('Pivot Table',
+        //     <PivotTable columns={columns} data={data} />);
         dialogRef.current?.setContent('Pivot Table',
-            <PivotTable columns={columns} data={data} />);
+            <div style={{ height: '100%', overflow: 'auto' }}>
+                <PivotTable columns={columns} data={data} />
+            </div>
+        );
         // if (pivotTableData.length > 0) {
         //     dialogRef.current?.setContent('Pivot Table', <PivotTable data={pivotTableData} />);
         // } else if (pivotTableSrc) {
@@ -176,7 +181,7 @@ const AttributeTable: React.FC<IDataGridProps> = ({
         backgroundColor: '#fff',
     };
     return (
-        <Box>
+        <>
             <Toolbar sx={{
                 backgroundColor: theme?.palette.secondary.main,
                 boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
@@ -282,11 +287,30 @@ const AttributeTable: React.FC<IDataGridProps> = ({
                                 }}
                             >
                                 <TableCell sx={rowCellStyle} key={`cell-index-${index}`}>{index + 1}</TableCell>
-                                {columns.map((col) => (
-                                    <TableCell key={`cell-${index}-${col.id}`} sx={rowCellStyle}>
-                                        {row[col.id] ?? ''}
-                                    </TableCell>
-                                ))}
+                                {columns.map((col) => {
+                                    const value = row[col.id];
+                                    let displayValue = '';
+
+                                    if (value !== undefined && value !== null) {
+                                        if (typeof value === 'object') {
+                                            // Optional: further check for OpenLayers geometry
+                                            if (typeof value.getCoordinates === 'function') {
+                                                displayValue = '[geometry]';
+                                            } else {
+                                                displayValue = JSON.stringify(value);
+                                            }
+                                        } else {
+                                            displayValue = value.toString();
+                                        }
+                                    }
+
+                                    return (
+                                        <TableCell key={`cell-${index}-${col.id}`} sx={rowCellStyle}>
+                                            {displayValue}
+                                        </TableCell>
+                                    );
+                                })}
+
                             </TableRow>
                         ))}
                     </TableBody>
@@ -294,7 +318,7 @@ const AttributeTable: React.FC<IDataGridProps> = ({
             </TableContainer>
 
             <DAFullScreenDialog ref={dialogRef} />
-        </Box>
+        </>
     );
 
 };

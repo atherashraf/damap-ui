@@ -1,7 +1,6 @@
 import * as React from "react";
 import { useState, useMemo } from "react";
 import PivotTableUI from "react-pivottable/PivotTableUI";
-import "react-pivottable/pivottable.css";
 import TableRenderers from "react-pivottable/TableRenderers";
 // @ts-ignore
 import Plotly from "plotly.js/dist/plotly-cartesian";
@@ -10,6 +9,7 @@ import createPlotlyComponent from "react-plotlyjs";
 import createPlotlyRenderers from "react-pivottable/PlotlyRenderers";
 
 import { Column, Row } from "@/types/gridTypeDeclaration";
+import 'react-pivottable/pivottable.css';
 
 const Plot = createPlotlyComponent(Plotly);
 const PlotlyRenderers = createPlotlyRenderers(Plot);
@@ -36,7 +36,7 @@ const PivotTable: React.FC<IProps> = ({ columns, data }) => {
         <PivotTableUI
             data={pivotTableData}
             onChange={s => setPivotState(s)}
-            renderers={{ ...TableRenderers, ...PlotlyRenderers }}
+            renderers={Object.assign({}, TableRenderers, PlotlyRenderers)}
             {...pivotState}
         />
     );

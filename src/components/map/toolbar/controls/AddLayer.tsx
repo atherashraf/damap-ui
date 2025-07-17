@@ -45,11 +45,22 @@ const AddLayer = () => {
         mapVM.getSnackbarRef()?.current?.show("Getting Layer List...");
 
         mapVM.api.get(MapAPIs.DCH_GET_ALL_LAYERS).then((payload) => {
-            if (payload) {
+            if (Array.isArray(payload) && payload.length > 0) {
                 drawerRef?.current?.setContent("Add Layer", <AddLayerPanel mapVM={mapVM} layers={payload} />);
             } else {
-                drawerRef?.current?.setContent("Add Layer", <Box>No Layer Found</Box>);
+                drawerRef?.current?.setContent(
+                    "Add Layer",
+                    <Box sx={{ mt: 3, textAlign: "center" }}>No layers available.</Box>
+                );
             }
+        }).catch(() => {
+            // console.error("Error fetching layers:", error);
+            drawerRef?.current?.setContent(
+                "Add Layer",
+                <Box sx={{ mt: 3, textAlign: "center", color: "red" }}>
+                    <h4>No Layer Available to Add</h4>
+                </Box>
+            );
         });
     };
 

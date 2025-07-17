@@ -64,5 +64,6 @@ export default defineConfig(({ mode }) => {
         optimizeDeps: {
             include: ['@emotion/react', '@emotion/styled'],
         },
+        assetsInclude: ['**/*.geojson']
     };
 });

@@ -47,14 +47,24 @@ const ContextMenu = (props: IProps) => {
                 drawerRef?.current?.openDrawer();
                 break;
             case "zoom":
-                const extent = props.olLayer.getSource().getExtent()
+                const layerExtent = props.olLayer.getExtent?.();
+                const sourceExtent = props.olLayer.getSource?.()?.getExtent?.();
 
-                extent ?  props.mapVM.zoomToExtent(extent):
-                    props.mapVM.showSnackbar("Layer extent is not available")
+                const extent = layerExtent ?? sourceExtent;
+
+                if (extent && extent.length === 4) {
+                    props.mapVM.zoomToExtent(extent);
+                } else {
+                    props.mapVM.showSnackbar("Layer extent is not available");
+                }
                 break
             case "table":
-                props.mapVM.setLayerOfInterest(uuid);
-                setTimeout(() => props?.mapVM?.openAttributeTable(), 1000);
+                try {
+                    props.mapVM.setLayerOfInterest(uuid);
+                    setTimeout(() => props?.mapVM?.openAttributeTable?.(), 1000);
+                }catch{
+                    props.mapVM.showSnackbar("Attribute table is not available");
+                }
                 break;
             //@ts-ignore
             case "downloadStyle":

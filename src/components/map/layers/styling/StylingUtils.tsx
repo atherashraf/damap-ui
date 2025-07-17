@@ -118,9 +118,24 @@ class StylingUtils {
         layer: any,
         featureStyle: IFeatureStyle,
         geomType: string,
-        iconSize: [number, number] = [25, 25]
+        iconSize: [number, number] = [30, 15]
     ) {
         const styleType = featureStyle?.type || "single";
+
+        const sizeString = import.meta.env.VITE_LGEGEND_ICON_SIZE;
+
+        if (sizeString) {
+            try {
+                const parsed = JSON.parse(sizeString);
+                if (Array.isArray(parsed) && parsed.length === 2) {
+                    iconSize = [Number(parsed[0]), Number(parsed[1])];
+                }
+            } catch (e) {
+                console.warn("VITE_LEGEND_ICON_SIZE is not a valid JSON array");
+
+            }
+        } else {
+        }
 
         switch (styleType) {
             case "single":
@@ -149,37 +164,40 @@ class StylingUtils {
             case "density":
                 const rules = featureStyle.style.rules;
                 let canvas: HTMLCanvasElement = document.createElement("canvas");
-                canvas.width = 300;
+                canvas.width = 400;
                 //@ts-ignore
                 // canvas.height = iconSize[1] * rules?.length * 5;
                 const itemHeight = Math.max(iconSize[1], 10); // Ensure at least 25px per item
-                const verticalSpacing = itemHeight + 5; // 10px padding
-                canvas.height = verticalSpacing * ((rules?.length || 1) + 5) + 50;
+                // const verticalSpacing = itemHeight + 5; // 10px padding
+                const verticalSpacing = (iconSize[0] + 10)
+                canvas.height = verticalSpacing * ((rules?.length || 1) + 10) + 10;
 
 
                 rules?.forEach((rule: IRule, index) => {
                     const fStyle = this.createOLStyle(geomType, rule.style);
                     fStyle?.setText(new Text({
                         text: rule.title?.toString(),
-                        font: "bold 14px sans-serif",
+                        font: "bold 13px sans-serif",
                         textAlign: "left",
                         offsetX: iconSize[0] + 1,
                         fill: new Fill({color: "#000"}), // ensure visible text
                     }))
 
                     canvas = ol_legend_Legend.getLegendImage({
-                            margin: 5,
+                            margin: 10,
                             style: fStyle,
                             typeGeom: geomType,
                             className: "",
                         },
                         canvas,
-                        // index * (iconSize[1] + 4)
+                        // index * (iconSize[0] + 10)
                         index * verticalSpacing
                     );
                 });
+
+
                 layer.legend = {sType: "canvas", graphic: canvas};
-            // this.mapVM.legendPanel.refresh()
+
         }
     }
 

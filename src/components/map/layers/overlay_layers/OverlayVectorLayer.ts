@@ -39,6 +39,15 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         StylingUtils.addLegendGraphic(this.olLayer, this.layerInfo.style, gtype)
     }
 
+    getLayerUUID(): string {
+        return this.layerInfo.uuid;
+    }
+
+
+    getLayerTitle(): string {
+        return this.olLayer?.get("title");
+    }
+
     createLayer() {
         // const title = title;
         return new VectorLayer({

@@ -13,6 +13,7 @@ export default function MapAdmin() {
         DCH: [
             {name: "Layer Info", href: "/LayerInfo"},
             {name: "Map Info", href: "/MapInfo"},
+            {name: "Overlay testing", href: "/MapOverlays"},
         ],
     };
     return (

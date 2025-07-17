@@ -13,11 +13,12 @@ import {
     IFeatureStyle,
     IDomRef,
     ILayerInfo,
-    IMapInfo,
+    IMapInfo, IGeoJSON, IGeomStyle, IRule,
 } from "@/types/typeDeclarations";
 import RightDrawer from "@/components/map/drawers/RightDrawer";
 import LeftDrawer from "@/components/map/drawers/LeftDrawer";
 import DADialogBox from "@/components/base/DADialogBox";
+
 // @ts-ignore
 import Legend from "ol-ext/control/Legend";
 // @ts-ignore
@@ -44,7 +45,9 @@ import {Feature} from "ol";
 import _ from "@/utils/lodash";
 import TimeSliderControl from "@/components/map/time_slider/TimeSliderControl";
 import timeSliderControl from "@/components/map/time_slider/TimeSliderControl";
+import {ColorUtils} from "@/utils/colorUtils";
 
+import {createEmpty, extend, isEmpty} from 'ol/extent';
 
 export interface IDALayers {
     [key: string]: AbstractDALayer;
@@ -73,9 +76,16 @@ class MapVM {
     // @ts-ignore
     currentMapInteraction = null;
     // leftDrawerRef: any
-    mapExtent: Array<number> = [
-        7031250.271849444, 2217134.3474655207, 8415677.728150556, 4922393.652534479,
+    // Default extent fallback
+    private defaultExtent: number[] = [
+        7031250.271849444,
+        2217134.3474655207,
+        8415677.728150556,
+        4922393.652534479,
     ];
+
+    // Dynamically loaded extent from .env or default
+    mapExtent: number[] = this._loadMapExtent();
     isInit: Boolean = false;
     public readonly api: MapApi;
     private isDesigner: boolean;
@@ -101,6 +111,17 @@ class MapVM {
             // isDesigner: this.isDesigner,
             // isCreateMap: (!this.isDesigner && !mapInfo) || mapInfo?.isEditor || false,
         })
+    }
+
+    private _loadMapExtent(): number[] {
+        const envExtent = import.meta.env.VITE_MAP_EXTENT;
+        if (envExtent) {
+            const parsed = envExtent.split(',').map(Number);
+            if (parsed.length === 4 && parsed.every(n => !isNaN(n))) {
+                return parsed;
+            }
+        }
+        return this.defaultExtent;
     }
 
     setIsDesigner(isDesigner: boolean) {
@@ -287,23 +308,15 @@ class MapVM {
 
     setLayerOfInterest(uuid: string, closeDrawer: boolean = true) {
         this._layerOfInterest = uuid;
-        setTimeout(() => {
-            const sel: HTMLSelectElement = document.getElementById(
-                "loi-select"
-            ) as HTMLSelectElement;
-            if (sel) {
-                //@ts-ignore
-                sel.selectedIndex = [...sel.options].findIndex(
-                    (option) => option.value === uuid
-                );
-            }
-        }, 1000);
 
-        // const mapBoxRef = this.getMapPanelRef();
+        const sel = document.getElementById("loi-select") as HTMLSelectElement | null;
+        if (sel) {
+            sel.value = uuid;
+        }
+
         const bottomDrawerRef = this.getBottomDrawerRef();
-        let open = bottomDrawerRef.current?.isOpen();
-        if (open && closeDrawer) {
-            bottomDrawerRef.current?.closeDrawer();
+        if (bottomDrawerRef.current?.isOpen() && closeDrawer) {
+            bottomDrawerRef.current.closeDrawer();
         }
     }
 
@@ -351,6 +364,41 @@ class MapVM {
         //@ts-ignore
         this.map.getView().fit(this.mapExtent, this.map?.getSize());
     }
+
+
+    zoomToAllLayersExtent(maxZoom: number = 18): void {
+        const map = this.getMap();
+        if (!map) return;
+
+        const combinedExtent = createEmpty();
+        const layers = map.getLayers().getArray();
+
+        for (const layer of layers) {
+            if (!(layer instanceof BaseLayer) || !layer.getVisible()) continue;
+
+            // Prefer layer extent if available, otherwise fallback to source extent
+            const layerExtent = layer.getExtent?.();
+            //@ts-ignore
+            const sourceExtent = layer?.getSource?.()?.getExtent?.();
+
+            const extent = layerExtent ?? sourceExtent;
+
+            if (extent && extent.length === 4 && !isEmpty(extent)) {
+                extend(combinedExtent, extent);
+            }
+        }
+
+        if (!isEmpty(combinedExtent)) {
+            map.getView().fit(combinedExtent, {
+                size: map.getSize(),
+                maxZoom: maxZoom,
+                duration: 1000
+            });
+        } else {
+            console.warn("No valid layer extents found to zoom.");
+        }
+    }
+
 
     zoomToExtent(extent: number[]) {
         // @ts-ignore
@@ -401,10 +449,11 @@ class MapVM {
         }
     }
 
+
     addOverlayLayer(overlayLayer: IDWLayer | OverlayVectorLayer | SelectionLayer) {
 
         const layer = overlayLayer.olLayer
-        const key = layer.get("title")
+        const key: string = layer.get("name")
 
         if (!key) {
             console.warn("Overlay layer must have a 'name' or 'title' property.");
@@ -415,6 +464,8 @@ class MapVM {
             this.overlayLayers[key] = overlayLayer;
             this.map.addLayer(layer);
         }
+        if (overlayLayer instanceof OverlayVectorLayer)
+            window.dispatchEvent(this._daLayerAddedEvent);
     }
 
     getOverlayLayer(key: string) {
@@ -658,71 +709,75 @@ class MapVM {
     }
 
     openAttributeTable = (tableHeight = 250) => {
-        const bottomDrawer = this.getBottomDrawerRef();
-        const drawerRef = bottomDrawer.current;
-        if (!drawerRef) return;
+        try {
+            const bottomDrawer = this.getBottomDrawerRef();
+            const drawerRef = bottomDrawer.current;
+            if (!drawerRef) return;
 
-        const uuid = this.getLayerOfInterest();
-        if (!uuid) {
-            this.showSnackbar("Please select a layer to view its attributes");
-            return;
-        }
-
-        if (drawerRef.isOpen()) {
-            if (drawerRef.isHidden?.()) {
-                drawerRef.handleUnhide?.();
+            const uuid = this.getLayerOfInterest();
+            if (!uuid) {
+                this.showSnackbar("Please select a layer to view its attributes");
+                return;
             }
-            return;
-        }
 
-        if (this.isDALayerExists(uuid)) {
-            this.getApi()
-                .get(MapAPIs.DCH_LAYER_ATTRIBUTES, {uuid})
-                .then((payload: { columns: Column[]; rows: Row[]; pkCols: string[] }) => {
-                    if (payload) {
-                        bottomDrawer?.current?.requestAttributeTable({
-                            columns: payload.columns,
-                            rows: payload.rows,
-                            pkCols: payload.pkCols,
-                            tableHeight: tableHeight,
-                        });
-                    } else {
+            if (drawerRef.isOpen()) {
+                if (drawerRef.isHidden?.()) {
+                    drawerRef.handleUnhide?.();
+                }
+                return;
+            }
+
+            if (this.isDALayerExists(uuid)) {
+                this.getApi()
+                    .get(MapAPIs.DCH_LAYER_ATTRIBUTES, {uuid})
+                    .then((payload: { columns: Column[]; rows: Row[]; pkCols: string[] }) => {
+                        if (payload) {
+                            bottomDrawer?.current?.requestAttributeTable({
+                                columns: payload.columns,
+                                rows: payload.rows,
+                                pkCols: payload.pkCols,
+                                tableHeight: tableHeight,
+                            });
+                        } else {
+                            drawerRef.closeDrawer();
+                            this.getSnackbarRef()?.current?.show("No attribute found");
+                        }
+                    })
+                    .catch(() => {
                         drawerRef.closeDrawer();
                         this.getSnackbarRef()?.current?.show("No attribute found");
-                    }
-                })
-                .catch(() => {
-                    drawerRef.closeDrawer();
-                    this.getSnackbarRef()?.current?.show("No attribute found");
-                });
-        } else if (this.isOverlayLayerExist(uuid)) {
-            const overlayLayer = this.getOverlayLayer(uuid);
-            const features = overlayLayer.getFeatures();
-            const columns: Column[] = [];
-            const rows: Row[] = [];
-            features?.forEach((feature: Feature, index) => {
-                const id = feature.getId();
-                const properties = feature.getProperties();
-                if (index === 0) {
-                    Object.keys(properties).forEach((key) => {
-                        columns.push({
-                            disablePadding: false,
-                            id: key,
-                            label: key,
-                            type: _.checkPrimitivesType(properties[key]),
-                        });
                     });
-                }
-                //@ts-ignore
-                rows.push({...properties, rowId: parseFloat(id)});
-            });
+            } else if (this.isOverlayLayerExist(uuid)) {
+                const overlayLayer = this.getOverlayLayer(uuid);
+                const features = overlayLayer.getFeatures();
+                const columns: Column[] = [];
+                const rows: Row[] = [];
+                features?.forEach((feature: Feature, index) => {
+                    const id = feature.getId();
+                    const properties = feature.getProperties();
+                    if (index === 0) {
+                        Object.keys(properties).forEach((key) => {
+                            columns.push({
+                                disablePadding: false,
+                                id: key,
+                                label: key,
+                                type: _.checkPrimitivesType(properties[key]),
+                            });
+                        });
+                    }
+                    //@ts-ignore
+                    rows.push({...properties, rowId: parseFloat(id)});
+                });
 
-            bottomDrawer?.current?.requestAttributeTable({
-                columns,
-                rows,
-                pkCols: ["id"],
-                tableHeight: tableHeight,
-            });
+                bottomDrawer?.current?.requestAttributeTable({
+                    columns,
+                    rows,
+                    pkCols: ["id"],
+                    tableHeight: tableHeight,
+                });
+            }
+        }catch{
+            this.showSnackbar("Attribute table is not available");
         }
     };
 
@@ -732,6 +787,71 @@ class MapVM {
 
     getTheme(): Theme | undefined {
         return this._theme
+    }
+
+    /****
+     overlayer layer new function July  2025
+     ***/
+
+    static getDefaultStyle(geomStyle: IGeomStyle = {}, alpha: number = 0.8): IFeatureStyle {
+        const baseRGB = ColorUtils.getRandomRGB()
+        const fillColor = geomStyle?.fillColor ?? ColorUtils.toRGBA(baseRGB!, alpha);
+        const strokeColor = geomStyle?.strokeColor ?? ColorUtils.toRGBA(ColorUtils.darkenColor(baseRGB!, 0.7), 1);
+
+        return {
+            type: "single",
+            style: {
+                default: {
+                    strokeColor: strokeColor,
+                    strokeWidth: geomStyle?.strokeWidth ?? 2,
+                    fillColor: fillColor,
+                    pointShape: geomStyle?.pointShape ?? "circle",
+                    pointSize: geomStyle?.pointSize ?? 10
+                }
+            }
+        };
+    }
+
+
+    static getMultipleStyle(rules: IRule[], alpha = 0.8): IFeatureStyle {
+        return {
+            type: "multiple",
+            style: {
+                rules: rules.map(rule => {
+                    // If fillColor is not provided, generate a random one
+                    const baseRGB = rule.style.fillColor
+                        ? null
+                        : ColorUtils.getRandomRGB();
+                    const fillColor = rule.style.fillColor ?? ColorUtils.toRGBA(baseRGB!, alpha);
+                    const strokeColor = rule.style.strokeColor ?? ColorUtils.toRGBA(ColorUtils.darkenColor(baseRGB!, 0.7), 1);
+
+                    return {
+                        title: rule.title,
+                        filter: rule.filter,
+                        style: {
+                            strokeColor,
+                            strokeWidth: rule.style.strokeWidth ?? 2,
+                            fillColor,
+                            pointShape: rule.style.pointShape ?? "circle",
+                            pointSize: rule.style.pointSize ?? 10
+                        }
+                    };
+                })
+            }
+        };
+    }
+
+
+    createOverlayLayer(uuid: string, geoJSON: IGeoJSON, title: string, style?: IFeatureStyle): boolean {
+        if (this.isOverlayLayerExist(uuid)) return false
+
+        const daLayer = new OverlayVectorLayer({
+            uuid: uuid,
+            title: title,
+            style: style || MapVM.getDefaultStyle()
+        }, this)
+        daLayer.addGeojsonFeature(geoJSON, true)
+        return true
     }
 }
 

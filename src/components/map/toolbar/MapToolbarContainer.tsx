@@ -75,6 +75,7 @@ import AttributeTableControl from "@/components/map/toolbar/controls/AttributeTa
 import {MapVMInjectProvider} from "@/hooks/MapVMContext";
 import LOISelector from "@/components/map/toolbar/controls/LOISelector";
 import {Tooltip} from "@mui/material";
+import {AddLayer} from "@/damap";
 
 interface Props {
     mapVM: MapVM;
@@ -85,7 +86,7 @@ const MapToolbarContainer: React.FC<Props> = ({ mapVM, dynamicButtons = [] }) =>
     // const theme = mapVM.getTheme();
     return (
         <MapVMInjectProvider mapVM={mapVM}>
-            {/*<AddLayer />*/}
+            <AddLayer />
             <LayerSwitcherControl />
             {/* Add more static buttons as needed */}
             {/*<AddClassificationSurface mapVM={mapVM}/>*/}

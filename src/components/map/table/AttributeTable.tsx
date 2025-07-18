@@ -30,6 +30,8 @@ interface IDataGridProps {
 const AttributeTable: React.FC<IDataGridProps> = ({
                                                       columns, data, tableHeight, pkCols,
                                                   }: IDataGridProps) => {
+
+
     const mapVM =getMapVM();
     const containerRef = useRef<HTMLDivElement>(null);
     const { selectedRowKey, scrollTop } = mapVM.getAttributeTableState();
@@ -77,19 +79,20 @@ const AttributeTable: React.FC<IDataGridProps> = ({
 
     const handleRowSelect = (row: Row) => {
         const uuid = mapVM.getLayerOfInterest();
+
         if (!row['geom'] && mapVM.isDALayerExists(uuid)) {
             const pkVal = getSelectedRowPKValue(row);
             mapVM.getApi().get(MapAPIs.DCH_GET_FEATURE_GEOMETRY, { uuid, pk_values: pkVal }).then((payload: any) => {
-                // console.log("selected feature", payload);
                 mapVM.getSelectionLayer()?.addWKT2Selection(payload);
                 row['geom'] = payload;
 
             });
         } else if (mapVM.isOverlayLayerExist(uuid)) {
             const wkt = new WKT().writeGeometry(row['geometry']);
-            mapVM.getSelectionLayer()?.addWKT2Selection(wkt);
+            mapVM.getSelectionLayer()?.addWKT2Selection(wkt,true);
         } else {
-            mapVM.getSelectionLayer()?.addWKT2Selection(row['geom']);
+            // mapVM.getSelectionLayer()?.addWKT2Selection(row['geom']);
+            mapVM.getSnackbarRef().current?.show("Geometry not available for this layer. Please select a different layer.", "error")
         }
     };
 
@@ -162,6 +165,7 @@ const AttributeTable: React.FC<IDataGridProps> = ({
             })
         );
     }, [data, columns, searchText]);
+
     const headCellStyle = {
         backgroundColor: '#f0f0f0',
         fontWeight: 'bold',

@@ -76,8 +76,6 @@ class SelectionLayer extends AbstractOverlayLayer {
             this.clearSelection();
         }
 
-        console.log("Original WKT:", wkt);
-
         let srid = "EPSG:3857"; // default
         let cleanWkt = wkt;
 
@@ -95,14 +93,12 @@ class SelectionLayer extends AbstractOverlayLayer {
                 featureProjection: "EPSG:3857",
             });
 
-            console.log("Parsed features:", features);
             this.getSource()?.addFeatures(features);
         } catch (err) {
             console.error("Failed to parse WKT:", err);
             this.mapVM.showSnackbar("Failed to parse WKT geometry", "error");
         }
     }
-
 
 
     addFeature(Feature: Feature, clearPreviousSelection: boolean = true) {
@@ -168,14 +164,7 @@ class SelectionLayer extends AbstractOverlayLayer {
         if (this.getSource()?.getFeatures()?.length > 0) {
             let extent = this.getSource()?.getExtent();
             if (extent) {
-                // const width = extent[2] - extent[0]
-                // const height: number = extent[3] - extent[1]
-                // if(width==0 || height==0){
-                //     extent = buffer(extent, 2000)
-                // }
-                extent = buffer(extent, 2000)
-                // console.log("extent", extent)
-                extent && this.mapVM.zoomToExtent(extent);
+                this.mapVM.zoomToExtent(extent);
             }
         } else {
             this.mapVM.showSnackbar("Please select feature before zoom to");

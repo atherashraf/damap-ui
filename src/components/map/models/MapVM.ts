@@ -401,9 +401,18 @@ class MapVM {
 
 
     zoomToExtent(extent: number[]) {
-        // @ts-ignore
-        this.map.getView().fit(extent, this.map.getSize());
-        // this.map.getView().fit(extent, { padding: [20, 20, 20, 20], duration: 500 });
+        const view = this.map.getView();
+        const size = this.map.getSize();
+
+        if (!size) return;
+
+        // Fit the extent but clamp the zoom to a maximum of 18
+        view.fit(extent, {
+            size,
+            maxZoom: 18, // Prevent zoom level from going beyond 18
+            padding: [20, 20, 20, 20],
+            duration: 500,
+        });
     }
 
     getCurrentExtent() {
@@ -772,11 +781,11 @@ class MapVM {
                 bottomDrawer?.current?.requestAttributeTable({
                     columns,
                     rows,
-                    pkCols: ["id"],
+                    pkCols: ["rowId"],
                     tableHeight: tableHeight,
                 });
             }
-        }catch{
+        } catch {
             this.showSnackbar("Attribute table is not available");
         }
     };

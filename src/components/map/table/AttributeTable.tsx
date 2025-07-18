@@ -39,6 +39,7 @@ const AttributeTable: React.FC<IDataGridProps> = ({
     const [, forceUpdate] = useState(0); // dummy state to trigger re-render
     const [searchText, setSearchText] = useState('');
     const dialogRef = useRef<DAFullScreenDialogHandle>(null);
+    // const [isZoomEnabled, setIsZoomEnabled] = useState(false);
 
     const theme = mapVM.getTheme()
 
@@ -82,17 +83,20 @@ const AttributeTable: React.FC<IDataGridProps> = ({
 
         if (!row['geom'] && mapVM.isDALayerExists(uuid)) {
             const pkVal = getSelectedRowPKValue(row);
+            mapVM.getMapLoadingRef().current?.openIsLoading()
             mapVM.getApi().get(MapAPIs.DCH_GET_FEATURE_GEOMETRY, { uuid, pk_values: pkVal }).then((payload: any) => {
                 mapVM.getSelectionLayer()?.addWKT2Selection(payload);
                 row['geom'] = payload;
 
-            });
+            }).finally(()=>{
+                mapVM.getMapLoadingRef().current?.closeIsLoading()
+            })
         } else if (mapVM.isOverlayLayerExist(uuid)) {
             const wkt = new WKT().writeGeometry(row['geometry']);
             mapVM.getSelectionLayer()?.addWKT2Selection(wkt,true);
         } else {
-            // mapVM.getSelectionLayer()?.addWKT2Selection(row['geom']);
-            mapVM.getSnackbarRef().current?.show("Geometry not available for this layer. Please select a different layer.", "error")
+            mapVM.getSelectionLayer()?.addWKT2Selection(row['geom']);
+            // mapVM.getSnackbarRef().current?.show("Geometry not available for this layer. Please select a different layer.", "error")
         }
     };
 

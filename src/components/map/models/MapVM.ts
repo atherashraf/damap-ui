@@ -737,6 +737,7 @@ class MapVM {
             }
 
             if (this.isDALayerExists(uuid)) {
+                this.getMapLoadingRef().current?.openIsLoading()
                 this.getApi()
                     .get(MapAPIs.DCH_LAYER_ATTRIBUTES, {uuid})
                     .then((payload: { columns: Column[]; rows: Row[]; pkCols: string[] }) => {
@@ -755,7 +756,9 @@ class MapVM {
                     .catch(() => {
                         drawerRef.closeDrawer();
                         this.getSnackbarRef()?.current?.show("No attribute found");
-                    });
+                    }).finally(() => {
+                    this.getMapLoadingRef().current?.closeIsLoading()
+                })
             } else if (this.isOverlayLayerExist(uuid)) {
                 const overlayLayer = this.getOverlayLayer(uuid);
                 const features = overlayLayer.getFeatures();

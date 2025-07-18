@@ -19,7 +19,6 @@ class MVTLayer extends AbstractDALayer {
             this.layerInfo.layerSetting && "declutter" in this.layerInfo.layerSetting
                 ? this.layerInfo.layerSetting["declutter"] === "true"
                 : true;
-        console.log("layerInfo", this.layerInfo)
         this.layer = new VectorTileLayer({
             //@ts-ignore
             name: uuid,

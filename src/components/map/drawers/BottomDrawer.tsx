@@ -143,7 +143,7 @@ class BottomDrawer extends PureComponent<BottomDrawerProps, BottomDrawerState> {
                             right: 0,
                             height: `${paperHeight}px`,
                             bgcolor: 'background.paper',
-                            zIndex: 1300,
+                            zIndex: 1400,
                             boxShadow: '0px -2px 10px rgba(0,0,0,0.2)',
                             borderTopLeftRadius: 8,
                             borderTopRightRadius: 8,

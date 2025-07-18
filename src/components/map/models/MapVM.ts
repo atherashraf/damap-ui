@@ -48,6 +48,7 @@ import timeSliderControl from "@/components/map/time_slider/TimeSliderControl";
 import {ColorUtils} from "@/utils/colorUtils";
 
 import {createEmpty, extend, isEmpty} from 'ol/extent';
+import {IdentifyResultHandle} from "@/components/map/widgets/IdentifyResult";
 
 export interface IDALayers {
     [key: string]: AbstractDALayer;
@@ -255,6 +256,14 @@ class MapVM {
 
     setTimeSliderRef(timeSliderRef: RefObject<TimeSliderHandle>) {
         this._domRef.timeSliderRef = timeSliderRef;
+    }
+
+    setIdentifierResultRef(identifyResultRef: RefObject<IdentifyResultHandle | null>) {
+        this._domRef.identifyResultRef = identifyResultRef
+    }
+
+    getIdentifierResultRef(): RefObject<IdentifyResultHandle | null> | undefined {
+        return this._domRef.identifyResultRef;
     }
 
     getTimeSliderRef(): RefObject<TimeSliderHandle> {
@@ -473,8 +482,10 @@ class MapVM {
             this.overlayLayers[key] = overlayLayer;
             this.map.addLayer(layer);
         }
-        if (overlayLayer instanceof OverlayVectorLayer)
+        if (overlayLayer instanceof OverlayVectorLayer && layer.get("displayInLayerSwitcher") == true) {
             window.dispatchEvent(this._daLayerAddedEvent);
+        }
+           
     }
 
     getOverlayLayer(key: string) {
@@ -736,10 +747,19 @@ class MapVM {
                 return;
             }
 
+            const TIMEOUT_MS = 30000; // 10 seconds
+
+            const timeoutPromise = new Promise<never>((_, reject) => {
+                setTimeout(() => reject(new Error("Request timed out")), TIMEOUT_MS);
+            });
+
             if (this.isDALayerExists(uuid)) {
-                this.getMapLoadingRef().current?.openIsLoading()
-                this.getApi()
-                    .get(MapAPIs.DCH_LAYER_ATTRIBUTES, {uuid})
+                this.getMapLoadingRef().current?.openIsLoading();
+
+                Promise.race([
+                    this.getApi().get(MapAPIs.DCH_LAYER_ATTRIBUTES, {uuid}),
+                    timeoutPromise,
+                ])
                     .then((payload: { columns: Column[]; rows: Row[]; pkCols: string[] }) => {
                         if (payload) {
                             bottomDrawer?.current?.requestAttributeTable({
@@ -753,17 +773,20 @@ class MapVM {
                             this.getSnackbarRef()?.current?.show("No attribute found");
                         }
                     })
-                    .catch(() => {
+                    .catch((err: Error) => {
                         drawerRef.closeDrawer();
-                        this.getSnackbarRef()?.current?.show("No attribute found");
-                    }).finally(() => {
-                    this.getMapLoadingRef().current?.closeIsLoading()
-                })
+                        this.getSnackbarRef()?.current?.show(err.message || "No attribute found");
+                    })
+                    .finally(() => {
+                        this.getMapLoadingRef().current?.closeIsLoading();
+                    });
+
             } else if (this.isOverlayLayerExist(uuid)) {
                 const overlayLayer = this.getOverlayLayer(uuid);
                 const features = overlayLayer.getFeatures();
                 const columns: Column[] = [];
                 const rows: Row[] = [];
+
                 features?.forEach((feature: Feature, index) => {
                     const id = feature.getId();
                     const properties = feature.getProperties();
@@ -790,6 +813,7 @@ class MapVM {
             }
         } catch {
             this.showSnackbar("Attribute table is not available");
+            this.getMapLoadingRef().current?.closeIsLoading();
         }
     };
 
@@ -865,6 +889,8 @@ class MapVM {
         daLayer.addGeojsonFeature(geoJSON, true)
         return true
     }
+
+
 }
 
 export default MapVM;

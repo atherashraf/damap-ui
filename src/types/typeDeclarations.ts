@@ -14,6 +14,7 @@ import OverlayVectorLayer from "@/components/map/layers/overlay_layers/OverlayVe
 import IDWLayer from "@/components/map/layers/overlay_layers/IDWLayer";
 import SelectionLayer from "@/components/map/layers/overlay_layers/SelectionLayer";
 import XYZLayer from "@/components/map/layers/overlay_layers/XYZLayer";
+import {IdentifyResultHandle} from "@/components/map/widgets/IdentifyResult";
 
 export interface IBaseMapProps {
     mapVM: MapVM;
@@ -33,6 +34,7 @@ export interface IDomRef {
     snackBarRef: RefObject<DASnackbarHandle | null>;
     loadingRef: RefObject<DAMapLoading | null>;
     timeSliderRef?: RefObject<TimeSliderHandle>;
+    identifyResultRef?: RefObject<IdentifyResultHandle | null>;
 }
 
 export interface IMapToolbarProps {

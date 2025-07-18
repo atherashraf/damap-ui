@@ -1,38 +1,86 @@
-import * as React from "react";
-import { useMapVM } from "@/hooks/MapVMContext";
-import { Feature } from "ol";
-import { Geometry } from "ol/geom";
+/**
+ * IdentifyResult Component
+ * -------------------------
+ * This component listens for clicks on the OpenLayers map and displays attribute information
+ * about the identified features in a collapsible accordion format.
+ *
+ * ✅ It supports dynamic feature rendering by exposing a `setFeatureRenderer` method via `ref`.
+ *
+ * Usage Example:
+ * --------------
+ * const mapVM = useMapVM()
+ * const identifyRef = mapVM.getIdentifierResultRef()
+ *
+ * // Set a custom renderer for identified features (optional)
+ * useEffect(() => {
+ *     identifyRef.current?.setFeatureRenderer((feature) => {
+ *         return <CustomFeatureViewer feature={feature} />;
+ *     });
+ * }, [identifyRef.current]);
+ *
+ * return <IdentifyResult ref={identifyRef} />;
+ *
+ * Default Behavior:
+ * -----------------
+ * If no external renderer is provided via `setFeatureRenderer`, a default feature property
+ * table will be shown.
+ *
+ * Exposed API via ref:
+ * --------------------
+ * interface IdentifyResultHandle {
+ *   setFeatureRenderer: (renderer: ((feature: Feature<Geometry>) => ReactNode) | null) => void;
+ * }
+ */
 
 import {
-    Accordion,
-    AccordionSummary,
-    AccordionDetails,
-    Typography,
-    Button,
-    Box,
+    useImperativeHandle,
+    forwardRef,
+    useState,
+    useRef,
+    useEffect,
+    ReactNode,
+} from "react";
+import {useMapVM} from "@/hooks/MapVMContext";
+import {Feature} from "ol";
+import {Geometry} from "ol/geom";
+import {
+    Accordion, AccordionSummary, AccordionDetails, Typography,
+    Button, Box, Paper, TableContainer, Table, TableCell, TableRow,
+    TableBody,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
-const IdentifyResult = () => {
+export interface IdentifyResultHandle {
+    setFeatureRenderer: (renderer: ((feature: Feature<Geometry>) => ReactNode) | null) => void;
+}
+
+const IdentifyResult = forwardRef<IdentifyResultHandle>((_, ref) => {
     const mapVM = useMapVM();
-    const [features, setFeatures] = React.useState<Feature<Geometry>[]>([]);
-    const [layerTitles, setLayerTitles] = React.useState<string[]>([]);
-    const [expandedIndex, setExpandedIndex] = React.useState<number | false>(false);
+    const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
+    const [layerTitles, setLayerTitles] = useState<string[]>([]);
+    const [expandedIndex, setExpandedIndex] = useState<number | false>(false);
+    const [externalRenderer, setExternalRenderer] = useState<((feature: Feature<Geometry>) => ReactNode) | null>(null);
 
-    const clickListenerRef = React.useRef<any>(null);
+    const clickListenerRef = useRef<any>(null);
 
-    /**
-     * Display attributes of features clicked on the map
-     */
+    // Expose the setFeatureRenderer method to allow custom rendering of features
+    useImperativeHandle(ref, () => ({
+        setFeatureRenderer: (renderer) => {
+            setExternalRenderer(() => renderer); // ensure closure safety
+        },
+    }));
+
+    // Handle map click and collect features and their source layer titles
     const displayFeatureInfo = (evt: any) => {
         const map = mapVM.getMap();
         const clickedFeatures: Feature<Geometry>[] = [];
         const clickedLayerTitles: string[] = [];
 
-        // Collect features and their layer titles
         map.forEachFeatureAtPixel(evt.pixel, (feature: any, layer: any) => {
-            clickedFeatures.push(feature);
-            clickedLayerTitles.push(layer?.get("title") || "Unknown Layer");
+            if(layer.get("displayInLayerSwitcher") == true) {
+                clickedFeatures.push(feature);
+                clickedLayerTitles.push(layer?.get("title") || "Unknown Layer");
+            }
         });
 
         setFeatures(clickedFeatures);
@@ -40,9 +88,7 @@ const IdentifyResult = () => {
         setExpandedIndex(clickedFeatures.length > 0 ? clickedFeatures.length - 1 : false);
     };
 
-    /**
-     * Attach map click listener to identify features
-     */
+    // Attach click listener for feature identification
     const identifyFeature = () => {
         const map = mapVM.getMap();
 
@@ -59,10 +105,9 @@ const IdentifyResult = () => {
         clickListenerRef.current = handler;
     };
 
-    // Initialize the identify interaction
-    React.useEffect(() => {
+    // Initialize identification on mount
+    useEffect(() => {
         identifyFeature();
-
         return () => {
             const map = mapVM.getMap();
             if (clickListenerRef.current) {
@@ -72,59 +117,70 @@ const IdentifyResult = () => {
         };
     }, [mapVM]);
 
-    React.useEffect(() => {
+    // Highlight selected feature on expand
+    useEffect(() => {
         if (
             features.length > 0 &&
             typeof expandedIndex === "number" &&
             features[expandedIndex]
         ) {
-            // mapVM.highlightFeature(features[expandedIndex]);
             mapVM.getSelectionLayer()?.addFeature(features[expandedIndex]);
         }
     }, [features, expandedIndex]);
 
-    const renderFeatureContent = (feature: Feature<Geometry>) => {
+    // Default table layout for displaying feature properties
+    const defaultRenderFeatureContent = (feature: Feature<Geometry>) => {
         const properties = feature.getProperties();
         const keys = Object.keys(properties).filter(k => k !== "geometry");
 
         return (
-            <Box sx={{ wordBreak: "break-word", whiteSpace: "pre-wrap" }}>
-                {keys.map((key) => {
-                    const value = properties[key];
-                    let displayValue: string;
+            <TableContainer component={Paper} variant="outlined" sx={{display: "flex"}}>
+                <Table size="small">
+                    <TableBody>
+                        {keys.map((key) => {
+                            const value = properties[key];
+                            let displayValue: string;
 
-                    if (typeof value === "number") {
-                        displayValue = value.toFixed(3);
-                    } else if (Array.isArray(value)) {
-                        displayValue = value.map(v => typeof v === "number" ? v.toFixed(3) : v).join(", ");
-                    } else {
-                        displayValue = String(value);
-                    }
+                            if (typeof value === "number") {
+                                displayValue = value.toFixed(3);
+                            } else if (Array.isArray(value)) {
+                                displayValue = value.map(v => typeof v === "number" ? v.toFixed(3) : v).join(", ");
+                            } else {
+                                displayValue = String(value);
+                            }
 
-                    return (
-                        <Typography key={key} variant="body2" sx={{ marginBottom: "4px" }}>
-                            <strong>{key}:</strong> {displayValue}
-                        </Typography>
-                    );
-                })}
-
-                <Button
-                    variant="outlined"
-                    size="small"
-                    sx={{ marginTop: "8px" }}
-                    onClick={() => {
-                        mapVM.getSelectionLayer()?.addFeature(feature);
-                        mapVM.getSelectionLayer()?.zoomToFeature(feature);
-                    }}
-                >
-                    Zoom to Feature
-                </Button>
-            </Box>
+                            return (
+                                <TableRow key={key}>
+                                    <TableCell sx={{fontWeight: 'bold'}}>
+                                        <strong>{key}</strong>
+                                    </TableCell>
+                                    <TableCell>{displayValue}</TableCell>
+                                </TableRow>
+                            );
+                        })}
+                        <TableRow>
+                            <TableCell colSpan={2}>
+                                <Button
+                                    variant="outlined"
+                                    size="small"
+                                    sx={{marginTop: "8px"}}
+                                    onClick={() => {
+                                        mapVM.getSelectionLayer()?.addFeature(feature);
+                                        mapVM.getSelectionLayer()?.zoomToFeature(feature);
+                                    }}
+                                >
+                                    Zoom to Feature
+                                </Button>
+                            </TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
+            </TableContainer>
         );
     };
 
     return (
-        <Box sx={{ padding: "10px", maxHeight: "400px", overflowY: "auto" }}>
+        <Box sx={{p: 1, overflowY: "auto"}}>
             {features.length === 0 ? (
                 <Typography>No feature identified at this location.</Typography>
             ) : (
@@ -135,20 +191,32 @@ const IdentifyResult = () => {
                         onChange={(_, isExpanded) => {
                             setExpandedIndex(isExpanded ? index : false);
                             if (isExpanded) {
-                                mapVM.getSelectionLayer()?.addFeature(feature); // 🔍 Highlight on expand
+                                mapVM.getSelectionLayer()?.addFeature(feature);
                             }
                         }}
                     >
-
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                            <Typography variant="subtitle1">{layerTitles[index]}-{index}</Typography>
+                        <AccordionSummary
+                            expandIcon={<ExpandMoreIcon sx={{ color: 'primary.contrastText' }} />}
+                            sx={{
+                                backgroundColor: 'primary.main',
+                                '&.Mui-expanded': {
+                                    backgroundColor: 'primary.dark',
+                                },
+                                color: 'primary.contrastText',
+                            }}
+                        >
+                            <Typography variant="subtitle1">
+                                {layerTitles[index]}-{index}
+                            </Typography>
                         </AccordionSummary>
-                        <AccordionDetails>{renderFeatureContent(feature)}</AccordionDetails>
+                        <AccordionDetails>
+                            {(externalRenderer ?? defaultRenderFeatureContent)(feature)}
+                        </AccordionDetails>
                     </Accordion>
                 ))
             )}
         </Box>
     );
-};
+});
 
 export default IdentifyResult;

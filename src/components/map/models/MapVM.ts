@@ -49,6 +49,7 @@ import {ColorUtils} from "@/utils/colorUtils";
 
 import {createEmpty, extend, isEmpty} from 'ol/extent';
 import {IdentifyResultHandle} from "@/components/map/widgets/IdentifyResult";
+import {MapToolbarHandle} from "@/components/map/toolbar/MapToolbarContainer";
 
 export interface IDALayers {
     [key: string]: AbstractDALayer;
@@ -252,6 +253,10 @@ class MapVM {
 
     getMapLoadingRef(): RefObject<DAMapLoading | null> {
         return this._domRef.loadingRef;
+    }
+
+    getMapToolbarRef(): RefObject<MapToolbarHandle | null> {
+        return this.mapToolbar.getToolbarContainerRef()
     }
 
     setTimeSliderRef(timeSliderRef: RefObject<TimeSliderHandle>) {
@@ -485,7 +490,7 @@ class MapVM {
         if (overlayLayer instanceof OverlayVectorLayer && layer.get("displayInLayerSwitcher") == true) {
             window.dispatchEvent(this._daLayerAddedEvent);
         }
-           
+
     }
 
     getOverlayLayer(key: string) {

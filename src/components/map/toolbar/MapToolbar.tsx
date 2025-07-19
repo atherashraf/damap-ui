@@ -23,8 +23,8 @@ import { Control } from "ol/control";
 import { createRoot, Root } from "react-dom/client";
 import MapVM from "@/components/map/models/MapVM";
 import type { IMapToolbarProps } from "@/types/typeDeclarations";
-import MapToolbarContainer from "@/components/map/toolbar/MapToolbarContainer";
-import {JSX} from "react";
+import MapToolbarContainer, {MapToolbarHandle} from "@/components/map/toolbar/MapToolbarContainer";
+import {JSX, RefObject, useRef} from "react";
 
 class MapToolbar extends Control {
     private buttons: JSX.Element[] = [];
@@ -51,9 +51,13 @@ class MapToolbar extends Control {
     /**
      * Re-renders the toolbar with current static and dynamic buttons.
      */
+    private ref: RefObject<MapToolbarHandle | null> = useRef<MapToolbarHandle |null>(null)
+    public getToolbarContainerRef(): RefObject<MapToolbarHandle | null> {
+        return this.ref;
+    }
     private renderToolbar() {
         this.root.render(
-            <MapToolbarContainer mapVM={this.mapVM} dynamicButtons={this.buttons} />
+            <MapToolbarContainer ref={this.ref} mapVM={this.mapVM} dynamicButtons={this.buttons} />
         );
     }
 

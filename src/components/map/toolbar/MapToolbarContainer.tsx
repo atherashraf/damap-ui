@@ -61,7 +61,7 @@
  */
 
 
-import React, {JSX} from "react";
+import React, {forwardRef, JSX, ReactElement, ReactNode, useImperativeHandle, useState} from "react";
 
 import type MapVM from "@/components/map/models/MapVM";
 
@@ -81,9 +81,24 @@ interface Props {
     mapVM: MapVM;
     dynamicButtons?: JSX.Element[];
 }
+export interface MapToolbarHandle {
+    addButton: (button: ReactElement) => void;
+    clearButtons: () => void;
+}
 
-const MapToolbarContainer: React.FC<Props> = ({ mapVM, dynamicButtons = [] }) => {
-    // const theme = mapVM.getTheme();
+const MapToolbarContainer = forwardRef<MapToolbarHandle, Props>(
+    ({ mapVM, dynamicButtons = [] }, ref) => {
+        const [externalButtons, setExternalButtons] = useState<ReactNode[]>([]);
+
+        useImperativeHandle(ref, () => ({
+            addButton: (button: ReactNode) => {
+                setExternalButtons((prev) => [...prev, button]);
+            },
+            clearButtons: () => {
+                setExternalButtons([]);
+            }
+        }));
+
     return (
         <MapVMInjectProvider mapVM={mapVM}>
             <AddLayer />
@@ -109,12 +124,14 @@ const MapToolbarContainer: React.FC<Props> = ({ mapVM, dynamicButtons = [] }) =>
             {dynamicButtons.map((btn, i) => (
                 <React.Fragment key={i}>{btn}</React.Fragment>
             ))}
-
+            {externalButtons.map((btn, i) => (
+                <React.Fragment key={`ext-${i}`}>{btn}</React.Fragment>
+            ))}
             <Tooltip title="Layer of Interest">
                 <LOISelector />
             </Tooltip>
         </MapVMInjectProvider>
     );
-};
+});
 
 export default MapToolbarContainer;

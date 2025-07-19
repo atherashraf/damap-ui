@@ -35,6 +35,7 @@ export interface IDomRef {
     loadingRef: RefObject<DAMapLoading | null>;
     timeSliderRef?: RefObject<TimeSliderHandle>;
     identifyResultRef?: RefObject<IdentifyResultHandle | null>;
+
 }
 
 export interface IMapToolbarProps {

@@ -45,7 +45,7 @@ import {Feature} from "ol";
 import _ from "@/utils/lodash";
 import TimeSliderControl from "@/components/map/time_slider/TimeSliderControl";
 import timeSliderControl from "@/components/map/time_slider/TimeSliderControl";
-import {ColorUtils} from "@/utils/colorUtils";
+import ColorUtils from "@/utils/colorUtils";
 
 import {createEmpty, extend, isEmpty} from 'ol/extent';
 import {IdentifyResultHandle} from "@/components/map/widgets/IdentifyResult";

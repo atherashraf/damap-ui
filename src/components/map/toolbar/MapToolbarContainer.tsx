@@ -1,65 +1,64 @@
 /**
- * MapToolbarContainer — Central component to render OpenLayers toolbar buttons.
+ * MapToolbarContainer — Central React component for rendering OpenLayers map toolbar buttons.
  *
- * This component provides context (`MapVMInjectProvider`) to make the `MapVM` instance available
- * to all toolbar buttons without prop-drilling.
+ * 💡 Purpose:
+ * - Provides a consistent, pluggable toolbar UI for map interactions.
+ * - Uses `MapVMInjectProvider` to make the `MapVM` instance available to all nested controls.
+ * - Supports dynamic button injection via props or exposed ref API.
  *
- * ✅ Usage:
- * 1. Render from inside your custom MapToolbar control using React's root renderer:
+ * ✅ Usage Example:
  *
- *    ```tsx
- *    const root = createRoot(domElement);
- *    root.render(<MapToolbarContainer mapVM={mapVM} dynamicButtons={[<MyButton />]} />);
- *    ```
+ * ```tsx
+ * import { createRoot } from 'react-dom/client';
+ * import MapToolbarContainer from './MapToolbarContainer';
  *
- * 2. Built-in Buttons Included by Default:
- *    - `<LayerSwitcherControl />` — Toggle visibility of map layers.
- *    - `<NavigationTreeControl />` — Opens navigation tree for structured layer hierarchy.
- *    - `<Zoom2Extent />` — Zooms to the full extent of the configured map.
- *    - `<RefreshMap />` — Refreshes all DALayers on the map.
- *    - `<ClearSelection />` — Clears any highlighted/selected features from the interaction layer.
- *    - `<Identifier />` — Activates Identify tool for clicking features on the map.
- *    - `<AttributeTableControl />` — Opens the attribute table in a drawer for selected layer.
+ * const root = createRoot(domElement);
+ * root.render(<MapToolbarContainer mapVM={mapVM} dynamicButtons={[<MyButton />]} />);
+ * ```
  *
- * 3. Optional / On-Demand Built-in Buttons (available but not rendered by default):
- *      import AddLayer from "@/components/map/toolbar/controls/AddLayer";
- *    - `<AddLayer />` — Launches dialog to add new DALayers to the map.
- *    - `<CommentButton />` — Opens a panel to view or submit comments on layers/features.
- *    - `<SaveMap />` — Saves the current map configuration (useful in designer mode).
- *    - `<LOISelector />` — Lets the user select Layer of Interest (LOI).
- *    - `<SymbologyControl />` — Provides UI to change the symbology of layers.
- *    - `<RasterArea />` — Enables polygon drawing for raster analysis.
- *    - `<AddClassificationSurface />` — Loads classification surface for land cover or AI results.
+ * 🔌 Exposed Methods via `ref` (using `forwardRef`):
+ * ```ts
+ * ref.current?.addButton(<MyCustomButton />);
+ * ref.current?.clearButtons();
+ * ```
+ * - `addButton`: Add a new button to the toolbar dynamically at runtime.
+ * - `clearButtons`: Remove all dynamically added buttons.
  *
- *    You can enable these by uncommenting the relevant lines or injecting dynamically.
+ * 🧱 Built-in Buttons (Rendered by Default):
+ * - `<AddLayer />` — Dialog to add new map layers (DALayers).
+ * - `<LayerSwitcherControl />` — Toggle layer visibility.
+ * - `<Zoom2Extent />` — Zoom to the map’s full configured extent.
+ * - `<RefreshMap />` — Reload all DALayers.
+ * - `<ClearSelection />` — Clear selected/highlighted features.
+ * - `<Identifier />` — Enable identify tool to click and inspect features.
+ * - `<AttributeTableControl />` — View and interact with attribute data.
+ * - `<LOISelector />` — Layer of Interest selector (with tooltip).
  *
- * 4. Dynamic Buttons:
- *    - Pass custom buttons through `dynamicButtons`:
- *      ```tsx
- *      <MapToolbarContainer mapVM={mapVM} dynamicButtons={[<MyCustomButton />]} />
- *      ```
+ * 🧩 Optional Built-in Buttons (Available but Commented Out):
+ * - `<AddClassificationSurface />` — Loads classification surfaces.
+ * - `<RasterArea />` — Enables polygon drawing for raster analysis.
+ * - `<NavigationTreeControl />` — Hierarchical navigation of layers.
+ * - `<SymbologyControl />` — UI for styling layers.
+ * - `<SaveMap />` — Save current map configuration (useful in design mode).
  *
- * 5. Accessing MapVM in Custom Buttons:
- *    Use `useMapVM()` from `"@/components/map/models/MapVMContext.tsx"`:
+ * ➕ Dynamic Buttons via Props:
+ * - Pass custom buttons through `dynamicButtons`:
+ * ```tsx
+ * <MapToolbarContainer mapVM={mapVM} dynamicButtons={[<CustomZoomButton />]} />
+ * ```
  *
- *    ```tsx
- *    import { useMapVM } from "@/components/map/models/MapVMContext";
- *    import { IconButton, Tooltip } from "@mui/material";
- *    import BuildIcon from "@mui/icons-material/Build";
+ * 🧠 Access `mapVM` in Custom Buttons:
+ * Use the `useMapVM()` hook:
+ * ```tsx
+ * import { useMapVM } from "@/components/map/models/MapVMContext";
  *
- *    const MyCustomButton = () => {
- *      const mapVM = useMapVM();
- *      return (
- *        <Tooltip title="Custom Action">
- *          <IconButton onClick={() => mapVM.zoomToFullExtent()}>
- *            <BuildIcon />
- *          </IconButton>
- *        </Tooltip>
- *      );
- *    };
- *    ```
+ * const MyCustomButton = () => {
+ *   const mapVM = useMapVM();
+ *
+ *   return <IconButton onClick={() => mapVM.zoomToFullExtent()} />;
+ * };
+ * ```
  */
-
 
 import React, {forwardRef, JSX, ReactElement, ReactNode, useImperativeHandle, useState} from "react";
 

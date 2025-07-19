@@ -86,11 +86,18 @@ export type {TimeSliderHandle} from './components/map/time_slider/TimeSlider';
 // ✅ Toolbar Container & Optional Toolbar Buttons
 // -------------------------
 export {default as MapToolbarContainer} from './components/map/toolbar/MapToolbarContainer';
+export {default as MapToolbar} from './components/map/toolbar/MapToolbar';
+export type {MapToolbarHandle} from './components/map/toolbar/MapToolbarContainer';
 
 // 🔁 Optional Buttons (can be injected via `dynamicButtons` into MapToolbarContainer)
 export {default as AddLayer} from './components/map/toolbar/controls/AddLayer';
 // export { default as SaveMap } from './components/map/toolbar/controls/SaveMap';
-// export { default as SymbologyControl } from './components/map/toolbar/controls/SymbologyControl';
+export { default as SymbologyControl } from './components/map/toolbar/controls/SymbologyControl';
 // export { default as RasterArea } from './components/map/toolbar/controls/RasterArea';
 // export { default as AddClassificationSurface } from './components/map/toolbar/controls/AddClassificationSurface';
 
+
+// -------------------------
+// ✅ Toolbar Container & Optional Toolbar Buttons
+// -------------------------
+export {default as ColorUtils}  from './utils/colorUtils'

@@ -1,7 +1,7 @@
 
 
 
-export class ColorUtils {
+class ColorUtils {
     /**
      * Generates a random RGB color.
      */
@@ -35,3 +35,4 @@ export class ColorUtils {
         };
     }
 }
+export default ColorUtils;

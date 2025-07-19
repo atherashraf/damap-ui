@@ -6,6 +6,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import autoBind from "auto-bind";
 import {JSX} from "react";
 
+
 interface IProps {
 }
 
@@ -118,7 +119,7 @@ class DADialogBox extends React.PureComponent<IProps, IState> {
                             }}
                             size="large"
                         >
-                            <VisibilityIcon />
+                            <VisibilityIcon/>
                         </IconButton>
                     </Tooltip>
                 )}
@@ -129,3 +130,4 @@ class DADialogBox extends React.PureComponent<IProps, IState> {
 }
 
 export default DADialogBox;
+export type DADialogBoxHandle = typeof DADialogBox.prototype;

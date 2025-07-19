@@ -1,13 +1,13 @@
 import MapVM from "@/components/map/models/MapVM";
 import {RefObject} from "react";
-import RightDrawer from "@/components/map/drawers/RightDrawer";
-import LeftDrawer from "@/components/map/drawers/LeftDrawer";
-import DADialogBox from "@/components/base/DADialogBox";
+import {RightDrawerHandle} from "@/components/map/drawers/RightDrawer";
+import {LeftDrawerHandle} from "@/components/map/drawers/LeftDrawer";
+import  {DADialogBoxHandle} from "@/components/base/DADialogBox";
 import {pointShapeTypes} from "@/components/map/layer_styling/vector/symbolizer/PointSymbolizer";
-import DAMapLoading from "@/components/map/widgets/DAMapLoading";
+import {DAMapLoadingHandle} from "@/components/map/widgets/DAMapLoading";
 import {TimeSliderHandle} from "@/components/map/time_slider/TimeSlider";
 import {DASnackbarHandle} from "@/components/base/DASnackbar";
-import BottomDrawer from "@/components/map/drawers/BottomDrawer";
+import {BottomDrawerHandle} from "@/components/map/drawers/BottomDrawer";
 import {Column, Row} from "@/types/gridTypeDeclaration";
 import AbstractDALayer from "@/components/map/layers/da_layers/AbstractDALayer";
 import OverlayVectorLayer from "@/components/map/layers/overlay_layers/OverlayVectorLayer";
@@ -28,12 +28,12 @@ export interface IControlProps {
 }
 
 export interface IDomRef {
-    rightDrawerRef?: RefObject<RightDrawer | null>;
-    leftDrawerRef?: RefObject<LeftDrawer | null>;
-    bottomDrawerRef?: RefObject<BottomDrawer | null>
-    dialogBoxRef: RefObject<DADialogBox | null>;
+    rightDrawerRef?: RefObject<RightDrawerHandle | null>;
+    leftDrawerRef?: RefObject<LeftDrawerHandle | null>;
+    bottomDrawerRef?: RefObject<BottomDrawerHandle | null>
+    dialogBoxRef: RefObject<DADialogBoxHandle | null>;
     snackBarRef: RefObject<DASnackbarHandle | null>;
-    loadingRef: RefObject<DAMapLoading | null>;
+    loadingRef: RefObject<DAMapLoadingHandle | null>;
     timeSliderRef?: RefObject<TimeSliderHandle>;
     identifyResultRef?: RefObject<IdentifyResultHandle | null>;
     contextMenuRef?: RefObject<ContextMenuHandle | null>;

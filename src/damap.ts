@@ -43,6 +43,8 @@ export type {DASnackbarHandle} from './components/base/DASnackbar';
 export type {RightDrawerHandle} from './components/map/drawers/RightDrawer';
 export type {BottomDrawerHandle} from './components/map/drawers/BottomDrawer';
 export type {LeftDrawerHandle} from './components/map/drawers/LeftDrawer';
+export type {DAMapLoadingHandle} from "@/components/map/widgets/DAMapLoading";
+export type {DADialogBoxHandle} from "@/components/base/DADialogBox";
 
 // -------------------------
 // ✅ Map Layers
@@ -66,7 +68,6 @@ export type {IRule} from './types/typeDeclarations'
 export type {IFilter} from './types/typeDeclarations'
 
 export type {IDomRef} from './types/typeDeclarations'
-
 
 
 // -------------------------
@@ -95,7 +96,7 @@ export type {MapToolbarHandle} from './components/map/toolbar/MapToolbarContaine
 // 🔁 Optional Buttons (can be injected via `dynamicButtons` into MapToolbarContainer)
 export {default as AddLayer} from './components/map/toolbar/controls/AddLayer';
 // export { default as SaveMap } from './components/map/toolbar/controls/SaveMap';
-export { default as SymbologyControl } from './components/map/toolbar/controls/SymbologyControl';
+export {default as SymbologyControl} from './components/map/toolbar/controls/SymbologyControl';
 // export { default as RasterArea } from './components/map/toolbar/controls/RasterArea';
 // export { default as AddClassificationSurface } from './components/map/toolbar/controls/AddClassificationSurface';
 
@@ -103,7 +104,7 @@ export { default as SymbologyControl } from './components/map/toolbar/controls/S
 // -------------------------
 // ✅ Toolbar Container & Optional Toolbar Buttons
 // -------------------------
-export {default as ColorUtils}  from './utils/colorUtils'
+export {default as ColorUtils} from './utils/colorUtils'
 
 
 // -------------------------

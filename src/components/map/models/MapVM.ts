@@ -15,9 +15,9 @@ import {
     ILayerInfo,
     IMapInfo, IGeoJSON, IGeomStyle, IRule,
 } from "@/types/typeDeclarations";
-import RightDrawer from "@/components/map/drawers/RightDrawer";
-import LeftDrawer from "@/components/map/drawers/LeftDrawer";
-import DADialogBox from "@/components/base/DADialogBox";
+import {RightDrawerHandle} from "@/components/map/drawers/RightDrawer";
+import {LeftDrawerHandle} from "@/components/map/drawers/LeftDrawer";
+import {DADialogBoxHandle} from "@/components/base/DADialogBox";
 
 // @ts-ignore
 import Legend from "ol-ext/control/Legend";
@@ -28,7 +28,7 @@ import AbstractDALayer from "@/components/map/layers/da_layers/AbstractDALayer";
 
 
 import autoBind from "auto-bind";
-import DAMapLoading from "@/components/map/widgets/DAMapLoading";
+import {DAMapLoadingHandle} from "@/components/map/widgets/DAMapLoading";
 import {TimeSliderHandle} from "@/components/map/time_slider/TimeSlider";
 import DAVectorLayer from "@/components/map/layers/da_layers/DAVectorLayer";
 import IDWLayer from "@/components/map/layers/overlay_layers/IDWLayer";
@@ -36,7 +36,7 @@ import OverlayVectorLayer from "@/components/map/layers/overlay_layers/OverlayVe
 import XYZLayer, {IXYZLayerInfo} from "@/components/map/layers/overlay_layers/XYZLayer";
 import BaseLayer from "ol/layer/Base";
 import {DASnackbarHandle} from "@/components/base/DASnackbar";
-import BottomDrawer from "@/components/map/drawers/BottomDrawer";
+import {BottomDrawerHandle} from "@/components/map/drawers/BottomDrawer";
 import {AlertColor, Theme} from "@mui/material";
 
 import SelectionLayer from "@/components/map/layers/overlay_layers/SelectionLayer";
@@ -252,7 +252,7 @@ class MapVM {
     }
 
 
-    getMapLoadingRef(): RefObject<DAMapLoading | null> {
+    getMapLoadingRef(): RefObject<DAMapLoadingHandle | null> {
         return this._domRef.loadingRef;
     }
 
@@ -285,23 +285,23 @@ class MapVM {
         return this._domRef.contextMenuRef;
     }
 
-    getRightDrawerRef(): RefObject<RightDrawer> {
+    getRightDrawerRef(): RefObject<RightDrawerHandle> {
         // @ts-ignore
         return this._domRef.rightDrawerRef;
     }
 
-    getBottomDrawerRef(): RefObject<BottomDrawer> {
+    getBottomDrawerRef(): RefObject<BottomDrawerHandle> {
         // @ts-ignore
         return this._domRef.bottomDrawerRef;
     }
 
-    getLeftDrawerRef(): RefObject<LeftDrawer> {
+    getLeftDrawerRef(): RefObject<LeftDrawerHandle> {
         // @ts-ignore
         return this._domRef.leftDrawerRef;
     }
 
 
-    getDialogBoxRef(): RefObject<DADialogBox | null> {
+    getDialogBoxRef(): RefObject<DADialogBoxHandle | null> {
         return this._domRef.dialogBoxRef;
     }
 
@@ -423,16 +423,15 @@ class MapVM {
     }
 
 
-    zoomToExtent(extent: number[]) {
+    zoomToExtent(extent: number[], zoomLevel: number = 10) {
         const view = this.map.getView();
         const size = this.map.getSize();
 
         if (!size) return;
 
-        // Fit the extent but clamp the zoom to a maximum of 18
         view.fit(extent, {
             size,
-            maxZoom: 18, // Prevent zoom level from going beyond 18
+            maxZoom: zoomLevel, // Prevent zoom level from going beyond 18
             padding: [20, 20, 20, 20],
             duration: 500,
         });
@@ -597,7 +596,6 @@ class MapVM {
         if (layerId) return this.daLayers[layerId]
         return undefined;
     }
-
 
 
     getDALayerByTitle(title: string): any {

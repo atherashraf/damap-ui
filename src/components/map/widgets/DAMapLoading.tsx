@@ -56,3 +56,4 @@ class DAMapLoading extends React.PureComponent<IProps, IState> {
 }
 
 export default DAMapLoading;
+export type DAMapLoadingHandle = typeof DAMapLoading.prototype;

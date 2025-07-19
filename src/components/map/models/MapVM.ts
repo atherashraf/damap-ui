@@ -50,6 +50,7 @@ import ColorUtils from "@/utils/colorUtils";
 import {createEmpty, extend, isEmpty} from 'ol/extent';
 import {IdentifyResultHandle} from "@/components/map/widgets/IdentifyResult";
 import {MapToolbarHandle} from "@/components/map/toolbar/MapToolbarContainer";
+import {ContextMenuHandle} from "@/components/map/layer_switcher/ContextMenu";
 
 export interface IDALayers {
     [key: string]: AbstractDALayer;
@@ -274,6 +275,14 @@ class MapVM {
     getTimeSliderRef(): RefObject<TimeSliderHandle> {
         // @ts-ignore
         return this._domRef.timeSliderRef;
+    }
+
+    setContextMenuRef(contextMenuRef: RefObject<ContextMenuHandle | null>) {
+        this._domRef.contextMenuRef = contextMenuRef;
+    }
+
+    getContextMenuRef(): RefObject<ContextMenuHandle | null> | undefined {
+        return this._domRef.contextMenuRef;
     }
 
     getRightDrawerRef(): RefObject<RightDrawer> {
@@ -585,9 +594,11 @@ class MapVM {
     }
 
     getDALayer(layerId: string | undefined): any {
-        if (layerId) return this.daLayers[layerId];
+        if (layerId) return this.daLayers[layerId]
         return undefined;
     }
+
+
 
     getDALayerByTitle(title: string): any {
         const uuid = Object.keys(this.daLayers).find((uuid: string) =>

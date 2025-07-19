@@ -5,7 +5,7 @@ import LeftDrawer from "@/components/map/drawers/LeftDrawer";
 import DADialogBox from "@/components/base/DADialogBox";
 import {pointShapeTypes} from "@/components/map/layer_styling/vector/symbolizer/PointSymbolizer";
 import DAMapLoading from "@/components/map/widgets/DAMapLoading";
-import  {TimeSliderHandle} from "@/components/map/time_slider/TimeSlider";
+import {TimeSliderHandle} from "@/components/map/time_slider/TimeSlider";
 import {DASnackbarHandle} from "@/components/base/DASnackbar";
 import BottomDrawer from "@/components/map/drawers/BottomDrawer";
 import {Column, Row} from "@/types/gridTypeDeclaration";
@@ -15,6 +15,7 @@ import IDWLayer from "@/components/map/layers/overlay_layers/IDWLayer";
 import SelectionLayer from "@/components/map/layers/overlay_layers/SelectionLayer";
 import XYZLayer from "@/components/map/layers/overlay_layers/XYZLayer";
 import {IdentifyResultHandle} from "@/components/map/widgets/IdentifyResult";
+import {ContextMenuHandle} from "@/components/map/layer_switcher/ContextMenu";
 
 export interface IBaseMapProps {
     mapVM: MapVM;
@@ -35,6 +36,7 @@ export interface IDomRef {
     loadingRef: RefObject<DAMapLoading | null>;
     timeSliderRef?: RefObject<TimeSliderHandle>;
     identifyResultRef?: RefObject<IdentifyResultHandle | null>;
+    contextMenuRef?: RefObject<ContextMenuHandle | null>;
 
 }
 
@@ -70,7 +72,7 @@ export interface ILayerInfo {
     format?: string
     zIndex?: number
     declutter: boolean
-    dateRangeURL?:string
+    dateRangeURL?: string
 }
 
 export interface IMapInfo {

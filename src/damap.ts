@@ -65,6 +65,9 @@ export type {IGeoJSON} from './types/typeDeclarations'
 export type {IRule} from './types/typeDeclarations'
 export type {IFilter} from './types/typeDeclarations'
 
+export type {IDomRef} from './types/typeDeclarations'
+
+
 
 // -------------------------
 // ✅ Table Components (Named Exports)
@@ -101,3 +104,14 @@ export { default as SymbologyControl } from './components/map/toolbar/controls/S
 // ✅ Toolbar Container & Optional Toolbar Buttons
 // -------------------------
 export {default as ColorUtils}  from './utils/colorUtils'
+
+
+// -------------------------
+// ✅ Layer Switcher and ContextMenu
+// -------------------------
+
+export type{CustomMenuItem} from './components/map/layer_switcher/ContextMenu'
+export type {ContextMenuHandle} from './components/map/layer_switcher/ContextMenu'
+
+export {default as ContextMenu} from './components/map/layer_switcher/ContextMenu'
+export {default as LayerSwitcherPaper} from './components/map/layer_switcher/LayerSwitcherPaper'

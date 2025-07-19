@@ -18,6 +18,7 @@ export interface IOverLayVectorInfo {
     uuid: string  // use mapVM.generateUUID()
     title: string
     style: IFeatureStyle
+    dataModel?: "V" | "R"
     geomType?: "Polygon" | "LineString" | "Point"
 }
 
@@ -31,6 +32,7 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         super()
         this.mapVM = mapVM;
         this.layerInfo = info
+        this.layerInfo["dataModel"] = "V"
         autoBind(this);
         this.olLayer = this.createLayer();
         this.mapVM.addOverlayLayer(this);

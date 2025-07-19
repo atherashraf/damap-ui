@@ -4,8 +4,8 @@ import * as React from "react";
 import "@/assets/css/LayerSwitcher.css"
 import { Group } from "ol/layer";
 import LayerSwitcher from "ol-ext/control/LayerSwitcher";
-import { useEffect } from "react";
-import ContextMenu, { IContextMenu } from "./ContextMenu";
+import {RefObject, useEffect, useRef} from "react";
+import ContextMenu, {ContextMenuHandle, IContextMenuLoc} from "./ContextMenu";
 import MapVM from "@/components/map/models/MapVM";
 
 interface LayerSwitcherProps {
@@ -14,7 +14,8 @@ interface LayerSwitcherProps {
 
 const LayerSwitcherPaper = (props: LayerSwitcherProps) => {
   // const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [contextMenu, setContextMenu] = React.useState<IContextMenu>();
+  const contextMenuRef: RefObject<ContextMenuHandle | null> = useRef<ContextMenuHandle>(null);
+  const [contextMenuLoc, setContextMenuLoc] = React.useState<IContextMenuLoc>();
   const [menuLayer, setMenuLayer] = React.useState<any>();
   const { mapVM } = props;
   const [isLSAdded, setLSAdded] = React.useState(false);
@@ -27,6 +28,10 @@ const LayerSwitcherPaper = (props: LayerSwitcherProps) => {
     };
   },[]);
 
+  React.useEffect(()=>{
+    props.mapVM.setContextMenuRef(contextMenuRef)
+  }, [])
+
   const addLayerSwitcher = React.useCallback((target: HTMLElement) => {
     let switcher = new LayerSwitcher({
       target: target,
@@ -37,7 +42,7 @@ const LayerSwitcherPaper = (props: LayerSwitcherProps) => {
       trash: true,
       oninfo: function (l: any) {
         setMenuLayer(l);
-        setContextMenu({
+        setContextMenuLoc({
           mouseX: mouseCoordinatesRef?.current?.x,
           mouseY: mouseCoordinatesRef?.current?.y,
         });
@@ -126,7 +131,7 @@ const LayerSwitcherPaper = (props: LayerSwitcherProps) => {
           style={{ width: "auto", height: "auto" }}
         />
       </Paper>
-      <ContextMenu olLayer={menuLayer} contextMenu={contextMenu} mapVM={mapVM} />
+      <ContextMenu ref={contextMenuRef} olLayer={menuLayer} contextMenuLoc={contextMenuLoc} mapVM={mapVM} />
     </React.Fragment>
   );
 };

@@ -43,8 +43,8 @@ export type {DASnackbarHandle} from './components/base/DASnackbar';
 export type {RightDrawerHandle} from './components/map/drawers/RightDrawer';
 export type {BottomDrawerHandle} from './components/map/drawers/BottomDrawer';
 export type {LeftDrawerHandle} from './components/map/drawers/LeftDrawer';
-export type {DAMapLoadingHandle} from "@/components/map/widgets/DAMapLoading";
-export type {DADialogBoxHandle} from "@/components/base/DADialogBox";
+export type {DAMapLoadingHandle} from "./components/map/widgets/DAMapLoading";
+export type {DADialogBoxHandle} from "./components/base/DADialogBox";
 
 // -------------------------
 // ✅ Map Layers

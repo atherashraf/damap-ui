@@ -1,35 +1,35 @@
-import * as React from "react";
-import { IconButton, Tooltip } from "@mui/material";
+import {IconButton, Tooltip} from "@mui/material";
 import InfoIcon from "@mui/icons-material/Info";
 
-import IdentifyResult, { IdentifyResultHandle } from "@/components/map/widgets/IdentifyResult";
-import { useMapVM } from "@/hooks/MapVMContext";
+import {useMapVM} from "@/hooks/MapVMContext";
+import {useCallback} from "react";
 
 const Identifier = () => {
     const mapVM = useMapVM();
     const theme = mapVM.getTheme();
     const drawerRef = mapVM.getRightDrawerRef();
 
-    // ✅ Scoped ref — only created once per component instance
-    const identifyResultRef = React.useRef<IdentifyResultHandle | null>(null);
 
-    // ✅ On mount, assign the ref to MapVM
-    React.useEffect(() => {
-        mapVM.setIdentifierResultRef(identifyResultRef);
-    }, [mapVM]);
+    const identifyResultRef = mapVM.getIdentifierResultRef();
+
+
+    const showIdentifyResult = useCallback(() => {
+        console.log("showIdentifyResult", identifyResultRef?.current);
+
+        identifyResultRef?.current?.render()
+        drawerRef?.current?.openDrawer();
+    }, [identifyResultRef?.current, drawerRef?.current]);
 
     const handleClick = () => {
-        drawerRef?.current?.setContent(
-            "Identifier",
-            <IdentifyResult ref={identifyResultRef} />
-        );
-        drawerRef?.current?.openDrawer();
+        drawerRef?.current?.setContent("Identify Feature", null)
+        showIdentifyResult();
     };
+
 
     return (
         <Tooltip title="Identify Feature">
             <IconButton
-                sx={{ padding: "3px" }}
+                sx={{padding: "3px"}}
                 style={{
                     width: 30,
                     height: 30,
@@ -38,7 +38,7 @@ const Identifier = () => {
                 }}
                 onClick={handleClick}
             >
-                <InfoIcon />
+                <InfoIcon/>
             </IconButton>
         </Tooltip>
     );

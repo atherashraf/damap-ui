@@ -45,6 +45,8 @@ export type {BottomDrawerHandle} from './components/map/drawers/BottomDrawer';
 export type {LeftDrawerHandle} from './components/map/drawers/LeftDrawer';
 export type {DAMapLoadingHandle} from "./components/map/widgets/DAMapLoading";
 export type {DADialogBoxHandle} from "./components/base/DADialogBox";
+export type {IdentifyResultHandle} from "./components/map/widgets/IdentifyResult";
+
 
 // -------------------------
 // ✅ Map Layers

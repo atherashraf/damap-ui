@@ -26,7 +26,9 @@ interface RightDrawerState {
     width: number;
     isLoading: boolean;
 }
-
+interface RightDrawerProps {
+    children?: React.ReactNode;
+}
 class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState> {
     constructor(props: RightDrawerProps) {
         super(props);
@@ -66,7 +68,7 @@ class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState
         });
     };
 
-    setContent = (heading: string, content: JSX.Element) => {
+    setContent = (heading: string, content: JSX.Element | null) => {
         this.setState({ heading, content, isLoading: false, open: true });
     };
 
@@ -114,6 +116,7 @@ class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState
     isOpen() {
         return this.state.open;
     }
+
 
     render() {
         const { open, heading, content, width, isLoading } = this.state;
@@ -222,9 +225,11 @@ class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState
                                 {isLoading ? (
                                     <CircularProgress size={40} thickness={4} />
                                 ) : (
-                                    content
+                                    content? content: this.props.children
                                 )}
                             </Box>
+
+
                         </Paper>
                     </Box>
                 </Fade>

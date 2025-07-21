@@ -1,13 +1,13 @@
 import React, {useRef} from "react";
 
-import DADialogBox from "@/components/base/DADialogBox";
+import DADialogBox, {DADialogBoxHandle} from "@/components/base/DADialogBox";
 import DASnackbar from "@/components/base/DASnackbar";
-import DAMapLoading from "@/components/map/widgets/DAMapLoading";
+import DAMapLoading, {DAMapLoadingHandle} from "@/components/map/widgets/DAMapLoading";
 import {IDomRef} from "@/types/typeDeclarations";
 
-import BottomDrawer from "@/components/map/drawers/BottomDrawer";
-import RightDrawer from "@/components/map/drawers/RightDrawer";
-import LeftDrawer from "./drawers/LeftDrawer";
+import BottomDrawer, {BottomDrawerHandle} from "@/components/map/drawers/BottomDrawer";
+import RightDrawer, { RightDrawerHandle } from "@/components/map/drawers/RightDrawer";
+import LeftDrawer, {LeftDrawerHandle} from "./drawers/LeftDrawer";
 import {Paper, Theme} from "@mui/material";
 import CustomAlertBox from "@/components/base/CustomAlertBox";
 import {MapVMProvider} from "@/hooks/MapVMContext";
@@ -15,6 +15,8 @@ import MapPanel from "@/components/map/MapPanel";
 import {ThemeProvider} from "@mui/material/styles";
 import 'ol/ol.css';
 import 'ol-ext/dist/ol-ext.css';
+import IdentifyResult, {IdentifyResultHandle} from "@/components/map/widgets/IdentifyResult";
+import {DASnackbarHandle} from "damap";
 
 
 interface MapLayoutProps {
@@ -31,8 +33,8 @@ export const mapDivInfo = {
 };
 
 const MapView: React.FC<React.PropsWithChildren<MapLayoutProps>> = ({
-                                                                        uuid="-1",
-                                                                        isMap=true,
+                                                                        uuid = "-1",
+                                                                        isMap = true,
                                                                         children,
                                                                         theme
                                                                     }) => {
@@ -40,12 +42,13 @@ const MapView: React.FC<React.PropsWithChildren<MapLayoutProps>> = ({
 
 
     const domRefs: IDomRef = {
-        rightDrawerRef: useRef(null),
-        leftDrawerRef: useRef(null),
-        bottomDrawerRef: useRef(null),
-        dialogBoxRef: useRef(null),
-        snackBarRef: useRef(null),
-        loadingRef: useRef(null),
+        rightDrawerRef: useRef<RightDrawerHandle>(null),
+        leftDrawerRef: useRef<LeftDrawerHandle>(null),
+        bottomDrawerRef: useRef<BottomDrawerHandle>(null),
+        dialogBoxRef: useRef<DADialogBoxHandle>(null),
+        snackBarRef: useRef<DASnackbarHandle>(null),
+        loadingRef: useRef<DAMapLoadingHandle>(null),
+        identifyResultRef: useRef<IdentifyResultHandle>(null),
     };
 
     // const mapVMRef = useRef<MapVM | null>(null);
@@ -87,7 +90,9 @@ const MapView: React.FC<React.PropsWithChildren<MapLayoutProps>> = ({
                     </Paper>
 
 
-                    <RightDrawer ref={domRefs.rightDrawerRef}/>
+                    <RightDrawer ref={domRefs.rightDrawerRef}>
+                        <IdentifyResult ref={domRefs.identifyResultRef}/>
+                    </RightDrawer>
                     <DADialogBox ref={domRefs.dialogBoxRef}/>
                     <DASnackbar ref={domRefs.snackBarRef}/>
                     <DAMapLoading ref={domRefs.loadingRef}/>

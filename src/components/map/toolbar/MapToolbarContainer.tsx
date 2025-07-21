@@ -74,7 +74,7 @@ import AttributeTableControl from "@/components/map/toolbar/controls/AttributeTa
 import {MapVMInjectProvider} from "@/hooks/MapVMContext";
 import LOISelector from "@/components/map/toolbar/controls/LOISelector";
 import {Tooltip} from "@mui/material";
-import {AddLayer} from "@/damap";
+import {AddLayer, SymbologyControl} from "@/damap";
 
 interface Props {
     mapVM: MapVM;
@@ -111,10 +111,7 @@ const MapToolbarContainer = forwardRef<MapToolbarHandle, Props>(
             {/*{optOptions.isCreateMap && <SaveMap mapVM={mapVM} />}*/}
             <ClearSelection />
             {/*{optOptions.isDesigner && (*/}
-            {/*    <SymbologyControl*/}
-            {/*        mapVM={mapVM}*/}
-            {/*        drawerRef={mapVM?.getRightDrawerRef()}*/}
-            {/*    />*/}
+                <SymbologyControl />
             {/*)}*/}
             <Identifier />
             <AttributeTableControl />

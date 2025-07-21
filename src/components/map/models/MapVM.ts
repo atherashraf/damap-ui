@@ -645,35 +645,7 @@ class MapVM {
         });
     }
 
-    //
-    // selectFeature(id: any) {
-    //     // console.log("feature " + id)
-    //     // @ts-ignore
-    //     const layer = this.overlayLayers["project_location"]
-    //     const source = layer.getSource()
-    //     const feature = source.getFeatures().find((feature: Feature) => {
-    //         const properties = feature.getProperties()
-    //         if (properties.id === id)
-    //             return feature
-    //     })
-    //     // this.flash(feature)
-    //     const sel_source = this.getSelectionLayer().getSource()
-    //     sel_source.addFeature(feature)
-    //
-    // }
-    //
-    // clearSelectedFeatures() {
-    //     const source = this.getSelectionLayer().getSource()
-    //     source.clear()
-    // }
-    //
-    // zoomToSelectedFeatures() {
-    //     const layer = this.getSelectionLayer()
-    //     const extent = buffer(layer.getSource().getExtent(), 20 * 1000)
-    //     // @ts-ignore
-    //     extent && this.map.getView().fit(extent, this.map.getSize());
-    //
-    // }
+
 
 
     getAdditionalToolbarButtons() {

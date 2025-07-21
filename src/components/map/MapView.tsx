@@ -1,7 +1,7 @@
 import React, { useRef} from "react";
 
 import DADialogBox, {DADialogBoxHandle} from "@/components/base/DADialogBox";
-import DASnackbar from "@/components/base/DASnackbar";
+import DASnackbar, {DASnackbarHandle} from "@/components/base/DASnackbar";
 import DAMapLoading, {DAMapLoadingHandle} from "@/components/map/widgets/DAMapLoading";
 import {IDomRef} from "@/types/typeDeclarations";
 
@@ -16,8 +16,8 @@ import {ThemeProvider} from "@mui/material/styles";
 import 'ol/ol.css';
 import 'ol-ext/dist/ol-ext.css';
 import IdentifyResult, {IdentifyResultHandle} from "@/components/map/widgets/IdentifyResult";
-import {ContextMenuHandle, DASnackbarHandle} from "damap";
-import ContextMenu from "@/components/map/layer_switcher/ContextMenu";
+
+import ContextMenu, {ContextMenuHandle} from "@/components/map/layer_switcher/ContextMenu";
 
 
 interface MapLayoutProps {

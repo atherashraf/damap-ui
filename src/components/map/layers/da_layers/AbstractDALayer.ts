@@ -8,8 +8,8 @@ import VectorTileLayer from "ol/layer/VectorTile";
 
 import TileLayer from "ol/layer/Tile";
 import ImageLayer from "ol/layer/Image";
-import SLDStyleParser from "@/components/map/layers/styling/SLDStyleParser";
-import StylingUtils from "../styling/StylingUtils";
+import SLDStyleParser from "@/components/map/layer_styling/utils/SLDStyleParser";
+import StylingUtils from "../../layer_styling/utils/StylingUtils";
 import {IFeatureStyle, ILayerInfo} from "@/types/typeDeclarations";
 
 class AbstractDALayer {

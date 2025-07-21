@@ -96,11 +96,14 @@ class MapToolbar extends Control {
      * @param instance The instance of MapToolbarHandle (from MapToolbarContainer).
      */
     private handleContainerRefReady = (instance: MapToolbarHandle | null) => {
-        // this._toolbarContainerInstance = instance;
-        // Update the RefObject's current value so that external callers of getToolbarContainerRef
-        // receive the correct instance.
         this._toolbarContainerRefObject.current = instance;
+
+        if (instance) {
+            const event = new CustomEvent("toolbarContainerReady", { detail: instance });
+            window.dispatchEvent(event);
+        }
     };
+
 
     /**
      * Re-renders the toolbar with current static and dynamic buttons.

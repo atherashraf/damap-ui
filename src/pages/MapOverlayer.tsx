@@ -1,20 +1,37 @@
 import {RefObject, useEffect} from 'react';
 import { AppBar, Box, Paper, Toolbar, useTheme } from "@mui/material";
-import {ContextMenuHandle, getMapVM, MapView, MapVM, useMapVM} from "@/damap";
+import {ContextMenuHandle, getMapVM, MapToolbarHandle, MapView, MapVM, useMapVM} from "@/damap";
 import CustomFeatureViewer from "@/components/map/test/CustomFeatureViewer";
 
 import OverlayVectorLayer from "@/components/map/layers/overlay_layers/OverlayVectorLayer";
 import {ITextStyle} from "@/types/typeDeclarations";
+import AddTextStyle from "@/components/map/toolbar/controls/external/AddTextStyle";
 
 const CustomAppBar = () =>{
     const mapVM = useMapVM();
     const contextMenuRef:RefObject<ContextMenuHandle | null>  = mapVM.getContextMenuRef()
 
     useEffect(() => {
+        if(!mapVM) return
+        const handleToolbarReady = (e: Event) => {
+            const customEvent = e as CustomEvent<MapToolbarHandle>;
+            const toolbar = customEvent.detail;
+            toolbar.addButton(<AddTextStyle mapVM={mapVM} />);
+        };
+
+        window.addEventListener("toolbarContainerReady", handleToolbarReady);
+        return () => {
+            window.removeEventListener("toolbarContainerReady", handleToolbarReady);
+        };
+    }, [mapVM]);
+
+
+    useEffect(() => {
         if (!contextMenuRef?.current) return;
 
+
         contextMenuRef.current.addMenuItem({
-            id: "label",
+            id: "toggle_label",
             name: "Toggle Label",
             onClick: () => {
                 const layer = contextMenuRef.current?.getCurrentLayer?.();

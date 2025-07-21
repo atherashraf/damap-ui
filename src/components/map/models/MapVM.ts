@@ -8,7 +8,7 @@ import BaseLayers from "../layers/BaseLayers";
 import MapToolbar from "@/components/map/toolbar/MapToolbar";
 import MVTLayer from "../layers/da_layers/MVTLayer";
 import MapApi, {MapAPIs} from "@/api/MapApi";
-import {JSX, RefObject} from "react";
+import {RefObject} from "react";
 import {
     IFeatureStyle,
     IDomRef,
@@ -96,7 +96,7 @@ class MapVM {
     private legendPanel: any = null;
     // @ts-ignore
     private mapInfo: IMapInfo;
-    private additionalToolbarButtons: JSX.Element[] = [];
+    // private additionalToolbarButtons: JSX.Element[] = [];
     private attributeTableSelectedRowKey: string | null = null;
     private attributeTableScrollTop: number = 0;
     private selectionLayer: SelectionLayer | undefined;
@@ -268,7 +268,7 @@ class MapVM {
     //     this._domRef.identifyResultRef = identifyResultRef
     // }
 
-    getIdentifierResultRef(): RefObject<IdentifyResultHandle | null>  {
+    getIdentifierResultRef(): RefObject<IdentifyResultHandle | null> {
         return this._domRef.identifyResultRef;
     }
 
@@ -281,7 +281,7 @@ class MapVM {
     //     this._domRef.contextMenuRef = contextMenuRef;
     // }
 
-    getContextMenuRef(): RefObject<ContextMenuHandle | null>  {
+    getContextMenuRef(): RefObject<ContextMenuHandle | null> {
         return this._domRef.contextMenuRef;
     }
 
@@ -645,17 +645,13 @@ class MapVM {
         });
     }
 
-
-
-
-    getAdditionalToolbarButtons() {
-        return this.additionalToolbarButtons;
-    }
-
-    addAdditionalToolbarButton(elem: JSX.Element) {
-        this.additionalToolbarButtons.push(elem);
-    }
-
+    // getAdditionalToolbarButtons() {
+    //     return this.additionalToolbarButtons;
+    // }
+    //
+    // addAdditionalToolbarButton(elem: JSX.Element) {
+    //     this.additionalToolbarButtons.push(elem);
+    // }
 
     removeDALayer(uuid: string) {
         delete this.daLayers[uuid];

@@ -9,6 +9,7 @@ import {
   ClickAwayListener,
   Typography,
 } from "@mui/material";
+import ColorUtils from "@/utils/colorUtils";
 
 interface CustomColorPickerProps {
   label?: string;
@@ -27,7 +28,7 @@ class DAColorPicker extends React.PureComponent<
     CustomColorPickerState
 > {
   state: CustomColorPickerState = {
-    color: this.props.color,
+    color: this.props.color || ColorUtils.getRandomHexColor(),
     anchorEl: null,
   };
 
@@ -90,7 +91,7 @@ class DAColorPicker extends React.PureComponent<
                 sx={{
                   width: 28,
                   height: 28,
-                  backgroundColor: color || "#fff",
+                  backgroundColor: color,
                   border: "1px solid #999",
                   borderRadius: "50%",
                   margin: "auto",

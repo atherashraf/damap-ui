@@ -54,7 +54,8 @@ export type {IdentifyResultHandle} from "./components/map/widgets/IdentifyResult
 export * from './components/map/layers/overlay_layers';
 export * from './components/map/layers/da_layers';
 
-export {default as StylingUtils} from './components/map/layers/styling/StylingUtils'
+export {default as StylingUtils} from './components/map/layer_styling/utils/StylingUtils'
+export {default as SLDStyleParser} from './components/map/layer_styling/utils/SLDStyleParser'
 export {pointShapeTypes} from './components/map/layer_styling/vector/symbolizer/PointSymbolizer'
 export {getPointSVG} from './components/map/layer_styling/vector/symbolizer/PointSymbolizer'
 export {getPointShapes} from './components/map/layer_styling/vector/symbolizer/PointSymbolizer'

@@ -1,6 +1,6 @@
 class ColorUtils {
     /**
-     * Generates a random RGB color.
+     * Generates a random RGB or Hex color.
      */
     static getRandomRGB(): { r: number; g: number; b: number } {
         return {
@@ -8,6 +8,13 @@ class ColorUtils {
             g: Math.floor(Math.random() * 256),
             b: Math.floor(Math.random() * 256)
         };
+    }
+
+    static getRandomHexColor(): string {
+        const r = Math.floor(Math.random() * 256).toString(16).padStart(2, '0');
+        const g = Math.floor(Math.random() * 256).toString(16).padStart(2, '0');
+        const b = Math.floor(Math.random() * 256).toString(16).padStart(2, '0');
+        return `#${r}${g}${b}`;
     }
 
     /**

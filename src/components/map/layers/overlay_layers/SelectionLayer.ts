@@ -10,7 +10,7 @@ import autoBind from "auto-bind";
 import {WKT} from "ol/format";
 import AbstractOverlayLayer from "./AbstractOverlayLayer";
 import {buffer} from "ol/extent";
-import StylingUtils from "../styling/StylingUtils";
+import StylingUtils from "../../layer_styling/utils/StylingUtils";
 import {Geometry} from "ol/geom";
 
 // import {getPointShapes} from "../../components/styling/vector/symbolizer/PointSymbolizer";

@@ -10,7 +10,7 @@ import GeoJSON from "ol/format/GeoJSON";
 import {WKT} from "ol/format";
 import AbstractOverlayLayer from "./AbstractOverlayLayer";
 import {IFeatureStyle, IGeoJSON, ITextStyle} from "@/types/typeDeclarations";
-import StylingUtils from "../styling/StylingUtils";
+import StylingUtils from "../../layer_styling/utils/StylingUtils";
 
 // import _ from "../../utils/lodash";
 
@@ -124,7 +124,7 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         // this.forcedRefresh()
     }
 
-    updateLabelOptions(labelProperty: string, textStyle?: ITextStyle) {
+    updateLabelOptions(labelProperty: string, textStyle?: ITextStyle, showLabel?: boolean) {
         if (!this.layerInfo) return;
 
         // Always set the label property
@@ -137,7 +137,7 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
 
         // Optionally toggle showLabel
 
-        this.layerInfo.showLabel = !this.layerInfo.showLabel;
+        this.layerInfo.showLabel = showLabel!=undefined? showLabel:  !this.layerInfo.showLabel;
 
 
         // Force style re-evaluation

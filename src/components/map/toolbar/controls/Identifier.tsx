@@ -14,7 +14,7 @@ const Identifier = () => {
 
 
     const showIdentifyResult = useCallback(() => {
-        console.log("showIdentifyResult", identifyResultRef?.current);
+
 
         identifyResultRef?.current?.render()
         drawerRef?.current?.openDrawer();

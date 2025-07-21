@@ -5,67 +5,33 @@
  * It supports external injection of menu items via a `ref`, allowing other components to add or clear menu options dynamically.
  *
  * ✅ Usage:
+ *  const mapVM = useMapVM();
+ *  const contextMenuRef:RefObject<ContextMenuHandle | null>  = mapVM.getContextMenuRef()
  *
- * 1. Render inside a map wrapper or toolbar:
- * ```tsx
- * const contextMenuRef = useRef<ContextMenuHandle>(null);
+ *   useEffect(() => {
+ *     contextMenuRef.current?.clearMenuItems(); // optional
+ *         contextMenuRef?.current?.addMenuItem({id: "label",
+ *             name:"Add Label",
+ *             onClick: () => {
+ *                 const layer = contextMenuRef.current?.getCurrentLayer?.();
+ *                 if (layer) {
+ *                     console.log("Using current layer:", layer);
+ *                     // Do your logic here, e.g., add label to the layer
+ *                 } else {
+ *                     console.warn("Layer not set.");
+ *                 }            }})
+ *     }, [contextMenuRef?.current]);
+ *   contextMenuRef.current?.openAt(layer, { mouseX: e.clientX, mouseY: e.clientY });
  *
- * useEffect(() => {
- *   mapVM.setContextMenuRef(contextMenuRef); // store globally in mapVM if needed
- * }, []);
- *
- * <ContextMenu
- *   ref={contextMenuRef}
- *   olLayer={selectedLayer}
- *   contextMenuLoc={{ mouseX: 200, mouseY: 300 }}
- *   mapVM={mapVM}
- * />
- * ```
- *
- * 2. Open the menu on right-click:
-
- * <div onContextMenu={(e) => {
- *   e.preventDefault();
- *   contextMenuRef.current?.addMenuItem({
- *     id: "export_csv",
- *     name: "Export to CSV",
- *     onClick: () => exportLayerData(layer)
- *   });
- *   contextMenuRef.current?.openAt({ mouseX: e.clientX, mouseY: e.clientY }, layer);
- * }}>
- * </div>
- *
- * 3. Add or clear dynamic menu items externally:
-
- * contextMenuRef.current?.addMenuItem({
- *   id: "custom_analysis",
- *   name: "Run Analysis",
- *   onClick: () => runAnalysis(layer)
- * });
- *
- * contextMenuRef.current?.clearMenuItems();
- *
- * 🧩 Built-in Menu Options:
- * - Open Attribute Table
- * - Zoom To Layer
- * - Open Layer Designer (if in editor mode)
- * - Download style (if in editor mode)
- *
- * Ref Methods (ContextMenuHandle):
- * - addMenuItem(item: CustomMenuItem) — Adds a custom menu item to the context menu.
- * - clearMenuItems() — Clears all injected custom menu items.
- *
- * @component
+ * <ContextMenu ref={contextMenuRef} />
  */
 
-
-import {Menu} from "@mui/material";
-import * as React from "react";
-import MenuItem from "@mui/material/MenuItem";
+import React, { useImperativeHandle,  useState } from "react";
+import { Menu, MenuItem } from "@mui/material";
 import MapVM from "@/components/map/models/MapVM";
 import SymbologySetting from "@/components/map/layer_styling/SymbologySetting";
-import MapApi, {MapAPIs} from "@/api/MapApi";
-import {useImperativeHandle, useState} from "react";
+import MapApi, { MapAPIs } from "@/api/MapApi";
+import { useMapVM } from "@/hooks/MapVMContext";
 
 
 export interface IContextMenuLoc {
@@ -73,13 +39,6 @@ export interface IContextMenuLoc {
     mouseY: number;
 }
 
-interface IProps {
-    olLayer: any;
-    mapVM: MapVM;
-    contextMenuLoc?: IContextMenuLoc;
-}
-
-// Define a reusable type for external menu items
 export interface CustomMenuItem {
     id: string;
     name: string;
@@ -89,118 +48,129 @@ export interface CustomMenuItem {
 export interface ContextMenuHandle {
     addMenuItem: (item: CustomMenuItem) => void;
     clearMenuItems: () => void;
+    openAt: (olLayer: any, contextMenuLoc: IContextMenuLoc) => void;
+    close: () => void;
+    getCurrentLayer: () => any;
 }
 
-const ContextMenu = React.forwardRef<ContextMenuHandle, IProps>((props, ref) => {
-    const [open, setOpen] = React.useState(false);
+const ContextMenu = React.forwardRef<ContextMenuHandle>((_props, ref) => {
+    const [open, setOpen] = useState(false);
+    const [contextMenuLoc, setContextMenuLoc] = useState<IContextMenuLoc | null>(null);
+    const [olLayer, setOlLayer] = useState<any>(null);
     const [customItems, setCustomItems] = useState<CustomMenuItem[]>([]);
+    const mapVM: MapVM = useMapVM();
 
     useImperativeHandle(ref, () => ({
         addMenuItem: (item: CustomMenuItem) => {
-            setCustomItems((prev) => [...prev, item]);
+            setCustomItems((prev) => {
+                // Check if the item with same id already exists
+                if (prev.some(existingItem => existingItem.id === item.id)) {
+                    return prev; // Don't add duplicate
+                }
+                return [...prev, item];
+            });
         },
         clearMenuItems: () => {
             setCustomItems([]);
-        }
+        },
+        openAt: (layer: any, loc: IContextMenuLoc) => {
+            setOlLayer(layer);
+            setContextMenuLoc(loc);
+            setOpen(true);
+        },
+        close: () => {
+            setOpen(false);
+        },
+        getCurrentLayer: () => olLayer ?? null,
     }));
-
-    React.useEffect(() => {
-        setOpen(Boolean(props.contextMenuLoc));
-    }, [props.contextMenuLoc]);
-
 
     const handleClose = () => {
         setOpen(false);
     };
-    const menuItems = {
-        common: [
-            {name: "Open Attribute Table", id: "table"},
-            {name: "Zoom To Layer", id: "zoom"}
-        ],
-        inEditor: [
-            {name: "Open Layer Designer", id: "designer"},
-            {name: "Download style", id: "downloadStyle"},
-        ],
-    };
+
     const handleClick = (option: string) => {
-        const uuid = props.olLayer.get("name");
+        if (!olLayer) return;
+
+        const uuid = olLayer.get("name");
+
         switch (option) {
             case "designer":
-                props.mapVM.setLayerOfInterest(uuid);
-                const drawerRef = props.mapVM.getRightDrawerRef();
+                mapVM.setLayerOfInterest(uuid);
+                const drawerRef = mapVM.getRightDrawerRef();
                 drawerRef?.current?.setContent(
                     "Layer Styler",
-                    <SymbologySetting key={"symbology-setting"} mapVM={props.mapVM}/>
+                    <SymbologySetting key="symbology-setting" mapVM={mapVM} />
                 );
                 drawerRef?.current?.openDrawer();
                 break;
             case "zoom":
-                const layerExtent = props.olLayer.getExtent?.();
-                const sourceExtent = props.olLayer.getSource?.()?.getExtent?.();
-
-                const extent = layerExtent ?? sourceExtent;
-
+                const extent = olLayer.getExtent?.() ?? olLayer.getSource?.()?.getExtent?.();
                 if (extent && extent.length === 4) {
-                    props.mapVM.zoomToExtent(extent);
+                    mapVM.zoomToExtent(extent);
                 } else {
-                    props.mapVM.showSnackbar("Layer extent is not available");
-                }
-                break
-            case "table":
-                try {
-                    props.mapVM.setLayerOfInterest(uuid);
-                    setTimeout(() => props?.mapVM?.openAttributeTable?.(), 1000);
-                } catch {
-                    props.mapVM.showSnackbar("Attribute table is not available");
+                    mapVM.showSnackbar("Layer extent is not available");
                 }
                 break;
-            //@ts-ignore
+            case "table":
+                try {
+                    mapVM.setLayerOfInterest(uuid);
+                    setTimeout(() => mapVM?.openAttributeTable?.(), 1000);
+                } catch {
+                    mapVM.showSnackbar("Attribute table is not available");
+                }
+                break;
             case "downloadStyle":
-                const url = MapApi.getURL(MapAPIs.DCH_DOWNLOAD_DA_STYLE, {
-                    uuid: uuid,
-                });
+                const url = MapApi.getURL(MapAPIs.DCH_DOWNLOAD_DA_STYLE, { uuid });
                 window.open(url);
                 break;
             default:
                 break;
         }
     };
-    const isEditor = props.mapVM.isMapEditor();
-    return (
-        <React.Fragment>
-            <Menu
-                // anchorEl={props.anchorEl}
-                anchorReference="anchorPosition"
-                anchorPosition={
-                    {
-                        top: props?.contextMenuLoc?.mouseY || 0,
-                        left: props?.contextMenuLoc?.mouseX || 0
-                    }
 
-                }
-                id="layer-menu"
-                open={open}
-                onClose={handleClose}
-                onClick={handleClose}
-            >
-                {menuItems["common"].map((item) => (
+    const menuItems = {
+        common: [
+            { name: "Open Attribute Table", id: "table" },
+            { name: "Zoom To Layer", id: "zoom" },
+        ],
+        inEditor: [
+            { name: "Open Layer Designer", id: "designer" },
+            { name: "Download style", id: "downloadStyle" },
+        ],
+    };
+
+    const isEditor = mapVM.isMapEditor();
+
+    return (
+        <Menu
+            anchorReference="anchorPosition"
+            anchorPosition={
+                contextMenuLoc
+                    ? { top: contextMenuLoc.mouseY, left: contextMenuLoc.mouseX }
+                    : undefined
+            }
+            id="layer-menu"
+            open={open}
+            onClose={handleClose}
+            onClick={handleClose}
+        >
+            {menuItems.common.map((item) => (
+                <MenuItem key={item.id} onClick={() => handleClick(item.id)}>
+                    {item.name}
+                </MenuItem>
+            ))}
+            {isEditor &&
+                menuItems.inEditor.map((item) => (
                     <MenuItem key={item.id} onClick={() => handleClick(item.id)}>
                         {item.name}
                     </MenuItem>
                 ))}
-                {isEditor &&
-                    menuItems["inEditor"].map((item) => (
-                        <MenuItem key={item.id} onClick={() => handleClick(item.id)}>
-                            {item.name}
-                        </MenuItem>
-                    ))}
-                {customItems.map((item) => (
-                    <MenuItem key={item.id} onClick={() => item.onClick()}>
-                        {item.name}
-                    </MenuItem>
-                ))}
-            </Menu>
-        </React.Fragment>
+            {customItems.map((item) => (
+                <MenuItem key={item.id} onClick={item.onClick}>
+                    {item.name}
+                </MenuItem>
+            ))}
+        </Menu>
     );
 });
 

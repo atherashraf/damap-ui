@@ -9,7 +9,7 @@ import {Feature} from "ol";
 import GeoJSON from "ol/format/GeoJSON";
 import {WKT} from "ol/format";
 import AbstractOverlayLayer from "./AbstractOverlayLayer";
-import {IFeatureStyle, IGeoJSON} from "@/types/typeDeclarations";
+import {IFeatureStyle, IGeoJSON, ITextStyle} from "@/types/typeDeclarations";
 import StylingUtils from "../styling/StylingUtils";
 
 // import _ from "../../utils/lodash";
@@ -20,6 +20,11 @@ export interface IOverLayVectorInfo {
     style: IFeatureStyle
     dataModel?: "V" | "R"
     geomType?: "Polygon" | "LineString" | "Point"
+
+    // ✅ Labeling-related options
+    showLabel?: boolean;              // Whether to show label or not
+    labelProperty?: string;          // Feature property to label by (e.g., "unique_id", "name")
+    textStyle?: ITextStyle;          // Style config for the label text
 }
 
 class OverlayVectorLayer extends AbstractOverlayLayer {
@@ -33,6 +38,7 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         this.mapVM = mapVM;
         this.layerInfo = info
         this.layerInfo["dataModel"] = "V"
+        this.layerInfo.showLabel = info.showLabel !== undefined ? info.showLabel : false;
         autoBind(this);
         this.olLayer = this.createLayer();
         this.mapVM.addOverlayLayer(this);
@@ -100,9 +106,73 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         this.getSource().addFeatures(features);
     }
 
-    vectorStyleFunction(feature: Feature): Style {
-        return StylingUtils.vectorStyleFunction(feature, this.layerInfo.style);
+    toggleShowLabel() {
+        if (!this.layerInfo) return;
+        // Toggle the showLabel flag
+        this.layerInfo.showLabel = !this.layerInfo.showLabel;
+        // Force re-render so the vectorStyleFunction gets called again
+        this.forcedRefresh();
     }
+
+    setLabelProperty(labelProperty: string) {
+        this.layerInfo.labelProperty = labelProperty || "";
+        // this.forcedRefresh()
+    }
+
+    setTextStyle(textStyle: ITextStyle) {
+        this.layerInfo.textStyle = textStyle;
+        // this.forcedRefresh()
+    }
+
+    updateLabelOptions(labelProperty: string, textStyle?: ITextStyle) {
+        if (!this.layerInfo) return;
+
+        // Always set the label property
+        this.layerInfo.labelProperty = labelProperty || "";
+
+        // Conditionally update text style
+        if (textStyle) {
+            this.layerInfo.textStyle = textStyle;
+        }
+
+        // Optionally toggle showLabel
+
+        this.layerInfo.showLabel = !this.layerInfo.showLabel;
+
+
+        // Force style re-evaluation
+        this.forcedRefresh();
+    }
+
+
+    forcedRefresh() {
+        // Trigger the style function again for each feature
+        const source = this.getSource();
+        source.getFeatures().forEach((f) => f.changed());
+    }
+
+    vectorStyleFunction(feature: Feature): Style {
+        const baseStyle = StylingUtils.vectorStyleFunction(feature, this.layerInfo.style);
+        const styled = baseStyle.clone();
+
+        const {showLabel, labelProperty, textStyle} = this.layerInfo;
+
+        if (showLabel && labelProperty) {
+            const label = feature.get(labelProperty);
+            if (label !== undefined && label !== null) {
+                const fillColor = baseStyle.getFill()?.getColor()?.toString() ?? '#000'; // or any sensible default
+
+                styled.setText(
+                    StylingUtils.getTextStyle(
+                        String(label), fillColor, textStyle || {}
+                    )
+                );
+            }
+        }
+
+        return styled;
+    }
+
 
     zoomToFeatures() {
         if (this.getSource().getFeatures().length > 0) {

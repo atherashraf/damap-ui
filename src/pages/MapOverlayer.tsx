@@ -1,8 +1,65 @@
-import { useEffect } from 'react';
+import {RefObject, useEffect} from 'react';
 import { AppBar, Box, Paper, Toolbar, useTheme } from "@mui/material";
-import {getMapVM, MapView, MapVM} from "@/damap";
+import {ContextMenuHandle, getMapVM, MapView, MapVM, useMapVM} from "@/damap";
+import CustomFeatureViewer from "@/components/map/test/CustomFeatureViewer";
+
+import OverlayVectorLayer from "@/components/map/layers/overlay_layers/OverlayVectorLayer";
+import {ITextStyle} from "@/types/typeDeclarations";
+
+const CustomAppBar = () =>{
+    const mapVM = useMapVM();
+    const contextMenuRef:RefObject<ContextMenuHandle | null>  = mapVM.getContextMenuRef()
+
+    useEffect(() => {
+        if (!contextMenuRef?.current) return;
+
+        contextMenuRef.current.addMenuItem({
+            id: "label",
+            name: "Toggle Label",
+            onClick: () => {
+                const layer = contextMenuRef.current?.getCurrentLayer?.();
+                if (!layer) {
+                    console.warn("Layer not set.");
+                    return;
+                }
+
+                const uuid = layer.get("name")
+                const lyr: OverlayVectorLayer =  mapVM.getOverlayLayer(uuid) as OverlayVectorLayer
+                // console.log(uuid, lyr)
+
+                const textStyle: ITextStyle = {
+                    font: '20px Calibri, sans-serif',
+                    fillColor: "#ff0000",
+                    strokeColor: "#000000",
+                    strokeWidth: 1,
+                    offsetX: 10,
+                    offsetY: 10,
+                    placement: "point"
+                }
+                // lyr.setTextStyle(textStyle)
+                // lyr.setLabelProperty("property_type")
+                // lyr.toggleShowLabel()
+                lyr.updateLabelOptions("property_type", textStyle)
+                // const features = layer.getSource().getFeatures();
 
 
+
+                // console.log(`Label applied to ${features.length} features`);
+            }
+
+        });
+    }, [contextMenuRef?.current]);
+
+    return (
+        <AppBar position="static" color="secondary">
+            <Toolbar variant="dense">
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <h3 style={{ margin: 0 }}>Survey Detail</h3>
+                </Box>
+            </Toolbar>
+        </AppBar>
+    )
+}
 
 
 const MapOverlayer = () => {
@@ -17,19 +74,21 @@ const MapOverlayer = () => {
 
                 // console.log(mapVM.overlayLayers)
                 mapVM.zoomToAllLayersExtent()
+
+                // testing custom feature render
+                const identifierRef = mapVM.getIdentifierResultRef()
+                identifierRef?.current?.setFeatureRenderer(
+                    (feature)=> <CustomFeatureViewer feature={feature} />)
+
+
             });
     }, []);
+
 
     return (
         <Paper elevation={3} sx={{ m: 0, height: '100%', overflow: 'hidden' }}>
             <MapView theme={theme}>
-                <AppBar position="static" color="secondary">
-                    <Toolbar variant="dense">
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <h3 style={{ margin: 0 }}>Survey Detail</h3>
-                        </Box>
-                    </Toolbar>
-                </AppBar>
+               <CustomAppBar />
             </MapView>
         </Paper>
     );

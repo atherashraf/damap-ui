@@ -264,11 +264,11 @@ class MapVM {
         this._domRef.timeSliderRef = timeSliderRef;
     }
 
-    setIdentifierResultRef(identifyResultRef: RefObject<IdentifyResultHandle | null>) {
-        this._domRef.identifyResultRef = identifyResultRef
-    }
+    // setIdentifierResultRef(identifyResultRef: RefObject<IdentifyResultHandle | null>) {
+    //     this._domRef.identifyResultRef = identifyResultRef
+    // }
 
-    getIdentifierResultRef(): RefObject<IdentifyResultHandle | null> | undefined {
+    getIdentifierResultRef(): RefObject<IdentifyResultHandle | null>  {
         return this._domRef.identifyResultRef;
     }
 
@@ -277,11 +277,11 @@ class MapVM {
         return this._domRef.timeSliderRef;
     }
 
-    setContextMenuRef(contextMenuRef: RefObject<ContextMenuHandle | null>) {
-        this._domRef.contextMenuRef = contextMenuRef;
-    }
+    // setContextMenuRef(contextMenuRef: RefObject<ContextMenuHandle | null>) {
+    //     this._domRef.contextMenuRef = contextMenuRef;
+    // }
 
-    getContextMenuRef(): RefObject<ContextMenuHandle | null> | undefined {
+    getContextMenuRef(): RefObject<ContextMenuHandle | null>  {
         return this._domRef.contextMenuRef;
     }
 
@@ -870,7 +870,8 @@ class MapVM {
         const daLayer = new OverlayVectorLayer({
             uuid: uuid,
             title: title,
-            style: style || MapVM.getDefaultStyle()
+            style: style || MapVM.getDefaultStyle(),
+            showLabel: false
         }, this)
         daLayer.addGeojsonFeature(geoJSON, true)
         return true

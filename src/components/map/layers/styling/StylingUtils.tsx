@@ -1,4 +1,4 @@
-import {IFeatureStyle, IGeomStyle, IRule} from "@/types/typeDeclarations";
+import {IFeatureStyle, IGeomStyle, IRule, ITextStyle} from "@/types/typeDeclarations";
 import {Fill, Stroke, Style, Text} from "ol/style";
 import {getPointShapes} from "@/components/map/layer_styling/vector/symbolizer/PointSymbolizer";
 import {styles} from "./styles";
@@ -11,6 +11,8 @@ import {getVectorContext} from "ol/render";
 import {easeOut} from "ol/easing";
 import CircleStyle from "ol/style/Circle";
 import MapVM from "@/components/map/models/MapVM";
+import {ColorUtils} from "@/damap";
+
 
 class StylingUtils {
     static createOLStyle(
@@ -54,6 +56,7 @@ class StylingUtils {
 
         return featureStyle;
     }
+
 
     static vectorStyleFunction(
         feature: Feature,
@@ -238,6 +241,28 @@ class StylingUtils {
             // tell OpenLayers to continue postrender animation
             mapVM.getMap().render();
         }
+    }
+
+
+    static getTextStyle(label: string, fillColor: string, textStyle?: ITextStyle): Text {
+        const font = textStyle?.font || '14px Calibri,sans-serif';
+        const strokeColor = textStyle?.strokeColor || '#fff';
+        const strokeWidth = textStyle?.strokeWidth ?? 2;
+        const offsetX = textStyle?.offsetX ?? 0;
+        const offsetY = textStyle?.offsetY ?? 0;
+        const placement = textStyle?.placement || 'point';
+        const fillTextColor = textStyle?.fillColor || ColorUtils.getContrastingTextColorHex(fillColor);
+
+        return new Text({
+            text: label,
+            font,
+            fill: new Fill({ color: fillTextColor }),
+            stroke: new Stroke({ color: strokeColor, width: strokeWidth }),
+            offsetX,
+            offsetY,
+            placement,
+            overflow: true,
+        });
     }
 
 }

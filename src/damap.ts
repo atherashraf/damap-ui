@@ -54,11 +54,13 @@ export type {IdentifyResultHandle} from "./components/map/widgets/IdentifyResult
 export * from './components/map/layers/overlay_layers';
 export * from './components/map/layers/da_layers';
 
+export {default as StylingUtils} from './components/map/layers/styling/StylingUtils'
 export {pointShapeTypes} from './components/map/layer_styling/vector/symbolizer/PointSymbolizer'
 export {getPointSVG} from './components/map/layer_styling/vector/symbolizer/PointSymbolizer'
 export {getPointShapes} from './components/map/layer_styling/vector/symbolizer/PointSymbolizer'
 export type {IFeatureStyle} from './types/typeDeclarations'
 export type {IGeomStyle} from './types/typeDeclarations'
+export type {ITextStyle} from './types/typeDeclarations'
 
 export type {ILayerSourcesInfo} from './types/typeDeclarations'
 export type {ILayerInfo} from './types/typeDeclarations'
@@ -107,6 +109,7 @@ export {default as SymbologyControl} from './components/map/toolbar/controls/Sym
 // ✅ Toolbar Container & Optional Toolbar Buttons
 // -------------------------
 export {default as ColorUtils} from './utils/colorUtils'
+
 
 
 // -------------------------

@@ -28,16 +28,15 @@ export interface IControlProps {
 }
 
 export interface IDomRef {
-    rightDrawerRef?: RefObject<RightDrawerHandle | null>;
-    leftDrawerRef?: RefObject<LeftDrawerHandle | null>;
-    bottomDrawerRef?: RefObject<BottomDrawerHandle | null>
+    rightDrawerRef: RefObject<RightDrawerHandle | null>;
+    leftDrawerRef: RefObject<LeftDrawerHandle | null>;
+    bottomDrawerRef: RefObject<BottomDrawerHandle | null>
     dialogBoxRef: RefObject<DADialogBoxHandle | null>;
     snackBarRef: RefObject<DASnackbarHandle | null>;
     loadingRef: RefObject<DAMapLoadingHandle | null>;
     timeSliderRef?: RefObject<TimeSliderHandle>;
-    identifyResultRef?: RefObject<IdentifyResultHandle | null>;
-    contextMenuRef?: RefObject<ContextMenuHandle | null>;
-
+    identifyResultRef: RefObject<IdentifyResultHandle | null>;
+    contextMenuRef: RefObject<ContextMenuHandle | null>;
 }
 
 export interface IMapToolbarProps {
@@ -90,6 +89,15 @@ export interface IMapInfo {
     units?: string;
     description?: string;
     isEditor?: boolean;
+}
+export interface ITextStyle {
+    font?: string;
+    fillColor?: string;
+    strokeColor?: string;
+    strokeWidth?: number;
+    offsetX?: number;
+    offsetY?: number;
+    placement?: "point" | "line";
 }
 
 export interface IFeatureStyle {

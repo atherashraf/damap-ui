@@ -1,4 +1,4 @@
-import React, {useRef} from "react";
+import React, { useRef} from "react";
 
 import DADialogBox, {DADialogBoxHandle} from "@/components/base/DADialogBox";
 import DASnackbar from "@/components/base/DASnackbar";
@@ -16,7 +16,8 @@ import {ThemeProvider} from "@mui/material/styles";
 import 'ol/ol.css';
 import 'ol-ext/dist/ol-ext.css';
 import IdentifyResult, {IdentifyResultHandle} from "@/components/map/widgets/IdentifyResult";
-import {DASnackbarHandle} from "damap";
+import {ContextMenuHandle, DASnackbarHandle} from "damap";
+import ContextMenu from "@/components/map/layer_switcher/ContextMenu";
 
 
 interface MapLayoutProps {
@@ -49,6 +50,7 @@ const MapView: React.FC<React.PropsWithChildren<MapLayoutProps>> = ({
         snackBarRef: useRef<DASnackbarHandle>(null),
         loadingRef: useRef<DAMapLoadingHandle>(null),
         identifyResultRef: useRef<IdentifyResultHandle>(null),
+        contextMenuRef: useRef<ContextMenuHandle>(null)
     };
 
     // const mapVMRef = useRef<MapVM | null>(null);
@@ -96,6 +98,7 @@ const MapView: React.FC<React.PropsWithChildren<MapLayoutProps>> = ({
                     <DADialogBox ref={domRefs.dialogBoxRef}/>
                     <DASnackbar ref={domRefs.snackBarRef}/>
                     <DAMapLoading ref={domRefs.loadingRef}/>
+                    <ContextMenu ref={domRefs.contextMenuRef}/>
                 </div>
             </ThemeProvider>
         </MapVMProvider>

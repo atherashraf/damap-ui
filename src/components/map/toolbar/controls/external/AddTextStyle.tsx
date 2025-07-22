@@ -1,8 +1,10 @@
 import {IconButton, Tooltip} from "@mui/material";
 import TextFieldsIcon from '@mui/icons-material/TextFields';
-import {ITextStyle, MapVM} from "damap";
+
 import TextSymbolizer from "@/components/map/layer_styling/vector/symbolizer/TextSymbolizer";
 import OverlayVectorLayer from "../../../layers/overlay_layers/OverlayVectorLayer";
+import {ITextStyle} from "@/types/typeDeclarations";
+import MapVM from "@/components/map/models/MapVM";
 
 interface IProps {
     mapVM: MapVM

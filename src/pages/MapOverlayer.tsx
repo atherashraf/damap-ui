@@ -8,7 +8,7 @@ import {ITextStyle} from "@/types/typeDeclarations";
 import AddTextStyle from "@/components/map/toolbar/controls/external/AddTextStyle";
 
 const CustomAppBar = () =>{
-    const mapVM = useMapVM();
+    const mapVM: MapVM = useMapVM();
     const contextMenuRef:RefObject<ContextMenuHandle | null>  = mapVM.getContextMenuRef()
 
     useEffect(() => {

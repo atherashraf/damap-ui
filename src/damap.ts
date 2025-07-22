@@ -60,6 +60,7 @@ export { default as StylingUtils } from './components/map/layer_styling/utils/St
 export { default as SLDStyleParser } from './components/map/layer_styling/utils/SLDStyleParser';
 export * as MapStyles from './components/map/layer_styling/utils/styles';
 
+
 export { pointShapeTypes } from './components/map/layer_styling/vector/symbolizer/PointSymbolizer';
 export { getPointSVG } from './components/map/layer_styling/vector/symbolizer/PointSymbolizer';
 export { getPointShapes } from './components/map/layer_styling/vector/symbolizer/PointSymbolizer';
@@ -85,6 +86,7 @@ export type { TimeSliderHandle } from './components/map/time_slider/TimeSlider';
 export { default as MapToolbarContainer } from './components/map/toolbar/MapToolbarContainer';
 export { default as MapToolbar } from './components/map/toolbar/MapToolbar';
 export type { MapToolbarHandle } from './components/map/toolbar/MapToolbarContainer';
+export {default as AddTextStyle} from './components/map/toolbar/controls/external/AddTextStyle'
 
 export { default as AddLayer } from './components/map/toolbar/controls/AddLayer';
 // export { default as SaveMap } from './components/map/toolbar/controls/SaveMap';

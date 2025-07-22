@@ -156,7 +156,7 @@ const TextSymbolizer: React.FC<TextStyleFormProps> = ({
                         type="number"
                         label="Stroke Width"
                         fullWidth
-                        value={style.strokeWidth ?? ""}
+                        value={style.strokeWidth ?? 1}
                         onChange={(e) => handleChange("strokeWidth", parseFloat(e.target.value))}
                     />
                 </Grid>

@@ -1,10 +1,11 @@
 import {IconButton, Tooltip} from "@mui/material";
 import TextFieldsIcon from '@mui/icons-material/TextFields';
-
-import TextSymbolizer from "@/components/map/layer_styling/vector/symbolizer/TextSymbolizer";
-import OverlayVectorLayer from "../../../layers/overlay_layers/OverlayVectorLayer";
-import {ITextStyle} from "@/types/typeDeclarations";
 import MapVM from "@/components/map/models/MapVM";
+import {ITextStyle} from "@/types/typeDeclarations";
+import {OverlayVectorLayer} from "@/components/map/layers/overlay_layers";
+import {TextSymbolizer} from "@/damap";
+
+
 
 interface IProps {
     mapVM: MapVM
@@ -12,36 +13,50 @@ interface IProps {
 
 const AddTextStyle = ({mapVM}: IProps) => {
 
-    const onApply = (textStyle: ITextStyle, selectedLabel): void => {
+    const onApply = (textStyle: ITextStyle, selectedLabel: string): void => {
 
-        console.log("apply style", textStyle, selectedLabel)
-        const uuid=  mapVM.getLayerOfInterest()
-        const layer: OverlayVectorLayer =  mapVM.getOverlayLayer(uuid) as OverlayVectorLayer
+        // console.log("apply style", textStyle, selectedLabel)
+        const uuid = mapVM.getLayerOfInterest()
+        const layer: OverlayVectorLayer = mapVM.getOverlayLayer(uuid) as OverlayVectorLayer
         layer.updateLabelOptions(selectedLabel, textStyle, true)
 
 
     }
     const handleClick = () => {
-        const uuid=  mapVM.getLayerOfInterest()
-        const layer: OverlayVectorLayer =  mapVM.getOverlayLayer(uuid) as OverlayVectorLayer
-        if(!layer){
+        const uuid = mapVM.getLayerOfInterest()
+        const layer: OverlayVectorLayer = mapVM.getOverlayLayer(uuid) as OverlayVectorLayer
+        if (!layer) {
             mapVM?.showSnackbar("Please select a layer to add text style")
             return
         }
-        const properties = layer.getFeatures()[0].getProperties();
-        const { geometry, ...restProps } = properties;
-        const keys = Object.keys(restProps)
-        console.log("properties", properties)
+        if (!layer.layerInfo.showLabel) {
+            layer.setShowLabel(true)
+            const properties = layer.getFeatures()[0].getProperties();
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
-        console.log("layer", layer)
-        // alert("Working..")
-        mapVM?.getRightDrawerRef()?.current?.setContent("Add Text Style", <TextSymbolizer onApply={onApply} labels={keys} />)
-        mapVM?.getRightDrawerRef()?.current?.openDrawer();
+            const {geometry, ...restProps} = properties;
+            const keys = Object.keys(restProps)
+            console.log("properties", properties)
+
+            console.log("layer", layer.layerInfo.textStyle)
+            // alert("Working..")
+            mapVM?.getRightDrawerRef()?.current?.setContent("Add Text Style",
+                <TextSymbolizer initialStyle={layer.getTextStyle()} onApply={onApply}
+                                labelField={layer.getLabelProperty()}
+                                labels={keys}/>)
+            mapVM?.getRightDrawerRef()?.current?.openDrawer();
+        } else {
+            if(mapVM?.getRightDrawerRef()?.current?.isOpen()) {
+                mapVM?.getRightDrawerRef()?.current?.closeDrawer();
+            }else {
+                layer.setShowLabel(false)
+            }
+        }
     }
     return (
-        <Tooltip title="Add Layer">
-            <IconButton sx={{ padding: "3px" }} onClick={handleClick}>
-                <TextFieldsIcon />
+        <Tooltip title="Toogle Text Style">
+            <IconButton sx={{padding: "3px"}} onClick={handleClick}>
+                <TextFieldsIcon/>
             </IconButton>
         </Tooltip>
     )

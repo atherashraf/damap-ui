@@ -113,6 +113,13 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         // Force re-render so the vectorStyleFunction gets called again
         this.forcedRefresh();
     }
+    setShowLabel(showLabel: boolean) {
+        if (!this.layerInfo) return;
+        // Toggle the showLabel flag
+        this.layerInfo.showLabel = showLabel;
+        // Force re-render so the vectorStyleFunction gets called again
+        this.forcedRefresh();
+    }
 
     setLabelProperty(labelProperty: string) {
         this.layerInfo.labelProperty = labelProperty || "";
@@ -123,6 +130,19 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         this.layerInfo.textStyle = textStyle;
         // this.forcedRefresh()
     }
+
+    getTextStyle(): ITextStyle | undefined {
+        return this.layerInfo.textStyle || undefined;
+    }
+
+    getLabelProperty(): string | undefined {
+        return this.layerInfo.labelProperty || undefined;
+    }
+
+    getShowLabel(): boolean | undefined {
+        return this.layerInfo.showLabel || undefined;
+    }
+
 
     updateLabelOptions(labelProperty: string, textStyle?: ITextStyle, showLabel?: boolean) {
         if (!this.layerInfo) return;
@@ -137,7 +157,7 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
 
         // Optionally toggle showLabel
 
-        this.layerInfo.showLabel = showLabel!=undefined? showLabel:  !this.layerInfo.showLabel;
+        this.layerInfo.showLabel = showLabel != undefined ? showLabel : !this.layerInfo.showLabel;
 
 
         // Force style re-evaluation

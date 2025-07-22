@@ -170,7 +170,7 @@ class StylingUtils {
                 canvas.width = 400;
                 //@ts-ignore
                 // canvas.height = iconSize[1] * rules?.length * 5;
-                const itemHeight = Math.max(iconSize[1], 10); // Ensure at least 25px per item
+                // const itemHeight = Math.max(iconSize[1], 10); // Ensure at least 25px per item
                 // const verticalSpacing = itemHeight + 5; // 10px padding
                 const verticalSpacing = (iconSize[0] + 10)
                 canvas.height = verticalSpacing * ((rules?.length || 1) + 10) + 10;

@@ -36,9 +36,7 @@ const AddTextStyle = ({mapVM}: IProps) => {
 
             const {geometry, ...restProps} = properties;
             const keys = Object.keys(restProps)
-            console.log("properties", properties)
 
-            console.log("layer", layer.layerInfo.textStyle)
             // alert("Working..")
             mapVM?.getRightDrawerRef()?.current?.setContent("Add Text Style",
                 <TextSymbolizer initialStyle={layer.getTextStyle()} onApply={onApply}

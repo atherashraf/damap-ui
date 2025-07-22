@@ -8,7 +8,7 @@ import BaseLayers from "../layers/BaseLayers";
 import MapToolbar from "@/components/map/toolbar/MapToolbar";
 import MVTLayer from "../layers/da_layers/MVTLayer";
 import MapApi, {MapAPIs} from "@/api/MapApi";
-import {RefObject} from "react";
+import {ReactNode, RefObject} from "react";
 import {
     IFeatureStyle,
     IDomRef,
@@ -873,7 +873,15 @@ class MapVM {
         return true
     }
 
+    private _mapPanelButtons: ReactNode[] = [];
 
+    setMapPanelButtons(content: ReactNode) {
+        this._mapPanelButtons.push(content);
+    }
+
+    getMapPanelButtons(): ReactNode[] {
+        return this._mapPanelButtons;
+    }
 }
 
 export default MapVM;

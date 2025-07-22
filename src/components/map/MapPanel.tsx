@@ -13,7 +13,7 @@ interface IMapPanelProps {
     isMap: boolean;
     uuid?: string;
     isEditor?: boolean;
-    children?: React.ReactNode;
+    children?: React.ReactNode; // already for toolbar
 }
 
 const MapPanel = ({isMap, uuid, isEditor, children}: IMapPanelProps) => {
@@ -174,6 +174,7 @@ const MapPanel = ({isMap, uuid, isEditor, children}: IMapPanelProps) => {
                     {isFullscreen ? <FullscreenExitIcon/> : <FullscreenIcon/>}
                 </IconButton>
 
+                {mapVM.getMapPanelButtons().map((button) => button)}
             </div>
         </Fragment>
     )

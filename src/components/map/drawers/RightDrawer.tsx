@@ -92,7 +92,7 @@ class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState
         if (!this.state.isResizing) return;
         const offsetRight = document.body.offsetWidth - e.clientX;
         const minWidth = 200;
-        const maxWidth = 600;
+        const maxWidth = 1200;
         if (offsetRight >= minWidth && offsetRight <= maxWidth) {
             this.setState({ width: offsetRight });
             this.saveWidthToStorage(offsetRight);

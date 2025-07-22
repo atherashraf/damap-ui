@@ -1,11 +1,12 @@
 import {RefObject, useEffect} from 'react';
-import { AppBar, Box, Paper, Toolbar, useTheme } from "@mui/material";
+import {AppBar, Box, IconButton, Paper, Toolbar, useTheme} from "@mui/material";
 import {ContextMenuHandle, getMapVM, MapToolbarHandle, MapView, MapVM, useMapVM} from "@/damap";
 import CustomFeatureViewer from "@/components/map/test/CustomFeatureViewer";
 
 import OverlayVectorLayer from "@/components/map/layers/overlay_layers/OverlayVectorLayer";
 import {ITextStyle} from "@/types/typeDeclarations";
 import AddTextStyle from "@/components/map/toolbar/controls/external/AddTextStyle";
+import AddIcon from "@mui/icons-material/Add";
 
 const CustomAppBar = () =>{
     const mapVM: MapVM = useMapVM();
@@ -13,6 +14,22 @@ const CustomAppBar = () =>{
 
     useEffect(() => {
         if(!mapVM) return
+
+        const content = <IconButton
+            onClick={() => alert("Custom overlay from mapVM")}
+            sx={{
+                position: "absolute",
+                top: 60,
+                right: 10,
+                zIndex: 110,
+                backgroundColor: "green",
+                color: "white",
+            }}
+            size="small"
+        >
+            <AddIcon />
+        </IconButton>
+        mapVM?.setMapPanelButtons(content)
         const handleToolbarReady = (e: Event) => {
             const customEvent = e as CustomEvent<MapToolbarHandle>;
             const toolbar = customEvent.detail;
@@ -23,6 +40,7 @@ const CustomAppBar = () =>{
         return () => {
             window.removeEventListener("toolbarContainerReady", handleToolbarReady);
         };
+
     }, [mapVM]);
 
 

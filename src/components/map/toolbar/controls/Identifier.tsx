@@ -1,28 +1,23 @@
+// @/components/map/toolbar/controls/identifier.tsx
 import {IconButton, Tooltip} from "@mui/material";
 import InfoIcon from "@mui/icons-material/Info";
 
 import {useMapVM} from "@/hooks/MapVMContext";
-import {useCallback} from "react";
+import IdentifyResult from "@/components/map/widgets/IdentifyResult";
+
+// import {useCallback} from "react";
 
 const Identifier = () => {
     const mapVM = useMapVM();
     const theme = mapVM.getTheme();
     const drawerRef = mapVM.getRightDrawerRef();
+    const identifyResultRef = mapVM.getIdentifierResultRef()
 
-
-    const identifyResultRef = mapVM.getIdentifierResultRef();
-
-
-    const showIdentifyResult = useCallback(() => {
-
-
-        identifyResultRef?.current?.render()
-        drawerRef?.current?.openDrawer();
-    }, [identifyResultRef?.current, drawerRef?.current]);
 
     const handleClick = () => {
-        drawerRef?.current?.setContent("Identify Feature", null)
-        showIdentifyResult();
+        mapVM.showSnackbar("Click on feature to view its details.");
+        drawerRef?.current?.setContent("Identify Feature",  <IdentifyResult ref={identifyResultRef}/>)
+        // showIdentifyResult();
     };
 
 

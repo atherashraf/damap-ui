@@ -68,8 +68,8 @@ class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState
         });
     };
 
-    setContent = (heading: string, content: JSX.Element | null) => {
-        this.setState({ heading, content, isLoading: false, open: true });
+    setContent = (heading: string, content: JSX.Element | null, open: boolean=false) => {
+        this.setState({ heading, content, isLoading: false, open: open });
     };
 
     startLoading = (heading?: string) => {

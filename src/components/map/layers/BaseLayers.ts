@@ -12,8 +12,8 @@ export const baseLayerSources = {
   googleLabels: { title: "Google Labels", source: "google" },           // lyrs=m
   googleSatellite: { title: "Google Satellite", source: "google" },     // lyrs=s
   googleHybrid: { title: "Google Hybrid", source: "google" },           // lyrs=y (Satellite + Labels)
-  bingRoad: { title: "Bing Roads", source: "osm", imagerySet: "RoadOnDemand" },
-  bingAerial: { title: "Bing Aerial", source: "bing", visible: false, imagerySet: "Aerial" },
+  // bingRoad: { title: "Bing Roads", source: "osm", imagerySet: "RoadOnDemand" },
+  // bingAerial: { title: "Bing Aerial", source: "bing", visible: false, imagerySet: "Aerial" },
 };
 
 class BaseLayers {

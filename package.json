@@ -1,7 +1,7 @@
 {
   "name": "damap",
   "private": false,
-  "version": "0.8.9",
+  "version": "0.9.5",
   "type": "module",
   "main": "dist/damap.cjs.js",
   "module": "dist/damap.es.js",
@@ -39,7 +39,6 @@
     "@mui/material": "^7.0.0",
     "@mui/x-date-pickers": "^8.3.1",
     "copyfiles": "^2.4.1",
-    "damap": "^0.5.1",
     "date-fns": "^4.1.0",
     "geostyler-sld-parser": "^5.4.0",
     "ol": "^10.5.0",
@@ -47,11 +46,20 @@
     "pako": "^2.1.0",
     "pbf": "^4.0.1",
     "plotly.js": "^3.0.1",
-    "react": "^18.0.0 || ^19.0.0",
-    "react-dom": "^18.0.0 || ^19.0.0",
     "react-pivottable": "^0.11.0",
-    "react-plotlyjs": "^0.4.4",
+    "react-redux": "^9.2.0",
     "react-router-dom": "^7.5.2"
+  },
+  "peerDependencies": {
+    "@emotion/react": "^11.0.0",
+    "@emotion/styled": "^11.0.0",
+    "@mui/material": "^7.0.0",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "ol": "^10.5.0",
+    "ol-ext": "^4.0.31",
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
@@ -67,18 +75,11 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.26.1",
     "vite": "^6.3.1",
     "vite-plugin-static-copy": "^3.0.0"
-  },
-  "peerDependencies": {
-    "@emotion/react": "^11.0.0",
-    "@emotion/styled": "^11.0.0",
-    "@mui/material": "^7.0.0",
-    "ol": "^10.5.0",
-    "ol-ext": "^4.0.31",
-    "react": "^18.0.0 || ^19.0.0",
-    "react-dom": "^18.0.0 || ^19.0.0"
   }
 }

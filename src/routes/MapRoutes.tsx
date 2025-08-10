@@ -3,6 +3,7 @@ import React, {Suspense} from "react";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import MapInfoAdmin from "@/pages/admin/MapInfoAdmin";
 import MapOverlayer from "@/pages/MapOverlayer";
+import CustomizeAttributeTable from "@/pages/CustomizeAttributeTable";
 
 
 
@@ -27,6 +28,7 @@ const MapRoutes = () => (
                 <Route path="ViewMap/:mapId/" element={<DAMap />} />
                 {/*<Route path="EditMap/:mapId/" element={<DAMap isEditor />} />*/}
                 <Route path={"MapOverlays"} element={<MapOverlayer/>} />
+                <Route path={"CustomizeAttributeTable"} element={<CustomizeAttributeTable />} />
             </Route>
 
             {/*<Route path="*" element={<Navigate to="/" replace />} />*/}

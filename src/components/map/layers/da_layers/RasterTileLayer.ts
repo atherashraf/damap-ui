@@ -28,7 +28,6 @@ class RasterTileLayer extends AbstractDALayer {
 
     try {
       const res = await fetch(url);
-
       if (res.status === 200) {
         layer.legend = { sType: "src", graphic: url, width: "100%" };
         const img: ol_legend_Item = new olLegendImage({

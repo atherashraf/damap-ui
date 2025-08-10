@@ -14,13 +14,10 @@ interface IProps {
 const AddTextStyle = ({mapVM}: IProps) => {
 
     const onApply = (textStyle: ITextStyle, selectedLabel: string): void => {
-
         // console.log("apply style", textStyle, selectedLabel)
         const uuid = mapVM.getLayerOfInterest()
         const layer: OverlayVectorLayer = mapVM.getOverlayLayer(uuid) as OverlayVectorLayer
         layer.updateLabelOptions(selectedLabel, textStyle, true)
-
-
     }
     const handleClick = () => {
         const uuid = mapVM.getLayerOfInterest()

@@ -43,14 +43,16 @@ import SelectionLayer from "@/components/map/layers/overlay_layers/SelectionLaye
 import {Column, Row} from "@/types/gridTypeDeclaration";
 import {Feature} from "ol";
 import _ from "@/utils/lodash";
-import TimeSliderControl from "@/components/map/time_slider/TimeSliderControl";
-import timeSliderControl from "@/components/map/time_slider/TimeSliderControl";
+
 import ColorUtils from "@/utils/colorUtils";
 
 import {createEmpty, extend, isEmpty} from 'ol/extent';
 import {IdentifyResultHandle} from "@/components/map/widgets/IdentifyResult";
 import {MapToolbarHandle} from "@/components/map/toolbar/MapToolbarContainer";
 import {ContextMenuHandle} from "@/components/map/layer_switcher/ContextMenu";
+import {Geometry} from "ol/geom";
+import TimeSliderControl from "@/components/map/time_slider/TimeSliderControl";
+import timeSliderControl from "@/components/map/time_slider/TimeSliderControl";
 
 export interface IDALayers {
     [key: string]: AbstractDALayer;
@@ -102,6 +104,8 @@ class MapVM {
     private selectionLayer: SelectionLayer | undefined;
     private mapToolbar: MapToolbar;
     private _theme: Theme | undefined;
+    private _identifierFeatureRenderer: ((feature: Feature<Geometry>) => ReactNode) | null = null;
+
 
 
     constructor(domRef: IDomRef, isDesigner: boolean = false) {
@@ -387,7 +391,23 @@ class MapVM {
         //@ts-ignore
         this.map.getView().fit(this.mapExtent, this.map?.getSize());
     }
-
+    // zoomToFullExtent(geometry: any) {
+    //     console.log("zoomToFullExtent", geometry)
+    //     if (!geometry) {
+    //         console.error("zoomToFullExtent: No geometry provided.");
+    //         return;
+    //     }
+    //
+    //     if (Array.isArray(geometry) && geometry.length === 4) {
+    //         this.map.getView().fit(geometry, { duration: 1000 });
+    //     } else if (geometry instanceof Geometry) {
+    //         //@ts-ignore
+    //         this.map.getView().fit(geometry, { duration: 1000 });
+    //     } else {
+    //         console.error("zoomToFullExtent: Invalid geometry", geometry);
+    //         throw new Error("Invalid extent or geometry provided as `geometry`");
+    //     }
+    // }
 
     zoomToAllLayersExtent(maxZoom: number = 18): void {
         const map = this.getMap();
@@ -546,12 +566,12 @@ class MapVM {
                     uuid: uuid,
                 });
                 if (payload) {
+                    console.log("layer info", payload)
                     payload.zIndex = index;
                     if (style) payload.style = style;
                     if (zoomRange) payload.zoomRange = zoomRange;
                     let daLayer: AbstractDALayer | null;
-                    //@ts-ignore
-                    this._domRef.snackBarRef.current.show(`Adding ${payload.title} Layer`);
+                    this._domRef.snackBarRef?.current?.show(`Adding ${payload.title} Layer`);
 
                     if (payload?.dataModel === "V") {
                         if (payload.format === "WFS") {
@@ -881,6 +901,15 @@ class MapVM {
 
     getMapPanelButtons(): ReactNode[] {
         return this._mapPanelButtons;
+    }
+    setCustomIdentifyRenderer(
+        renderer: (feature: Feature<Geometry>) => ReactNode | null
+    ) {
+        this._identifierFeatureRenderer = renderer;
+    }
+
+    getCustomIdentifyRenderer() {
+        return this._identifierFeatureRenderer;
     }
 }
 

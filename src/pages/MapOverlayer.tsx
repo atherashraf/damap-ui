@@ -109,12 +109,7 @@ const MapOverlayer = () => {
 
                 // console.log(mapVM.overlayLayers)
                 mapVM.zoomToAllLayersExtent()
-
-                // testing custom feature render
-                const identifierRef = mapVM.getIdentifierResultRef()
-                identifierRef?.current?.setFeatureRenderer(
-                    (feature)=> <CustomFeatureViewer feature={feature} />)
-
+                mapVM.setCustomIdentifyRenderer((feature) => <CustomFeatureViewer feature={feature} />);
 
             });
     }, []);

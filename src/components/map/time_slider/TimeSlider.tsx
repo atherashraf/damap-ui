@@ -209,6 +209,7 @@ const TimeSlider = forwardRef<TimeSliderHandle, ITimeSliderProps>((props, ref) =
             sx={{
                 mx: 1,
                 p: 1,
+                mb:1,
                 backgroundColor: "rgba(255, 255, 255, 0.1)",
                 borderRadius: 1,
                 backdropFilter: "blur(4px)",

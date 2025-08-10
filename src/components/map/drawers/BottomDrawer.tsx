@@ -120,7 +120,6 @@ class BottomDrawer extends PureComponent<BottomDrawerProps, BottomDrawerState> {
                 columns={columns}
                 data={rows}
                 pkCols={pkCols}
-                tableHeight={tableHeight}
             />);
         // const bottomDrawer = this.getBottomDrawerRef()
         // bottomDrawer?.current.setContent(attributeGrid);
@@ -179,12 +178,15 @@ class BottomDrawer extends PureComponent<BottomDrawerProps, BottomDrawerState> {
                         </Box>
 
                         {/* Drawer Content */}
-                        <Box sx={{
-                            flex: 1,
-                            overflowY: 'auto',
-                            px: 2,
-                            py: 1,
-                        }}>
+                        {/* Drawer Content */}
+                        <Box
+                            sx={{
+                                flex: 1,
+                                overflow: 'hidden',
+                                px: 2,
+                                py: 1,
+                            }}
+                        >
                             {isLoading ? (
                                 <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
                                     <CircularProgress size={40} thickness={4} />
@@ -193,6 +195,7 @@ class BottomDrawer extends PureComponent<BottomDrawerProps, BottomDrawerState> {
                                 content ?? <Box sx={{ py: 2 }}>No Content</Box>
                             )}
                         </Box>
+
                     </Box>
                 </Slide>
 

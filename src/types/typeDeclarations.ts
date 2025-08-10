@@ -34,7 +34,7 @@ export interface IDomRef {
     dialogBoxRef: RefObject<DADialogBoxHandle | null>;
     snackBarRef: RefObject<DASnackbarHandle | null>;
     loadingRef: RefObject<DAMapLoadingHandle | null>;
-    timeSliderRef?: RefObject<TimeSliderHandle>;
+    timeSliderRef?: RefObject<TimeSliderHandle | null>;
     identifyResultRef: RefObject<IdentifyResultHandle | null>;
     contextMenuRef: RefObject<ContextMenuHandle | null>;
 }

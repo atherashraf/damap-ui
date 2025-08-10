@@ -1,15 +1,15 @@
+//@/components/map/widgets/IdentifyResults.tsx
 import {
     useImperativeHandle,
     forwardRef,
     useState,
     useRef,
     useEffect,
-    ReactNode,
     useCallback
 } from "react";
-import { useMapVM } from "@/hooks/MapVMContext";
-import { Feature } from "ol";
-import { Geometry } from "ol/geom";
+import {useMapVM} from "@/hooks/MapVMContext";
+import {Feature} from "ol";
+import {Geometry} from "ol/geom";
 import {
     Accordion, AccordionSummary, AccordionDetails, Typography,
     Button, Box, Paper, TableContainer, Table, TableCell, TableRow,
@@ -18,8 +18,6 @@ import {
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 export interface IdentifyResultHandle {
-    setFeatureRenderer: (renderer: ((feature: Feature<Geometry>) => ReactNode) | null) => void;
-    render: () => ReactNode;
     setFeature: (feature: any) => void;
     clearFeatures: () => void;
 }
@@ -27,23 +25,33 @@ export interface IdentifyResultHandle {
 const IdentifyResult = forwardRef<IdentifyResultHandle>((_, ref) => {
     const mapVM = useMapVM();
     const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
+    const [isClickOnMap, setClickOnMap] = useState(false)
     const [layerTitles, setLayerTitles] = useState<string[]>([]);
     const [expandedIndex, setExpandedIndex] = useState<number | false>(false);
-    const [externalRenderer, setExternalRenderer] = useState<((feature: Feature<Geometry>) => ReactNode) | null>(null);
-
     const clickListenerRef = useRef<any>(null);
 
-    const renderContent = useCallback(() => {
+    useImperativeHandle(ref, () => ({
+        setFeature: (feature) => setFeatures(prev => [...prev, feature]),
+        clearFeatures: () => setFeatures([]),
+    }));
+    useEffect(() => {
+        if(!isClickOnMap) return;
+        const drawerRef = mapVM.getRightDrawerRef();
+
         if (features.length === 0) {
-            return (
-                <Box sx={{ p: 1 }}>
-                    <Typography>No feature identified at this location.</Typography>
-                </Box>
-            );
+            mapVM.showSnackbar("No feature identified at this location");
+            drawerRef?.current?.closeDrawer();
+        } else {
+            drawerRef?.current?.openDrawer();
         }
+    }, [features, mapVM, isClickOnMap]);
+
+    const renderContent = useCallback(() => {
+       if (features.length === 0) return null;
+
 
         return (
-            <Box sx={{ p: 1, overflowY: "auto" }}>
+            <Box sx={{p: 1, overflowY: "auto"}}>
                 {features.map((feature, index) => (
                     <Accordion
                         key={index}
@@ -56,7 +64,7 @@ const IdentifyResult = forwardRef<IdentifyResultHandle>((_, ref) => {
                         }}
                     >
                         <AccordionSummary
-                            expandIcon={<ExpandMoreIcon sx={{ color: 'primary.contrastText' }} />}
+                            expandIcon={<ExpandMoreIcon sx={{color: 'primary.contrastText'}}/>}
                             sx={{
                                 backgroundColor: 'primary.main',
                                 '&.Mui-expanded': {
@@ -70,45 +78,38 @@ const IdentifyResult = forwardRef<IdentifyResultHandle>((_, ref) => {
                             </Typography>
                         </AccordionSummary>
                         <AccordionDetails>
-                            {(externalRenderer ?? defaultRenderFeatureContent)(feature)}
+                            {(mapVM.getCustomIdentifyRenderer() ?? defaultRenderFeatureContent)(feature)}
                         </AccordionDetails>
                     </Accordion>
                 ))}
             </Box>
         );
-    }, [features, expandedIndex, externalRenderer, layerTitles, mapVM]);
+    }, [features, expandedIndex, layerTitles, mapVM]);
 
-    useImperativeHandle(ref, () => ({
-        setFeatureRenderer: (renderer) => {
-            setExternalRenderer(() => renderer);
-        },
-        render: () => renderContent(),
-        setFeature: (feature) => setFeatures(prev => [...prev, feature]),
-        clearFeatures: () => setFeatures([]),
-    }));
 
-    const displayFeatureInfo = (evt: any) => {
+    const displayFeatureInfo = useCallback((evt: any) => {
         const map = mapVM.getMap();
+        setClickOnMap(true)
         const clickedFeatures: Feature<Geometry>[] = [];
         const clickedLayerTitles: string[] = [];
 
         map.forEachFeatureAtPixel(evt.pixel, (feature: any, layer: any) => {
-            if (layer.get("displayInLayerSwitcher") === true) {
+            if (layer.get("displayInLayerSwitcher") !== false) {
                 clickedFeatures.push(feature);
                 clickedLayerTitles.push(layer?.get("title") || "Unknown Layer");
             }
         });
-
         setFeatures(clickedFeatures);
         setLayerTitles(clickedLayerTitles);
         setExpandedIndex(clickedFeatures.length > 0 ? clickedFeatures.length - 1 : false);
-    };
+    }, [mapVM]);  // include state/setters/mapVM in dependencies
+
 
     const identifyFeature = () => {
         const map = mapVM.getMap();
 
         if (clickListenerRef.current) {
-            map.un("click", clickListenerRef.current);
+            map?.un("click", clickListenerRef.current);
             clickListenerRef.current = null;
         }
 
@@ -116,7 +117,7 @@ const IdentifyResult = forwardRef<IdentifyResultHandle>((_, ref) => {
             displayFeatureInfo(evt);
         };
 
-        map.on("click", handler);
+        map?.on("click", handler);
         clickListenerRef.current = handler;
     };
 
@@ -125,7 +126,7 @@ const IdentifyResult = forwardRef<IdentifyResultHandle>((_, ref) => {
         return () => {
             const map = mapVM.getMap();
             if (clickListenerRef.current) {
-                map.un("click", clickListenerRef.current);
+                map?.un("click", clickListenerRef.current);
                 clickListenerRef.current = null;
             }
         };
@@ -146,7 +147,7 @@ const IdentifyResult = forwardRef<IdentifyResultHandle>((_, ref) => {
         const keys = Object.keys(properties).filter(k => k !== "geometry");
 
         return (
-            <TableContainer component={Paper} variant="outlined" sx={{ display: "flex" }}>
+            <TableContainer component={Paper} variant="outlined" sx={{display: "flex"}}>
                 <Table size="small">
                     <TableBody>
                         {keys.map((key) => {
@@ -163,7 +164,7 @@ const IdentifyResult = forwardRef<IdentifyResultHandle>((_, ref) => {
 
                             return (
                                 <TableRow key={key}>
-                                    <TableCell sx={{ fontWeight: 'bold' }}>
+                                    <TableCell sx={{fontWeight: 'bold'}}>
                                         <strong>{key}</strong>
                                     </TableCell>
                                     <TableCell>{displayValue}</TableCell>
@@ -175,7 +176,7 @@ const IdentifyResult = forwardRef<IdentifyResultHandle>((_, ref) => {
                                 <Button
                                     variant="outlined"
                                     size="small"
-                                    sx={{ marginTop: "8px" }}
+                                    sx={{marginTop: "8px"}}
                                     onClick={() => {
                                         mapVM.getSelectionLayer()?.addFeature(feature);
                                         mapVM.getSelectionLayer()?.zoomToFeature(feature);

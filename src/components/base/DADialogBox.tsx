@@ -10,7 +10,7 @@ import {JSX} from "react";
 interface IProps {
 }
 
-interface DialogData {
+export interface DialogData {
     title?: string;
     content: JSX.Element;
     actions?: JSX.Element;
@@ -73,6 +73,12 @@ class DADialogBox extends React.PureComponent<IProps, IState> {
         // const data = Object.assign(this.state.data, {content: content})
         // console.log(data);
         this.setState({content: content});
+    }
+    setFullScreen(isFullScreen: boolean) {
+        this.setState({isFullScreen:isFullScreen})
+    }
+    setFullWidth(isFullWidth:boolean){
+        this.setState({isFullWidth:isFullWidth})
     }
 
     render() {

@@ -20,9 +20,6 @@ import TableChartIcon from "@mui/icons-material/TableChart";
 import CloseIcon from "@mui/icons-material/Close";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import { WKT } from "ol/format";
-import DAFullScreenDialog, {
-    DAFullScreenDialogHandle,
-} from "@/components/base/DAFullScreenDialog";
 import { MapAPIs } from "@/api/MapApi";
 import PivotTable from "@/components/map/table/PivotTable";
 import { Column, Row } from "@/types/gridTypeDeclaration";
@@ -50,7 +47,7 @@ const AttributeTable: React.FC<IDataGridProps> = ({
         initialSelectedRowKey
     );
     const [searchText, setSearchText] = useState("");
-    const dialogRef = useRef<DAFullScreenDialogHandle>(null);
+
     const [headerRaised, setHeaderRaised] = useState(false);
 
     const theme = mapVM.getTheme();
@@ -141,14 +138,15 @@ const AttributeTable: React.FC<IDataGridProps> = ({
     };
 
     const handlePivot = async () => {
-        dialogRef.current?.handleClickOpen();
-        dialogRef.current?.setContent(
-            "Pivot Table",
-            <div style={{ height: "100%", overflow: "auto" }}>
-                <PivotTable columns={columns} data={data} />
-            </div>
-        );
-        // If you ever fetch pivot data from backend, do it here and then setContent.
+        mapVM.getBottomDrawerRef().current?.handleHide?.();
+        const appDialogRef = mapVM.getDialogBoxRef();
+        appDialogRef?.current?.openDialog({
+            title: "Pivot Table",
+            content: <div style={{"width":' 100vw'}}><PivotTable columns={columns} data={data} /></div>,
+            isFullScreen: true,
+
+        })
+
     };
 
     const handleExport = () => {
@@ -402,7 +400,6 @@ const AttributeTable: React.FC<IDataGridProps> = ({
                     </Table>
                 </TableContainer>
 
-                <DAFullScreenDialog ref={dialogRef} />
             </Box>
         </>
     );

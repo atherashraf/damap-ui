@@ -107,7 +107,6 @@ class MapVM {
     private _identifierFeatureRenderer: ((feature: Feature<Geometry>) => ReactNode) | null = null;
 
 
-
     constructor(domRef: IDomRef, isDesigner: boolean = false) {
         this._domRef = domRef;
         this.isDesigner = isDesigner;
@@ -391,6 +390,7 @@ class MapVM {
         //@ts-ignore
         this.map.getView().fit(this.mapExtent, this.map?.getSize());
     }
+
     // zoomToFullExtent(geometry: any) {
     //     console.log("zoomToFullExtent", geometry)
     //     if (!geometry) {
@@ -443,7 +443,7 @@ class MapVM {
     }
 
 
-    zoomToExtent(extent: number[], zoomLevel: number = 10) {
+    zoomToExtent(extent: number[], zoomLevel: number = 19) {
         const view = this.map.getView();
         const size = this.map.getSize();
 
@@ -566,7 +566,7 @@ class MapVM {
                     uuid: uuid,
                 });
                 if (payload) {
-                    console.log("layer info", payload)
+
                     payload.zIndex = index;
                     if (style) payload.style = style;
                     if (zoomRange) payload.zoomRange = zoomRange;
@@ -586,8 +586,7 @@ class MapVM {
                         this.daLayers[payload.uuid] = daLayer;
                     }
                     if (payload.dateRangeURL) {
-                        // console.log("layer info of a temporal layer", payload)
-                        // console.log("data url", payload.dataURL)
+
 
                         this.temporalLayers[payload.uuid] = daLayer;
                         const event = new CustomEvent("temporalLayerAdded", {
@@ -902,6 +901,7 @@ class MapVM {
     getMapPanelButtons(): ReactNode[] {
         return this._mapPanelButtons;
     }
+
     setCustomIdentifyRenderer(
         renderer: (feature: Feature<Geometry>) => ReactNode | null
     ) {

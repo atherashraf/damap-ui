@@ -11,7 +11,7 @@ const KeyValueTable = ({ data }: IKeyValueTableProps) => {
                 <TableBody>
                     {Object.entries(data).map(([key, value]) => (
                         <TableRow key={key}>
-                            <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>
+                            <TableCell sx={{ fontWeight: 'bold', width: '30%', color: "#5b0808", fontSize:'18px' }}>
                                 <strong>{key}</strong>
                             </TableCell>
                             <TableCell>

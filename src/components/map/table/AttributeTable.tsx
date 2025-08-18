@@ -142,7 +142,10 @@ const AttributeTable: React.FC<IDataGridProps> = ({
         const appDialogRef = mapVM.getDialogBoxRef();
         appDialogRef?.current?.openDialog({
             title: "Pivot Table",
-            content: <div style={{"width":' 100vw'}}><PivotTable columns={columns} data={data} /></div>,
+            content: <div style={{"width":' 100vw'}}>
+                <PivotTable columns={columns} data={data}
+                    defaultValLabel={"POTATO"} defaultRowLabels={['CANAL']}
+                /></div>,
             isFullScreen: true,
 
         })

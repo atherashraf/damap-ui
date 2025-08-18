@@ -4,6 +4,7 @@ import { AuthGuard } from "@/components/auth/AuthGuard";
 import MapInfoAdmin from "@/pages/admin/MapInfoAdmin";
 import MapOverlayer from "@/pages/MapOverlayer";
 import CustomizeAttributeTable from "@/pages/CustomizeAttributeTable";
+import TestIDWLayer from "@/pages/TestIDWLayer";
 
 
 
@@ -29,6 +30,7 @@ const MapRoutes = () => (
                 {/*<Route path="EditMap/:mapId/" element={<DAMap isEditor />} />*/}
                 <Route path={"MapOverlays"} element={<MapOverlayer/>} />
                 <Route path={"CustomizeAttributeTable"} element={<CustomizeAttributeTable />} />
+                <Route path={"TestIDWLayer"} element={<TestIDWLayer />} />
             </Route>
 
             {/*<Route path="*" element={<Navigate to="/" replace />} />*/}

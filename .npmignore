@@ -1,0 +1,9 @@
+# env files
+.env
+.env.*
+# tooling
+node_modules
+src
+tests
+.vscode
+coverage

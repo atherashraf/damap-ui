@@ -15,6 +15,7 @@ export default function MapAdmin() {
             {name: "Map Info", href: "/MapInfo"},
             {name: "Overlay testing", href: "/MapOverlays"},
             {name: "Customize Attributes Table", href: "/CustomizeAttributeTable"},
+            {name: "Test IDW Layer", href: "/TestIDWLayer"},
         ],
     };
     return (

@@ -1,6 +1,11 @@
 // ✅ Global CSS
 import './assets/css/all-css.css';
 
+// -------------------------
+// ✅ Library Initialization
+// -------------------------
+export { initDamap, getDamapConfig } from './config';
+export type { DamapOptions } from './config';
 
 // -------------------------
 // ✅ Admin Pages

@@ -2,7 +2,7 @@ import {RefObject} from "react";
 import {DASnackbarHandle} from "@/components/base/DASnackbar";
 import {AuthServices} from "@/damap";
 import pako from "pako";
-
+import {getDamapConfig} from "@/config"
 
 
 // API endpoint constants
@@ -86,8 +86,11 @@ export default class MapApi {
 
     // Constructs the API URL using env vars with fallback to hostname + port
     static getURL(api: string, params: Record<string, unknown> = {}): string {
-        let API_URL = import.meta.env.VITE_MAP_URL || "";
-        const API_PORT = import.meta.env.VITE_MAP_PORT || "";
+        // const {mapUrl, } = getDamapConfig();
+        const { mapUrl, mapPort } = getDamapConfig();
+
+        let API_URL = mapUrl || import.meta.env.VITE_MAP_URL ;
+        const API_PORT = mapPort || import.meta.env.VITE_MAP_PORT;
         // let API_ENDPOINT = import.meta.env.VITE_MAP_ENDPOINT || "";
         const API_ENDPOINT = ""
         const hostname = window.location.hostname;

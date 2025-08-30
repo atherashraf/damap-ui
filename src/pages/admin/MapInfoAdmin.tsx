@@ -110,7 +110,7 @@ const MapInfo = () => {
                     actions={actions}
                     api={api}
                     pkColName={"uuid"}
-                    saveURL={MapApi.getURL(MapAPIs.DCH_SAVE_MAP_INFO)}
+                    saveURL={MapAPIs.DCH_SAVE_MAP_INFO}
                 />
             ) : (
                 <Box display="flex" justifyContent="center" alignItems="center" height="100%">

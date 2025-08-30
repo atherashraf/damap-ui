@@ -1,3 +1,5 @@
+import './damap.bootstrap'; // must be first: ensures init happens before other imports
+
 import {StrictMode} from "react";
 import {createRoot} from "react-dom/client";
 import {BrowserRouter} from "react-router-dom";

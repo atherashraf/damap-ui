@@ -1,21 +1,16 @@
 import * as React from 'react';
 import {
-    AppBar,
-    Box,
-    IconButton,
-    Toolbar,
-    Typography,
-    Paper,
-    CircularProgress,
-    Fade
+    AppBar, Box, IconButton, Toolbar, Typography, Paper, CircularProgress, Fade
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import {JSX} from "react";
-
-interface RightDrawerProps {}
+import {JSX} from 'react';
 
 const LOCAL_STORAGE_KEY = 'rightDrawerWidth';
+
+interface RightDrawerProps {
+    children?: React.ReactNode;
+}
 
 interface RightDrawerState {
     open: boolean;
@@ -26,24 +21,16 @@ interface RightDrawerState {
     width: number;
     isLoading: boolean;
 }
-interface RightDrawerProps {
-    children?: React.ReactNode;
-}
+
 class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState> {
     constructor(props: RightDrawerProps) {
         super(props);
 
-        const savedWidth = localStorage.getItem(LOCAL_STORAGE_KEY);
-        const width = savedWidth ? parseInt(savedWidth) : 300;
+        const savedWidth = typeof window !== 'undefined' ? localStorage.getItem(LOCAL_STORAGE_KEY) : null;
+        const width = savedWidth ? parseInt(savedWidth) : 350;
 
         this.state = {
-            open: false,
-            content: null,
-            heading: '',
-            isResizing: false,
-            lastDownX: null,
-            width,
-            isLoading: false,
+            open: false, content: null, heading: '', isResizing: false, lastDownX: null, width, isLoading: false,
         };
     }
 
@@ -55,52 +42,60 @@ class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState
         }
     }
 
-    openDrawer = () => this.setState({ open: true });
+    openDrawer = () => this.setState({open: true});
 
-    hideDrawer = () => this.setState({ open: false }); // keeps content
+    // keeps content, just hides
+    hideDrawer = () => this.setState({open: false});
+
+    setWidth = (width: number) => this.setState({width});
 
     closeDrawer = () => {
         this.setState({
-            open: false,
-            heading: '',
-            content: null,
-            isLoading: false,
+            open: false, heading: '', content: null, isLoading: false,
         });
     };
 
-    setContent = (heading: string, content: JSX.Element | null, open: boolean=false) => {
-        this.setState({ heading, content, isLoading: false, open: open });
+    setContent = (heading: string, content: JSX.Element | null, open: boolean = false, width: number = 350) => {
+        this.setState({heading, content, isLoading: false, open, width});
     };
 
     startLoading = (heading?: string) => {
         this.setState({
-            isLoading: true,
-            heading: heading ?? this.state.heading,
-            open: true,
+            isLoading: true, heading: heading ?? this.state.heading, open: true,
         });
     };
 
     stopLoading = () => {
-        this.setState({ isLoading: false });
+        this.setState({isLoading: false});
     };
 
     handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-        this.setState({ isResizing: true, lastDownX: e.clientX });
+        document.body.style.cursor = 'ew-resize';
+        (document.body.style as any).userSelect = 'none';
+        this.setState({isResizing: true, lastDownX: e.clientX});
     };
 
     handleMouseMove = (e: MouseEvent) => {
         if (!this.state.isResizing) return;
-        const offsetRight = document.body.offsetWidth - e.clientX;
+
+        // Use viewport width for robust calculations
+        const viewportWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+        const offsetRight = viewportWidth - e.clientX;
         const minWidth = 200;
         const maxWidth = 1200;
-        if (offsetRight >= minWidth && offsetRight <= maxWidth) {
-            this.setState({ width: offsetRight });
-            this.saveWidthToStorage(offsetRight);
+        const next = Math.max(minWidth, Math.min(maxWidth, offsetRight));
+        if (next !== this.state.width) {
+            this.setState({width: next});
         }
     };
 
     handleMouseUp = () => {
-        this.setState({ isResizing: false });
+        if (this.state.isResizing) {
+            this.saveWidthToStorage(this.state.width);
+        }
+        document.body.style.cursor = '';
+        (document.body.style as any).userSelect = '';
+        this.setState({isResizing: false});
     };
 
     componentDidMount() {
@@ -117,20 +112,17 @@ class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState
         return this.state.open;
     }
 
-
     render() {
-        const { open, heading, content, width, isLoading } = this.state;
+        const {open, heading, content, width, isLoading} = this.state;
 
-        return (
-            <>
+        return (<>
                 {/* Show Tab */}
-                {!open && content && (
-                    <Box
+                {!open && content && (<Box
                         onClick={this.openDrawer}
                         sx={{
                             position: 'fixed',
                             top: '50%',
-                            height:"200px",
+                            height: '200px',
                             right: 0,
                             transform: 'translateY(-50%)',
                             bgcolor: '#1976d2',
@@ -147,27 +139,9 @@ class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState
                         }}
                     >
                         Tap to Expand
-                    </Box>
-                )}
+                    </Box>)}
 
-                {/* Resize bar */}
-                {open && (
-                    <div
-                        onMouseDown={this.handleMouseDown}
-                        style={{
-                            position: 'fixed',
-                            top: 0,
-                            bottom: 0,
-                            right: `${width}px`,
-                            width: '6px',
-                            cursor: 'ew-resize',
-                            backgroundColor: '#e0e0e0',
-                            zIndex: 1200,
-                        }}
-                    />
-                )}
-
-                {/* Always mounted, only animated show/hide */}
+                {/* Drawer (with internal left-edge resize handle) */}
                 <Fade in={open}>
                     <Box
                         sx={{
@@ -187,22 +161,29 @@ class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState
                             borderLeft: '1px solid #ccc',
                         }}
                     >
-                        <AppBar
-                            position="static"
-                            color="secondary"
-                            sx={{ height: 40, justifyContent: 'center' }}
-                        >
-                            <Toolbar variant="dense" sx={{ minHeight: '40px !important', px: 1 }}>
-                                <Typography variant="h6" sx={{ flexGrow: 1, fontSize: 16 }}>
+                        {/* Left-edge internal resize handle (higher z-index so it's above content) */}
+                        <Box
+                            onMouseDown={this.handleMouseDown}
+                            sx={{
+                                position: 'absolute', left: -3,            // slightly outside to ensure easy hit
+                                top: 0, bottom: 0, width: 8,            // a bit wider for easier grab
+                                cursor: 'ew-resize', bgcolor: '#e0e0e0', zIndex: 2,           // above content/appbar/paper
+                                '&:hover': {bgcolor: '#d5d5d5'}, '&:active': {bgcolor: '#cfcfcf'},
+                            }}
+                        />
+
+                        <AppBar position="static" color="secondary" sx={{height: 40, justifyContent: 'center'}}>
+                            <Toolbar variant="dense" sx={{minHeight: '40px !important', px: 1}}>
+                                <Typography variant="h6" sx={{flexGrow: 1, fontSize: 16}}>
                                     {heading}
                                 </Typography>
 
-                                <IconButton size="small" onClick={this.hideDrawer} sx={{ color: 'white' }}>
-                                    <VisibilityOffIcon fontSize="small" />
+                                <IconButton size="small" onClick={this.hideDrawer} sx={{color: 'white'}}>
+                                    <VisibilityOffIcon fontSize="small"/>
                                 </IconButton>
 
-                                <IconButton size="small" onClick={this.closeDrawer} sx={{ color: 'white' }}>
-                                    <CloseIcon fontSize="small" />
+                                <IconButton size="small" onClick={this.closeDrawer} sx={{color: 'white'}}>
+                                    <CloseIcon fontSize="small"/>
                                 </IconButton>
                             </Toolbar>
                         </AppBar>
@@ -218,23 +199,19 @@ class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState
                                 borderTopLeftRadius: 8,
                                 borderBottomLeftRadius: 8,
                                 position: 'relative',
+                                zIndex: 1, // ensure the handle (zIndex:2) sits above
                             }}
                             elevation={0}
                         >
-                            <Box sx={{ flexGrow: 1, p: 2, display: 'flex', justifyContent: 'center' }}>
-                                {isLoading ? (
-                                    <CircularProgress size={40} thickness={4} />
-                                ) : (
-                                    content? content: this.props.children
-                                )}
+
+                            <Box sx={{flexGrow: 1, p: 2, display: 'flex', justifyContent: 'center'}}>
+                                {isLoading ? (<CircularProgress size={40}
+                                                                thickness={4}/>) : (content ? content : this.props.children)}
                             </Box>
-
-
                         </Paper>
                     </Box>
                 </Fade>
-            </>
-        );
+            </>);
     }
 }
 

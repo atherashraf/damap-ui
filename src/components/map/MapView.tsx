@@ -21,6 +21,7 @@ import ContextMenu, {ContextMenuHandle} from "@/components/map/layer_switcher/Co
 import {snackbarRef} from "@/utils/snackbarRef";
 import {IdentifyResultHandle} from "@/components/map/widgets/IdentifyResult";
 import {TimeSliderHandle} from "@/components/map/time_slider/TimeSlider";
+import {AttributeTableToolbarHandle} from "@/components/map/table/AttributeTableToolbar";
 
 
 interface MapLayoutProps {
@@ -54,7 +55,8 @@ const MapView: React.FC<React.PropsWithChildren<MapLayoutProps>> = ({
         snackBarRef: snackbarRef,
         loadingRef: useRef<DAMapLoadingHandle>(null),
         identifyResultRef: useRef<IdentifyResultHandle>(null),
-        contextMenuRef: useRef<ContextMenuHandle>(null)
+        contextMenuRef: useRef<ContextMenuHandle>(null),
+        attributeTableToolbarRef: useRef<AttributeTableToolbarHandle>(null)
     };
 
     // const mapVMRef = useRef<MapVM | null>(null);

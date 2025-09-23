@@ -1,6 +1,6 @@
 // src/damap.bootstrap.ts
 import {initDamap} from './config'
-
+import 'damap.css';
 // Read from Vite env (app side)
 const cfg = {
     apiUrl: import.meta.env.VITE_API_URL as string | undefined,

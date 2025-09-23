@@ -11,6 +11,8 @@ import {WKT} from "ol/format";
 import AbstractOverlayLayer from "./AbstractOverlayLayer";
 import {IFeatureStyle, IGeoJSON, ITextStyle} from "@/types/typeDeclarations";
 import StylingUtils from "../../layer_styling/utils/StylingUtils";
+import {Extent, createEmpty, extend } from 'ol/extent';
+import {Geometry} from "ol/geom";
 
 // import _ from "../../utils/lodash";
 
@@ -56,6 +58,17 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         return this.olLayer?.get("title");
     }
 
+    getExtent(): Extent{
+        const features = this.getSource().getFeatures();
+
+        // Calculate the extent
+        const featureExtent = createEmpty();
+        features.forEach((feature: any) => {
+            extend(featureExtent, feature?.getGeometry?.().getExtent?.());
+        });
+        return featureExtent;
+    }
+
     createLayer() {
         // const title = title;
         return new VectorLayer({
@@ -76,17 +89,65 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         return this.getSource()?.getFeatures() || []
     }
 
-    addGeojsonFeature(geojson: IGeoJSON, clearPreviousSelection: boolean = true) {
-        if (clearPreviousSelection) {
-            this.clearSelection();
+    // addGeojsonFeature(geojson: IGeoJSON, clearPreviousSelection: boolean = true) {
+    //     if (clearPreviousSelection) {
+    //         this.clearSelection();
+    //     }
+    //     const features = new GeoJSON({
+    //         dataProjection: "EPSG:4326",
+    //         featureProjection: "EPSG:3857",
+    //     }).readFeatures(geojson);
+    //     // @ts-ignore
+    //     this.getSource().addFeatures(features);
+    // }
+
+    addGeojsonFeature(
+        geojson: IGeoJSON,
+        clearPreviousSelection: boolean = true,
+        dataSrid: string = "EPSG:4326",
+        def?: string
+    ): number {
+        if (clearPreviousSelection) this.clearSelection();
+
+        // Optional: detect EPSG from payload if present
+        const detected =
+            (geojson as any)?.crs?.properties?.name ??
+            (geojson as any)?.crs?.name;
+        const srid =
+            typeof detected === "string" && /^EPSG:\d+$/.test(detected)
+                ? detected
+                : dataSrid;
+
+        // Ensure we know this projection (MapVM can auto-build UTM defs on demand)
+        const ok = this.mapVM.ensureProjection(srid, def);
+        if (!ok) {
+            this.mapVM.showSnackbar(`Projection ${srid} is not registered.`);
+            return 0;
         }
-        const features = new GeoJSON({
-            dataProjection: "EPSG:4326",
-            featureProjection: "EPSG:3857",
-        }).readFeatures(geojson);
-        // @ts-ignore
-        this.getSource().addFeatures(features);
+
+        try {
+            const viewProj = "EPSG:3857"; // or this.mapVM.getViewProjectionCode?.() ?? "EPSG:3857"
+            const features = new GeoJSON({
+                dataProjection: srid,
+                featureProjection: viewProj,
+            }).readFeatures(geojson);
+
+            if (!features?.length) {
+                this.mapVM.showSnackbar("No features found in GeoJSON.");
+                return 0;
+            }
+
+            this.getSource().addFeatures(features);
+            return features.length;
+        } catch (e) {
+            this.mapVM.showSnackbar(
+                `Failed to read GeoJSON (${srid} → 3857): ${(e as Error)?.message ?? e}`
+            );
+            return 0;
+        }
     }
+
+
 
     getGeometryType(): string {
         if (this.layerInfo.geomType) {
@@ -227,6 +288,17 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
             featureProjection: 'EPSG:3857', // Change the projection to match your needs
         });
     }
+    getAttributeList(): string[] {
+        const features: Feature<Geometry>[] = this.getFeatures();
+        if (!features.length) return [];
+
+        // Extract property names of the first feature
+        const names: string[] = Object.keys(features[0].getProperties());
+
+        // Optionally, exclude geometry property if it exists
+        return names.filter(n => n !== features[0].getGeometryName());
+    }
+
 
     // openAttributeTable(){
     //     const features = this.getFeatures()

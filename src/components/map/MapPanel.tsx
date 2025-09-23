@@ -74,8 +74,8 @@ const MapPanel = ({isMap, uuid, isEditor, children}: IMapPanelProps) => {
                     await mapVM.addDALayer({uuid});
                     const extent = await mapVM.getDALayer(uuid)?.getExtent();
                     console.log("extent", extent);
-                    mapVM.setMapFullExtent(extent);
-                    mapVM.zoomToFullExtent();
+                    // mapVM.setMapExtent(extent);
+                    mapVM.zoomToExtent(extent);
                 })();
                 //@ts-ignore
                 mapVM.setLayerOfInterest(uuid);

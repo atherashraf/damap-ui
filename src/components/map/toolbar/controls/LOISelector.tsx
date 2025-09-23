@@ -42,6 +42,7 @@ const LOISelector = () => {
             id="loi-select"
             style={{
                 backgroundColor: "white",
+                color: "black",
                 border: "2px solid #000",
                 width: "200px",
             }}

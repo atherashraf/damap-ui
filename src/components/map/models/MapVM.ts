@@ -54,6 +54,11 @@ import {Geometry} from "ol/geom";
 import TimeSliderControl from "@/components/map/time_slider/TimeSliderControl";
 import timeSliderControl from "@/components/map/time_slider/TimeSliderControl";
 
+import proj4 from "proj4";
+import { register } from "ol/proj/proj4";
+import { get as getProjection } from "ol/proj";
+import {AttributeTableToolbarHandle} from "@/components/map/table/AttributeTableToolbar";
+
 export interface IDALayers {
     [key: string]: AbstractDALayer;
 }
@@ -82,15 +87,15 @@ class MapVM {
     currentMapInteraction = null;
     // leftDrawerRef: any
     // Default extent fallback
-    private defaultExtent: number[] = [
-        7031250.271849444,
-        2217134.3474655207,
-        8415677.728150556,
-        4922393.652534479,
-    ];
+    // private defaultExtent: number[] = [
+    //     7031250.271849444,
+    //     2217134.3474655207,
+    //     8415677.728150556,
+    //     4922393.652534479,
+    // ];
 
     // Dynamically loaded extent from .env or default
-    mapExtent: number[] = this._loadMapExtent();
+    mapExtent: number[] | undefined;  //this._loadMapExtent();
     isInit: Boolean = false;
     public readonly api: MapApi;
     private isDesigner: boolean;
@@ -105,7 +110,7 @@ class MapVM {
     private mapToolbar: MapToolbar;
     private _theme: Theme | undefined;
     private _identifierFeatureRenderer: ((feature: Feature<Geometry>) => ReactNode) | null = null;
-
+    private projectionsInitialized = false;
 
     constructor(domRef: IDomRef, isDesigner: boolean = false) {
         this._domRef = domRef;
@@ -117,18 +122,27 @@ class MapVM {
             // isDesigner: this.isDesigner,
             // isCreateMap: (!this.isDesigner && !mapInfo) || mapInfo?.isEditor || false,
         })
+        this.initProjections();
     }
 
-    private _loadMapExtent(): number[] {
-        const envExtent = import.meta.env.VITE_MAP_EXTENT;
-        if (envExtent) {
-            const parsed = envExtent.split(',').map(Number);
-            if (parsed.length === 4 && parsed.every(n => !isNaN(n))) {
-                return parsed;
-            }
-        }
-        return this.defaultExtent;
+    private initProjections() {
+        if (this.projectionsInitialized) return;
+        register(proj4); // idempotent
+        this.projectionsInitialized = true;
     }
+
+    // private _loadMapExtent(): number[] {
+    //     const envExtent = import.meta.env.VITE_MAP_EXTENT;
+    //     if (envExtent) {
+    //         const parsed = envExtent.split(',').map(Number);
+    //         if (parsed.length === 4 && parsed.every(n => !isNaN(n))) {
+    //             return parsed;
+    //         }
+    //     }
+    //     return this.defaultExtent;
+    // }
+
+
 
     setIsDesigner(isDesigner: boolean) {
         this.isDesigner = isDesigner;
@@ -246,7 +260,7 @@ class MapVM {
         return false;
     }
 
-    setMapFullExtent(extent: number[]) {
+    setMapExtent(extent: number[]) {
         this.mapExtent = extent;
     }
 
@@ -254,7 +268,9 @@ class MapVM {
         return this.api;
     }
 
-
+    getAttributeTableRef(): RefObject<AttributeTableToolbarHandle | null>{
+        return this._domRef.attributeTableToolbarRef
+    }
     getMapLoadingRef(): RefObject<DAMapLoadingHandle | null> {
         return this._domRef.loadingRef;
     }
@@ -363,7 +379,7 @@ class MapVM {
 
     setTarget(target: string) {
         this.map.setTarget(target);
-        this.zoomToFullExtent();
+        this.zoomToMapExtent();
         setTimeout(() => this.map.updateSize(), 2000);
     }
 
@@ -384,11 +400,16 @@ class MapVM {
         return this.map;
     }
 
-    zoomToFullExtent() {
-        // const extent = [7031250.271849444, 2217134.3474655207, 8415677.728150556, 4922393.652534479]
-        this.mapExtent &&
-        //@ts-ignore
-        this.map.getView().fit(this.mapExtent, this.map?.getSize());
+    zoomToMapExtent(maxZoom: number = 18): void {
+        if (this.mapExtent) {
+            this.map.getView().fit(this.mapExtent, {
+                size: this.map.getSize(),
+                maxZoom,
+                duration: 1000,
+            });
+        } else {
+            this.zoomToAllLayersExtent(maxZoom);
+        }
     }
 
     // zoomToFullExtent(geometry: any) {
@@ -888,7 +909,7 @@ class MapVM {
             style: style || MapVM.getDefaultStyle(),
             showLabel: false
         }, this)
-        daLayer.addGeojsonFeature(geoJSON, true)
+        daLayer.addGeojsonFeature(geoJSON)
         return true
     }
 
@@ -910,6 +931,46 @@ class MapVM {
 
     getCustomIdentifyRenderer() {
         return this._identifierFeatureRenderer;
+    }
+
+
+
+    /**
+     * Auto-proj4 for EPSG:32601–32660 (WGS84 UTM North, zones 1–60)
+     * and EPSG:32701–32760 (WGS84 UTM South, zones 1–60).
+     */
+    private makeUtmProjDef(epsg: string): string | undefined {
+        const m = /^EPSG:(326|327)(\d{2})$/.exec(epsg);
+        if (!m) return undefined;
+
+        const hemi = m[1] === "326" ? "north" : "south";
+        const zone = parseInt(m[2], 10);
+        if (zone < 1 || zone > 60) return undefined;
+
+        // proj4 classic UTM string; +type=crs is fine but optional
+        return `+proj=utm +zone=${zone} +datum=WGS84 +units=m +no_defs ${hemi === "south" ? "+south " : ""}+type=crs`.trim();
+    }
+    /**
+     * Ensure an EPSG code is available to OpenLayers.
+     * - If already present, returns true.
+     * - If EPSG is a UTM on WGS84 (326xx/327xx), auto-generates a proj4 def.
+     * - Else, uses optional `def` if provided.
+     *  proj4.defs("EPSG:32642", "+proj=utm +zone=42 +datum=WGS84 +units=m +no_defs +type=crs");
+     *  proj4.defs("EPSG:32643", "+proj=utm +zone=43 +datum=WGS84 +units=m +no_defs +type=crs");
+     */
+    ensureProjection(epsg: string, def?: string): boolean {
+        if (!epsg) return false;
+        if (getProjection(epsg)) return true;
+
+        // Try to auto-generate def for UTM on WGS84
+        const auto = this.makeUtmProjDef(epsg);
+        const toUse = auto ?? def;
+
+        if (toUse) {
+            proj4.defs(epsg, toUse);
+            return !!getProjection(epsg);
+        }
+        return false;
     }
 }
 

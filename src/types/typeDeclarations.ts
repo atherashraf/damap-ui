@@ -16,6 +16,7 @@ import SelectionLayer from "@/components/map/layers/overlay_layers/SelectionLaye
 import XYZLayer from "@/components/map/layers/overlay_layers/XYZLayer";
 import {IdentifyResultHandle} from "@/components/map/widgets/IdentifyResult";
 import {ContextMenuHandle} from "@/components/map/layer_switcher/ContextMenu";
+import {AttributeTableToolbarHandle} from "@/components/map/table/AttributeTableToolbar";
 
 export interface IBaseMapProps {
     mapVM: MapVM;
@@ -37,6 +38,7 @@ export interface IDomRef {
     timeSliderRef?: RefObject<TimeSliderHandle | null>;
     identifyResultRef: RefObject<IdentifyResultHandle | null>;
     contextMenuRef: RefObject<ContextMenuHandle | null>;
+    attributeTableToolbarRef: RefObject<AttributeTableToolbarHandle | null>;
 }
 
 export interface IMapToolbarProps {

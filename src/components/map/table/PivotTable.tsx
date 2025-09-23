@@ -2,10 +2,11 @@ import * as React from "react";
 import { useState, useMemo, useEffect } from "react";
 import PivotTableUI from "react-pivottable/PivotTableUI";
 import TableRenderers from "react-pivottable/TableRenderers";
-// @ts-ignore
-import Plotly from "plotly.js/dist/plotly-cartesian";
-// @ts-ignore
-import createPlotlyComponent from "react-plotlyjs";
+
+// ✅ Use the factory from react-plotly.js and a prebundled Plotly build
+import createPlotlyComponent from "react-plotly.js/factory";
+import Plotly from "plotly.js-dist-min";
+
 import createPlotlyRenderers from "react-pivottable/PlotlyRenderers";
 
 import { Column, Row } from "@/types/gridTypeDeclaration";
@@ -14,6 +15,8 @@ import { Box } from "@mui/material";
 
 const Plot = createPlotlyComponent(Plotly);
 const PlotlyRenderers = createPlotlyRenderers(Plot);
+
+
 
 interface IProps {
     columns: Column[];

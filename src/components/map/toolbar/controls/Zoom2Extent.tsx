@@ -16,7 +16,7 @@ const Zoom2Extent = () => {
                     style={{width: 30, height: 30,
                         backgroundColor: theme?.palette.secondary.main,
                         color:theme?.palette.secondary.contrastText}}
-                    onClick={() => mapVM.zoomToAllLayersExtent()}
+                    onClick={() => mapVM.zoomToMapExtent(18)}
                 >
                     <ZoomInMapIcon/>
                 </IconButton>

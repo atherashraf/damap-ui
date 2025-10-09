@@ -147,3 +147,5 @@ export type { IGeomStyle } from './types/typeDeclarations';
 export type { ITextStyle } from './types/typeDeclarations';
 export type { IRule } from './types/typeDeclarations';
 export type { IFilter } from './types/typeDeclarations';
+export type {IGeoJSON} from './types/typeDeclarations';
+export type {IGeoJSONFeature} from './types/typeDeclarations';

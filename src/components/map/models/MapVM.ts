@@ -10,10 +10,7 @@ import MVTLayer from "../layers/da_layers/MVTLayer";
 import MapApi, {MapAPIs} from "@/api/MapApi";
 import {ReactNode, RefObject} from "react";
 import {
-    IFeatureStyle,
-    IDomRef,
-    ILayerInfo,
-    IMapInfo, IGeoJSON, IGeomStyle, IRule,
+    IFeatureStyle, IDomRef, ILayerInfo, IMapInfo, IGeoJSON, IGeomStyle, IRule,
 } from "@/types/typeDeclarations";
 import {RightDrawerHandle} from "@/components/map/drawers/RightDrawer";
 import {LeftDrawerHandle} from "@/components/map/drawers/LeftDrawer";
@@ -54,9 +51,9 @@ import {Geometry} from "ol/geom";
 import TimeSliderControl from "@/components/map/time_slider/TimeSliderControl";
 import timeSliderControl from "@/components/map/time_slider/TimeSliderControl";
 
-import proj4 from "proj4";
-import { register } from "ol/proj/proj4";
-import { get as getProjection } from "ol/proj";
+// import proj4 from "proj4";
+// import {register} from "ol/proj/proj4";
+// import {get as getProjection} from "ol/proj";
 import {AttributeTableToolbarHandle} from "@/components/map/table/AttributeTableToolbar";
 
 export interface IDALayers {
@@ -106,11 +103,11 @@ class MapVM {
     // private additionalToolbarButtons: JSX.Element[] = [];
     private attributeTableSelectedRowKey: string | null = null;
     private attributeTableScrollTop: number = 0;
-    private selectionLayer: SelectionLayer | undefined;
+    private selectionLayer: SelectionLayer | undefined ;
     private mapToolbar: MapToolbar;
     private _theme: Theme | undefined;
     private _identifierFeatureRenderer: ((feature: Feature<Geometry>) => ReactNode) | null = null;
-    private projectionsInitialized = false;
+    // private projectionsInitialized = false;
 
     constructor(domRef: IDomRef, isDesigner: boolean = false) {
         this._domRef = domRef;
@@ -122,14 +119,14 @@ class MapVM {
             // isDesigner: this.isDesigner,
             // isCreateMap: (!this.isDesigner && !mapInfo) || mapInfo?.isEditor || false,
         })
-        this.initProjections();
+        // this.initProjections();
     }
 
-    private initProjections() {
-        if (this.projectionsInitialized) return;
-        register(proj4); // idempotent
-        this.projectionsInitialized = true;
-    }
+    // private initProjections() {
+    //     if (this.projectionsInitialized) return;
+    //     register(proj4); // idempotent
+    //     this.projectionsInitialized = true;
+    // }
 
     // private _loadMapExtent(): number[] {
     //     const envExtent = import.meta.env.VITE_MAP_EXTENT;
@@ -143,7 +140,6 @@ class MapVM {
     // }
 
 
-
     setIsDesigner(isDesigner: boolean) {
         this.isDesigner = isDesigner;
     }
@@ -152,13 +148,9 @@ class MapVM {
         // @ts-ignore
         this.mapInfo = mapInfo;
         this.map = new Map({
-            controls: defaultControls().extend([
-                // this.fullScreen,
-                this.mapToolbar
-            ]),
-            view: new View({
-                center: [7723464, 3569764],
-                zoom: 5,
+            controls: defaultControls().extend([// this.fullScreen,
+                this.mapToolbar]), view: new View({
+                center: [7723464, 3569764], zoom: 5,
             }),
         });
         let baseLayer;
@@ -170,11 +162,7 @@ class MapVM {
             }
 
             mapInfo?.layers?.forEach(async (layerInfo: {
-                uuid: string;
-                style?: IFeatureStyle;
-                visible?: boolean;
-                isBase?: boolean;
-                key?: string
+                uuid: string; style?: IFeatureStyle; visible?: boolean; isBase?: boolean; key?: string
             }, index) => {
                 if (layerInfo.uuid !== "-1") {
                     await this.addDALayer(layerInfo, index);
@@ -236,15 +224,10 @@ class MapVM {
     addLegendControlToMap() {
         // Define a new legend
         this.legendPanel = new ol_legend_Legend({
-            title: "Legend",
-            margin: 5,
-            padding: 10,
-            maxHeight: 150,
-            //maxWidth: 100
+            title: "Legend", margin: 5, padding: 10, maxHeight: 150, //maxWidth: 100
         });
         let legendCtrl = new Legend({
-            legend: this.legendPanel,
-            // collapsed: true
+            legend: this.legendPanel, // collapsed: true
         });
         //@ts-ignore
         this.map.addControl(legendCtrl);
@@ -268,9 +251,10 @@ class MapVM {
         return this.api;
     }
 
-    getAttributeTableRef(): RefObject<AttributeTableToolbarHandle | null>{
+    getAttributeTableRef(): RefObject<AttributeTableToolbarHandle | null> {
         return this._domRef.attributeTableToolbarRef
     }
+
     getMapLoadingRef(): RefObject<DAMapLoadingHandle | null> {
         return this._domRef.loadingRef;
     }
@@ -403,9 +387,7 @@ class MapVM {
     zoomToMapExtent(maxZoom: number = 18): void {
         if (this.mapExtent) {
             this.map.getView().fit(this.mapExtent, {
-                size: this.map.getSize(),
-                maxZoom,
-                duration: 1000,
+                size: this.map.getSize(), maxZoom, duration: 1000,
             });
         } else {
             this.zoomToAllLayersExtent(maxZoom);
@@ -454,9 +436,7 @@ class MapVM {
 
         if (!isEmpty(combinedExtent)) {
             map.getView().fit(combinedExtent, {
-                size: map.getSize(),
-                maxZoom: maxZoom,
-                duration: 1000
+                size: map.getSize(), maxZoom: maxZoom, duration: 1000
             });
         } else {
             console.warn("No valid layer extents found to zoom.");
@@ -471,10 +451,8 @@ class MapVM {
         if (!size) return;
 
         view.fit(extent, {
-            size,
-            maxZoom: zoomLevel, // Prevent zoom level from going beyond 18
-            padding: [20, 20, 20, 20],
-            duration: 500,
+            size, maxZoom: zoomLevel, // Prevent zoom level from going beyond 18
+            padding: [20, 20, 20, 20], duration: 500,
         });
     }
 
@@ -569,16 +547,9 @@ class MapVM {
     }
 
 
-    async addDALayer(
-        info: {
-            uuid: string;
-            style?: IFeatureStyle;
-            visible?: boolean;
-            zoomRange?: [number, number];
-            opacity?: number;
-        },
-        index: number = 0
-    ) {
+    async addDALayer(info: {
+        uuid: string; style?: IFeatureStyle; visible?: boolean; zoomRange?: [number, number]; opacity?: number;
+    }, index: number = 0) {
         const {uuid, style, zoomRange} = info;
         if (!(uuid in this.daLayers)) {
             this.getMapLoadingRef()?.current?.openIsLoading();
@@ -639,8 +610,7 @@ class MapVM {
 
 
     getDALayerByTitle(title: string): any {
-        const uuid = Object.keys(this.daLayers).find((uuid: string) =>
-            (this.daLayers[uuid].getLayerTitle().toLowerCase() === title.toLowerCase()))
+        const uuid = Object.keys(this.daLayers).find((uuid: string) => (this.daLayers[uuid].getLayerTitle().toLowerCase() === title.toLowerCase()))
         return this.getDALayer(uuid)
     }
 
@@ -665,11 +635,7 @@ class MapVM {
     static generateUUID() {
         // Public Domain/MIT
         let d = new Date().getTime(); //Timestamp
-        let d2 =
-            (typeof performance !== "undefined" &&
-                performance.now &&
-                performance.now() * 1000) ||
-            0; //Time in microseconds since page-load or 0 if unsupported
+        let d2 = (typeof performance !== "undefined" && performance.now && performance.now() * 1000) || 0; //Time in microseconds since page-load or 0 if unsupported
         return "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx".replace(/[xy]/g, function (c) {
             let r = Math.random() * 16; //random number between 0 and 16
             if (d > 0) {
@@ -704,9 +670,9 @@ class MapVM {
 
 
 
-
-
     getSelectionLayer() {
+
+        this.selectionLayer = this.selectionLayer ? this.selectionLayer : new SelectionLayer(this);
         return this.selectionLayer;
     }
 
@@ -717,9 +683,7 @@ class MapVM {
     addTimeSliderControl(timeSliderRef, onDateChange?: (selectedDate: Date) => void): timeSliderControl {
         // console.log("MapPanel: adding time slider control");
         const timeSliderControl = new TimeSliderControl({
-            mapVM: this,
-            timeSliderRef,
-            onDateChange
+            mapVM: this, timeSliderRef, onDateChange
         });
         this.getMap()?.addControl(timeSliderControl);
         this.setTimeSliderRef(timeSliderRef)
@@ -745,8 +709,7 @@ class MapVM {
 
     getAttributeTableState(): { selectedRowKey: string | null; scrollTop: number } {
         return {
-            selectedRowKey: this.attributeTableSelectedRowKey,
-            scrollTop: this.attributeTableScrollTop,
+            selectedRowKey: this.attributeTableSelectedRowKey, scrollTop: this.attributeTableScrollTop,
         };
     }
 
@@ -778,10 +741,7 @@ class MapVM {
             if (this.isDALayerExists(uuid)) {
                 this.getMapLoadingRef().current?.openIsLoading();
 
-                Promise.race([
-                    this.getApi().get(MapAPIs.DCH_LAYER_ATTRIBUTES, {uuid}),
-                    timeoutPromise,
-                ])
+                Promise.race([this.getApi().get(MapAPIs.DCH_LAYER_ATTRIBUTES, {uuid}), timeoutPromise,])
                     .then((payload: { columns: Column[]; rows: Row[]; pkCols: string[] }) => {
                         if (payload) {
                             bottomDrawer?.current?.requestAttributeTable({
@@ -827,10 +787,7 @@ class MapVM {
                 });
 
                 bottomDrawer?.current?.requestAttributeTable({
-                    columns,
-                    rows,
-                    pkCols: ["rowId"],
-                    tableHeight: tableHeight,
+                    columns, rows, pkCols: ["rowId"], tableHeight: tableHeight,
                 });
             }
         } catch {
@@ -857,8 +814,7 @@ class MapVM {
         const strokeColor = geomStyle?.strokeColor ?? ColorUtils.toRGBA(ColorUtils.darkenColor(baseRGB!, 0.7), 1);
 
         return {
-            type: "single",
-            style: {
+            type: "single", style: {
                 default: {
                     strokeColor: strokeColor,
                     strokeWidth: geomStyle?.strokeWidth ?? 2,
@@ -873,20 +829,15 @@ class MapVM {
 
     static getMultipleStyle(rules: IRule[], alpha = 0.8): IFeatureStyle {
         return {
-            type: "multiple",
-            style: {
+            type: "multiple", style: {
                 rules: rules.map(rule => {
                     // If fillColor is not provided, generate a random one
-                    const baseRGB = rule.style.fillColor
-                        ? null
-                        : ColorUtils.getRandomRGB();
+                    const baseRGB = rule.style.fillColor ? null : ColorUtils.getRandomRGB();
                     const fillColor = rule.style.fillColor ?? ColorUtils.toRGBA(baseRGB!, alpha);
                     const strokeColor = rule.style.strokeColor ?? ColorUtils.toRGBA(ColorUtils.darkenColor(baseRGB!, 0.7), 1);
 
                     return {
-                        title: rule.title,
-                        filter: rule.filter,
-                        style: {
+                        title: rule.title, filter: rule.filter, style: {
                             strokeColor,
                             strokeWidth: rule.style.strokeWidth ?? 2,
                             fillColor,
@@ -904,10 +855,7 @@ class MapVM {
         if (this.isOverlayLayerExist(uuid)) return false
 
         const daLayer = new OverlayVectorLayer({
-            uuid: uuid,
-            title: title,
-            style: style || MapVM.getDefaultStyle(),
-            showLabel: false
+            uuid: uuid, title: title, style: style || MapVM.getDefaultStyle(), showLabel: false
         }, this)
         daLayer.addGeojsonFeature(geoJSON)
         return true
@@ -923,9 +871,7 @@ class MapVM {
         return this._mapPanelButtons;
     }
 
-    setCustomIdentifyRenderer(
-        renderer: (feature: Feature<Geometry>) => ReactNode | null
-    ) {
+    setCustomIdentifyRenderer(renderer: (feature: Feature<Geometry>) => ReactNode | null) {
         this._identifierFeatureRenderer = renderer;
     }
 
@@ -934,22 +880,22 @@ class MapVM {
     }
 
 
-
     /**
      * Auto-proj4 for EPSG:32601–32660 (WGS84 UTM North, zones 1–60)
      * and EPSG:32701–32760 (WGS84 UTM South, zones 1–60).
      */
-    private makeUtmProjDef(epsg: string): string | undefined {
-        const m = /^EPSG:(326|327)(\d{2})$/.exec(epsg);
-        if (!m) return undefined;
+    // private makeUtmProjDef(epsg: string): string | undefined {
+    //     const m = /^EPSG:(326|327)(\d{2})$/.exec(epsg);
+    //     if (!m) return undefined;
+    //
+    //     const hemi = m[1] === "326" ? "north" : "south";
+    //     const zone = parseInt(m[2], 10);
+    //     if (zone < 1 || zone > 60) return undefined;
+    //
+    //     // proj4 classic UTM string; +type=crs is fine but optional
+    //     return `+proj=utm +zone=${zone} +datum=WGS84 +units=m +no_defs ${hemi === "south" ? "+south " : ""}+type=crs`.trim();
+    // }
 
-        const hemi = m[1] === "326" ? "north" : "south";
-        const zone = parseInt(m[2], 10);
-        if (zone < 1 || zone > 60) return undefined;
-
-        // proj4 classic UTM string; +type=crs is fine but optional
-        return `+proj=utm +zone=${zone} +datum=WGS84 +units=m +no_defs ${hemi === "south" ? "+south " : ""}+type=crs`.trim();
-    }
     /**
      * Ensure an EPSG code is available to OpenLayers.
      * - If already present, returns true.
@@ -958,20 +904,20 @@ class MapVM {
      *  proj4.defs("EPSG:32642", "+proj=utm +zone=42 +datum=WGS84 +units=m +no_defs +type=crs");
      *  proj4.defs("EPSG:32643", "+proj=utm +zone=43 +datum=WGS84 +units=m +no_defs +type=crs");
      */
-    ensureProjection(epsg: string, def?: string): boolean {
-        if (!epsg) return false;
-        if (getProjection(epsg)) return true;
-
-        // Try to auto-generate def for UTM on WGS84
-        const auto = this.makeUtmProjDef(epsg);
-        const toUse = auto ?? def;
-
-        if (toUse) {
-            proj4.defs(epsg, toUse);
-            return !!getProjection(epsg);
-        }
-        return false;
-    }
+    // ensureProjection(epsg: string, def?: string): boolean {
+    //     if (!epsg) return false;
+    //     if (getProjection(epsg)) return true;
+    //
+    //     // Try to auto-generate def for UTM on WGS84
+    //     const auto = this.makeUtmProjDef(epsg);
+    //     const toUse = auto ?? def;
+    //
+    //     if (toUse) {
+    //         proj4.defs(epsg, toUse);
+    //         return !!getProjection(epsg);
+    //     }
+    //     return false;
+    // }
 }
 
 export default MapVM;

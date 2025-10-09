@@ -104,8 +104,8 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
     addGeojsonFeature(
         geojson: IGeoJSON,
         clearPreviousSelection: boolean = true,
-        dataSrid: string = "EPSG:4326",
-        def?: string
+        dataCRS: string = "EPSG:4326",
+        // proj4def?: string
     ): number {
         if (clearPreviousSelection) this.clearSelection();
 
@@ -116,14 +116,14 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         const srid =
             typeof detected === "string" && /^EPSG:\d+$/.test(detected)
                 ? detected
-                : dataSrid;
+                : dataCRS;
 
         // Ensure we know this projection (MapVM can auto-build UTM defs on demand)
-        const ok = this.mapVM.ensureProjection(srid, def);
-        if (!ok) {
-            this.mapVM.showSnackbar(`Projection ${srid} is not registered.`);
-            return 0;
-        }
+        // const ok = this.mapVM.ensureProjection(srid, proj4def);
+        // if (!ok) {
+        //     this.mapVM.showSnackbar(`Projection ${srid} is not registered.`);
+        //     return 0;
+        // }
 
         try {
             const viewProj = "EPSG:3857"; // or this.mapVM.getViewProjectionCode?.() ?? "EPSG:3857"

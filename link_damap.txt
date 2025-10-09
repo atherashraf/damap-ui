@@ -1,0 +1,6 @@
+# in damap
+npm link
+npm run build --watch
+
+# in other apps that use the package
+npm link damap

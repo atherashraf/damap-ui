@@ -4,7 +4,7 @@ import Feature from "ol/Feature";
 import MapVM from "@/components/map/models/MapVM";
 import {Fill, Stroke, Style} from "ol/style";
 import CircleStyle from "ol/style/Circle";
-import {IGeoJSON} from "@/types/typeDeclarations";
+import {IGeoJSON, IGeoJSONFeature} from "@/types/typeDeclarations";
 import GeoJSON from "ol/format/GeoJSON";
 import autoBind from "auto-bind";
 import {WKT} from "ol/format";
@@ -21,12 +21,14 @@ class SelectionLayer extends AbstractOverlayLayer {
     mapVM: MapVM;
 
     constructor(mapVM: MapVM) {
+
         super()
         this.mapVM = mapVM;
         autoBind(this);
+        // this.createSelectionLayer();
     }
 
-    createSelectionLayer(title: string = "sel_layer") {
+    createSelectionLayer(title: string = "selection layer") {
         // const title = "sel_layer";
         this.olLayer = new VectorLayer({
             // @ts-ignore
@@ -57,19 +59,27 @@ class SelectionLayer extends AbstractOverlayLayer {
     }
 
     addGeoJson2Selection(
-        geojson: IGeoJSON,
-        clearPreviousSelection: boolean = true
+        geojson: IGeoJSON | IGeoJSONFeature,
+        clearPreviousSelection: boolean = true,
+        dataCRS: string = "EPSG:4326"  // let caller control CRS if needed
     ) {
-        if (clearPreviousSelection) {
-            this.clearSelection();
-        }
+        if (clearPreviousSelection) this.clearSelection();
+
+        const payload: IGeoJSON =
+            (geojson as any).type === "FeatureCollection"
+                ? (geojson as IGeoJSON)
+                : { type: "FeatureCollection", features: [geojson as IGeoJSONFeature] };
+
+        // console.log("geojson", geojson)
+        // console.log("dataCRS", dataCRS)
         const features = new GeoJSON({
-            dataProjection: "EPSG:4326",
+            dataProjection: dataCRS,
             featureProjection: "EPSG:3857",
-        }).readFeatures(geojson);
-        // @ts-ignore
+        }).readFeatures(payload);
+
         this.getSource()?.addFeatures(features);
     }
+
 
     addWKT2Selection(wkt: string, clearPreviousSelection: boolean = true) {
         if (clearPreviousSelection) {
@@ -118,41 +128,50 @@ class SelectionLayer extends AbstractOverlayLayer {
     getSelectStyle(feature: any) {
         let g_type = feature.getGeometry().getType();
         let selStyle;
-        if (!g_type) g_type = feature.f;
-        if (g_type.indexOf("Point") !== -1) {
 
+        // Fallback check
+        if (!g_type) g_type = feature.f;
+
+        if (g_type.indexOf("Point") !== -1) {
             selStyle = new Style({
                 image: new CircleStyle({
-                    radius: 7,
-                    displacement: [0, 0],
-                    fill: new Fill({color: "#ffff00"}),
+                    radius: 8,
+                    fill: new Fill({
+                        color: "rgba(0, 255, 255, 0.6)"  // semi-transparent cyan
+                    }),
                     stroke: new Stroke({
-                        color: "#481414",
-                        width: 1.5,
+                        color: "#00ffff", // bright cyan border
+                        width: 2
                     }),
                 }),
             });
-            StylingUtils.flash(feature, this.mapVM)
+            StylingUtils.flash(feature, this.mapVM);
+
         } else if (g_type.indexOf("LineString") !== -1) {
             selStyle = new Style({
                 stroke: new Stroke({
-                    color: "#d17114",
+                    color: "#00ffff",  // cyan
                     width: 5,
+                    lineCap: "round",
+                    lineJoin: "round",
                 }),
             });
+
         } else {
             selStyle = new Style({
                 fill: new Fill({
-                    color: "rgba(209, 113, 20, 0)",
+                    color: "rgba(0, 255, 255, 0.15)",  // light transparent cyan fill
                 }),
                 stroke: new Stroke({
-                    color: "#d17114",
+                    color: "#00ffff",  // cyan outline
                     width: 3,
                 }),
             });
         }
+
         return selStyle;
     }
+
 
     getFeatures() {
         super.getFeatures();

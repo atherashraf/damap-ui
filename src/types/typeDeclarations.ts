@@ -139,6 +139,7 @@ export interface IGeoJSON {
 }
 
 export interface IGeoJSONFeature {
+    id?: number | string;
     type: string;
     geometry: any;
     properties: any;

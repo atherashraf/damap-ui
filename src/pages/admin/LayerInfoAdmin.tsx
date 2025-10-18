@@ -1,52 +1,76 @@
 /**
  * LayerInfoAdmin
  * ------------------
+ * Admin panel for managing map layer information in DCH (Data Clearing House).
  *
- * Admin page to manage Layer Info.
+ * ✅ Features
+ * -----------
+ * - Displays all existing Layer Info records in a smart data table (`ChangeList` component)
+ * - Toolbar with searchable table and dynamic actions
+ * - Add new layers via:
+ *      • Raster layer upload
+ *      • Vector layer upload
+ *      • URL-based layer (WMS, WFS, TMS, REST API)
+ * - Edit and update existing layers
+ * - Delete a layer entry
+ * - Open selected layer in Layer Designer
+ * - Download SLD style file for a layer
  *
- * Features:
- * - ✅ Display LayerInfo records in a smart table (ChangeList component)
- * - ✅ Select URL type (WMS, WFS, TMS, Web API)
- * - ✅ Input Layer Title
- * - ✅ Select an existing Layer Category (or add a new Layer Category)
- * - ✅ Input Layer URL
- * - ✅ Submit and Save new URL Layer Info via MapApi (calls DCH_ADD_URL_LAYER_INFO)
+ * ✅ Integrated Components
+ * ------------------------
+ * - `ChangeList` → Smart table with row editing and selection support
+ * - `ChangeListToolbar` → Actions like Add, Edit, Delete, Download SLD, etc.
+ * - `DAFullScreenDialog` → Used for Add/Edit popups
+ * - `DASnackbar` → Success/error feedback
+ * - `MapApi` → Handles backend API integration
  *
+ * ✅ Action Menu
+ * --------------
+ * The table includes toolbar actions:
+ * - View Layer Designer
+ * - Add Raster Layer
+ * - Add Vector Layer
+ * - Add Layer URL
+ * - Update Layer Info
+ * - Delete Layer Info
+ * - Download SLD
  *
- * Usage:
- *
+ * ✅ Usage
+ * --------
  * ```tsx
- * import AddURLLayerInfo from "@/components/admin/forms/AddURLLayerInfo";
+ * import LayerInfoAdmin from "@/components/admin/LayerInfoAdmin";
  *
- * const snackbarRef = React.useRef<DASnackbarHandle>(null);
- * const dialogRef = React.useRef<DAFullScreenDialogHandle>(null);
- *
- * <AddURLLayerInfo snackbarRef={snackbarRef} dialogRef={dialogRef} />
+ * export default function AdminPage() {
+ *   return <LayerInfoAdmin />;
+ * }
  * ```
  *
- * Props:
- * - `snackbarRef`: Ref to DASnackbar component (for showing success/error messages)
- * - `dialogRef`: Ref to DAFullScreenDialog (used when opening AddLayerCategoryForm)
- *
- * Notes:
- * - When "Add Layer Info" button is clicked, it triggers `MapApi.get(DCH_ADD_URL_LAYER_INFO, {...})`.
- * - If user wants to add a new Layer Category, it opens a full screen AddLayerCategoryForm inside the same dialog.
+ * ✅ Notes
+ * --------
+ * - A row selection is required for actions like View, Update, Delete, Download SLD.
+ * - Add actions can be used even when there are no existing layers.
+ * - Dialogs are context-aware and refresh the table on success.
+ */
+
+/**
+ * LayerInfoAdmin
+ * ------------------
+ * Admin page to manage Layer Info.
  */
 
 import * as React from "react";
-import {useNavigate} from "react-router-dom";
-import {Column, Row} from "@/types/gridTypeDeclaration";
-import ChangeList, {ChangeListHandle} from "@/components/admin/ChangeList";
-import {Action} from "@/components/admin/ChangeListToolbar";
-import DASnackbar, {DASnackbarHandle} from "@/components/base/DASnackbar";
-import DAFullScreenDialog, {DAFullScreenDialogHandle} from "@/components/base/DAFullScreenDialog";
-import MapApi, {MapAPIs} from "@/api/MapApi";
+import { useNavigate } from "react-router-dom";
+import { Column, Row } from "@/types/gridTypeDeclaration";
+import ChangeList, { ChangeListHandle } from "@/components/admin/ChangeList";
+import { Action } from "@/components/admin/ChangeListToolbar";
+import DASnackbar, { DASnackbarHandle } from "@/components/base/DASnackbar";
+import DAFullScreenDialog, { DAFullScreenDialogHandle } from "@/components/base/DAFullScreenDialog";
+import MapApi, { MapAPIs } from "@/api/MapApi";
 import AddRasterLayerInfo from "@/components/admin/forms/AddRasterLayerInfo";
 import AddVectorLayerInfo from "@/components/admin/forms/AddVectorLayerInfo";
 import AddURLLayerInfo from "@/components/admin/forms/AddURLLayerInfo";
-import {Box, Paper, Typography} from "@mui/material";
+import {useEffect} from "react";
 
-// Typed references
 const LayerInfoAdmin = () => {
     const changeListRef = React.useRef<ChangeListHandle>(null);
     const snackbarRef = React.useRef<DASnackbarHandle>(null);
@@ -63,12 +87,21 @@ const LayerInfoAdmin = () => {
     // Fetch table data
     const getTableData = React.useCallback(() => {
         api.get(MapAPIs.DCH_ALL_LAYER_INFO).then((payload) => {
+            // console.log("Layer Info", payload);
             if (payload) {
                 setData(payload.rows);
                 setColumns(payload.columns);
+
+            } else {
+                setData([]);
+                setColumns([]);
             }
         });
     }, [api]);
+
+    useEffect(() => {
+        console.log("Layer Info data", data);
+    }, [data]);
 
     // Get selected row
     const getSelectedRowData = React.useCallback(() => {
@@ -78,7 +111,7 @@ const LayerInfoAdmin = () => {
     // Get selected UUID
     const getSelectedUUID = React.useCallback(() => {
         const rowData = getSelectedRowData();
-        return rowData?.uuid;
+        return (rowData as any)?.uuid;
     }, [getSelectedRowData]);
 
     // Initialize Actions
@@ -86,6 +119,7 @@ const LayerInfoAdmin = () => {
         const actionsList: Action[] = [
             {
                 name: "View Layer Designer",
+                requiresSelection: true,
                 action: () => {
                     const uuid = getSelectedUUID();
                     if (uuid) navigate("/designer/" + uuid);
@@ -93,16 +127,18 @@ const LayerInfoAdmin = () => {
             },
             {
                 name: "Add Raster Layer",
+                visibleWhenEmpty: true,
+                requiresSelection: false,
                 action: () => {
                     dialogRef.current?.handleClickOpen();
                     dialogRef.current?.setContent(
                         "Add Raster Layer",
                         <AddRasterLayerInfo
                             dialogRef={dialogRef}
-                            snackbarRef={snackbarRef} // Pass the ref itself
+                            snackbarRef={snackbarRef}
                             onSuccess={() => {
                                 dialogRef.current?.handleClose();
-                                getTableData(); // ⬅️ Refresh the ChangeList
+                                getTableData();
                             }}
                         />
                     );
@@ -110,6 +146,8 @@ const LayerInfoAdmin = () => {
             },
             {
                 name: "Add Vector Layer",
+                visibleWhenEmpty: true,
+                requiresSelection: false,
                 action: () => {
                     dialogRef.current?.handleClickOpen();
                     dialogRef.current?.setContent(
@@ -118,7 +156,7 @@ const LayerInfoAdmin = () => {
                             snackbarRef={snackbarRef}
                             onLayerAdded={() => {
                                 dialogRef.current?.handleClose();
-                                getTableData(); // ⬅️ Refresh the ChangeList
+                                getTableData();
                             }}
                         />
                     );
@@ -126,6 +164,8 @@ const LayerInfoAdmin = () => {
             },
             {
                 name: "Add Layer URL",
+                visibleWhenEmpty: true,
+                requiresSelection: false,
                 action: () => {
                     dialogRef.current?.handleClickOpen();
                     dialogRef.current?.setContent(
@@ -134,7 +174,7 @@ const LayerInfoAdmin = () => {
                             snackbarRef={snackbarRef}
                             onSuccess={() => {
                                 dialogRef.current?.handleClose();
-                                getTableData(); // ⬅️ Refresh the ChangeList
+                                getTableData();
                             }}
                         />
                     );
@@ -142,24 +182,26 @@ const LayerInfoAdmin = () => {
             },
             {
                 name: "Update Layer Info",
+                requiresSelection: true,
                 action: () => {
-                    const rowData = getSelectedRowData();
+                    const rowData = getSelectedRowData() as any;
                     const id = rowData?.id;
                     if (id) {
-                        const url = MapApi.getURL(MapAPIs.DCH_ADMIN_LAYER_INFO_EDIT, {id});
+                        const url = MapApi.getURL(MapAPIs.DCH_ADMIN_LAYER_INFO_EDIT, { id });
                         window?.open(url, "MapAdmin")?.focus();
                     }
                 },
             },
             {
                 name: "Delete Layer Info",
+                requiresSelection: true,
                 action: async () => {
                     const uuid = getSelectedUUID();
                     if (uuid) {
-                        const payload = await api.get(MapAPIs.DCH_DELETE_LAYER_INFO, {uuid});
+                        const payload = await api.get(MapAPIs.DCH_DELETE_LAYER_INFO, { uuid });
                         if (payload) {
-                            window.location.reload();
                             snackbarRef.current?.show("Layer info deleted successfully", "success");
+                            getTableData(); // refresh, avoids a full reload
                         }
                     } else {
                         snackbarRef.current?.show("Please select a row to delete", "warning");
@@ -168,17 +210,18 @@ const LayerInfoAdmin = () => {
             },
             {
                 name: "Download SLD",
+                requiresSelection: true,
                 action: () => {
                     const uuid = getSelectedUUID();
                     if (uuid) {
-                        const url = MapApi.getURL(MapAPIs.DCH_DOWNLOAD_SLD, {uuid});
-                        window.open(url);
+                        const url = MapApi.getURL(MapAPIs.DCH_DOWNLOAD_SLD, { uuid });
+                        window.open(url, "_blank", "noopener,noreferrer");
                     }
                 },
             },
         ];
         setActions(actionsList);
-    }, [getSelectedUUID, navigate, api, getSelectedRowData]);
+    }, [getSelectedUUID, navigate, api, getSelectedRowData, getTableData]);
 
     // On Mount
     React.useEffect(() => {
@@ -188,37 +231,24 @@ const LayerInfoAdmin = () => {
 
     return (
         <React.Fragment>
-            {/* Table */}
-
-
-            {columns.length > 0 ? (
-                <ChangeList
-                    ref={changeListRef}
-                    columns={columns}
-                    data={data}
-                    pkColName="uuid"
-                    tableHeight="100%"
-                    tableWidth="100%"
-                    api={api}
-                    actions={actions}
-                    buttons={[]}
-                    saveURL={MapAPIs.DCH_SAVE_LAYER_INFO}
-                />
-            ) : (
-                <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-                    <Paper elevation={3} sx={{padding: 3}}>
-                        <Typography variant="h6" align="center" color="text.secondary">
-                            No Data Available
-                        </Typography>
-                    </Paper>
-                </Box>
-            )}
+            <ChangeList
+                ref={changeListRef}
+                columns={columns}
+                data={data}
+                pkColName="uuid"
+                tableHeight="100%"
+                tableWidth="100%"
+                api={api}
+                actions={actions}
+                buttons={[]}
+                saveURL={MapAPIs.DCH_SAVE_LAYER_INFO}
+            />
 
             {/* Snackbar Notifications */}
-            <DASnackbar ref={snackbarRef}/>
+            <DASnackbar ref={snackbarRef} />
 
             {/* Fullscreen Dialog for Add/Edit */}
-            <DAFullScreenDialog ref={dialogRef}/>
+            <DAFullScreenDialog ref={dialogRef} />
         </React.Fragment>
     );
 };

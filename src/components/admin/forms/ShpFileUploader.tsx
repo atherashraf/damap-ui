@@ -1,31 +1,4 @@
-/**
- * ShpFileUploader
- * -------------------
- *
- * A reusable component for uploading Shapefiles (.shp, .shx, .dbf, .prj).
- *
- * Features:
- * - Select multiple shapefile-related files
- * - Automatically group files by shapefile name
- * - Radio button to select which grouped set to upload
- * - Upload selected set via API (FormData)
- * - Show upload progress and Snackbar notifications
- *
- * Usage Example:
- * ---------------
- *
- * import ShpFileUploader from './ShpFileUploader';
- *
- * const snackbarRef = useRef<DASnackbarHandle>(null);
- *
- * <ShpFileUploader snackbarRef={snackbarRef} />
- *
- * Dependencies:
- * - DASnackbar (for toast notifications)
- * - MUI components (Button, Table, Radio, etc.)
- * - MapApi (for backend API calls)
- */
-
+// ShpFileUploader.tsx
 import * as React from "react";
 import {
     Button,
@@ -37,6 +10,7 @@ import {
     TableBody,
     TableRow,
     Radio,
+    Box,
 } from "@mui/material";
 import {
     CheckRounded,
@@ -44,8 +18,12 @@ import {
     CloudUploadRounded,
     FileCopyRounded,
 } from "@mui/icons-material";
-import {DASnackbarHandle} from "@/components/base/DASnackbar";
-import MapApi, {MapAPIs} from "@/api/MapApi";
+import { DASnackbarHandle } from "@/components/base/DASnackbar";
+import MapApi, { MapAPIs } from "@/api/MapApi";
+
+// NEW: bring in your existing components & types
+import LayerCategoryControl, { ILayerCategory } from "@/components/admin/forms/LayerCategoryControl";
+import AddLayerCategoryForm from "@/components/admin/forms/AddLayerCategoryForm";
 
 interface IProps {
     snackbarRef: React.RefObject<DASnackbarHandle | null>;
@@ -57,6 +35,12 @@ const ShpFileUploader = (props: IProps) => {
     const [selectedValue, setSelectedValue] = React.useState<string>("");
     const [disableUpload, setDisableUpload] = React.useState(false);
 
+    // NEW: share the same category flow as PostGISInfo
+    const [formType, setFormType] = React.useState<"LayerCategory" | null>(null);
+    const [layerCategory, setLayerCategory] = React.useState<ILayerCategory | undefined>(undefined);
+
+    const mapApi = React.useMemo(() => new MapApi(props.snackbarRef), [props.snackbarRef]);
+
     // Handle selection change (radio button)
     const handleSelectionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSelectedValue(e.currentTarget.value);
@@ -67,16 +51,16 @@ const ShpFileUploader = (props: IProps) => {
         const files = e.currentTarget.files;
         if (!files) return;
 
-        const rows: any[] = [];
+        const nextRows: any[] = [];
 
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
-            const fileParts = file.name.split(".");
-            const baseName = fileParts[0];
-            const extension = fileParts[1];
+            const dotAt = file.name.lastIndexOf(".");
+            const baseName = dotAt > -1 ? file.name.slice(0, dotAt) : file.name;
+            const extension = dotAt > -1 ? file.name.slice(dotAt + 1).toLowerCase() : "";
 
-            const existingRowIndex = rows.findIndex((item) => item.name === baseName);
-            const row = existingRowIndex === -1 ? {name: baseName, files: []} : rows[existingRowIndex];
+            const existingRowIndex = nextRows.findIndex((item) => item.name === baseName);
+            const row = existingRowIndex === -1 ? { name: baseName, files: [] as File[] } : nextRows[existingRowIndex];
 
             row.files.push(file);
 
@@ -84,10 +68,10 @@ const ShpFileUploader = (props: IProps) => {
                 row[extension] = 1;
             }
 
-            if (existingRowIndex === -1) rows.push(row);
+            if (existingRowIndex === -1) nextRows.push(row);
         }
 
-        setRows(rows);
+        setRows(nextRows);
     };
 
     // Upload selected shapefile
@@ -95,22 +79,32 @@ const ShpFileUploader = (props: IProps) => {
         const api = new MapApi(props.snackbarRef);
         const formData = new FormData();
 
-        const selectedRow = rows[parseInt(selectedValue)];
+        const selectedRow = rows[parseInt(selectedValue, 10)];
         if (!selectedRow) {
             props.snackbarRef.current?.show("Please select a file group to upload.", "warning");
             return;
         }
 
+        if (!layerCategory?.pk) {
+            props.snackbarRef.current?.show("Please select a layer category.", "warning");
+            return;
+        }
+
+        // include files
         for (let file of selectedRow.files) {
+            // backend reads via `await request.form()` and loops values -> safe to use filename as key
             formData.append(file.name, file);
         }
+
+        // include chosen category (same key name you used in PostGIS flow)
+        formData.append("layer_category_id", String(layerCategory.pk));
 
         props.snackbarRef.current?.show("Uploading...", "info");
         setDisableUpload(true);
 
         api.postFormData(MapAPIs.DCH_UPLOAD_SHP_FILE, formData).then((response) => {
             if (response) {
-                props.snackbarRef.current?.show(response.msg, "success");
+                props.snackbarRef.current?.show(response.msg ?? "Uploaded successfully", "success");
                 props.onSuccess?.();
             } else {
                 props.snackbarRef.current?.show("Failed to upload shapefile.", "error");
@@ -119,19 +113,36 @@ const ShpFileUploader = (props: IProps) => {
         });
     };
 
+    // If user clicks “+ Add Layer Category”, temporarily render the form (same as PostGISInfo)
+    if (formType === "LayerCategory") {
+        return (
+            <AddLayerCategoryForm
+                key="LayerCategoryForm"
+                snackbarRef={props.snackbarRef}
+                handleBack={() => setFormType(null)}
+            />
+        );
+    }
+
     return (
         <React.Fragment>
             <form onSubmit={(e) => e.preventDefault()}>
                 <Grid container spacing={1} alignItems="flex-end">
+                    {/* NEW: Layer Category picker (same UX as PostGISInfo) */}
+                    <Grid size={{xs:12}}>
+                        <Box sx={{ my: 2 }}>
+                            <LayerCategoryControl
+                                api={mapApi}
+                                setLayerCategory={setLayerCategory}
+                                handleAddLayerCategory={() => setFormType("LayerCategory")}
+                            />
+                        </Box>
+                    </Grid>
+
                     {/* File Upload Button */}
-                    <Grid size={{xs: 12}}>
-                        <Button
-                            variant="contained"
-                            fullWidth
-                            color="primary"
-                            component="label"
-                        >
-                            Select Files <FileCopyRounded/>
+                    <Grid size={{xs:12}}>
+                        <Button variant="contained" fullWidth color="primary" component="label">
+                            Select Files <FileCopyRounded />
                             <input
                                 id="shpfile"
                                 name="shpfile"
@@ -145,7 +156,7 @@ const ShpFileUploader = (props: IProps) => {
                     </Grid>
 
                     {/* Table to show uploaded file groups */}
-                    <Grid size={{xs: 12}}>
+                    <Grid size={{xs:12}}>
                         <Paper>
                             <Table>
                                 <TableHead>
@@ -171,20 +182,16 @@ const ShpFileUploader = (props: IProps) => {
                                             </TableCell>
                                             <TableCell>{row.name}</TableCell>
                                             <TableCell align="right">
-                                                {row.shp ? <CheckRounded color="success"/> :
-                                                    <ClearRounded color="error"/>}
+                                                {row.shp ? <CheckRounded color="success" /> : <ClearRounded color="error" />}
                                             </TableCell>
                                             <TableCell align="right">
-                                                {row.shx ? <CheckRounded color="success"/> :
-                                                    <ClearRounded color="error"/>}
+                                                {row.shx ? <CheckRounded color="success" /> : <ClearRounded color="error" />}
                                             </TableCell>
                                             <TableCell align="right">
-                                                {row.dbf ? <CheckRounded color="success"/> :
-                                                    <ClearRounded color="error"/>}
+                                                {row.dbf ? <CheckRounded color="success" /> : <ClearRounded color="error" />}
                                             </TableCell>
                                             <TableCell align="right">
-                                                {row.prj ? <CheckRounded color="success"/> :
-                                                    <ClearRounded color="error"/>}
+                                                {row.prj ? <CheckRounded color="success" /> : <ClearRounded color="error" />}
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -194,7 +201,7 @@ const ShpFileUploader = (props: IProps) => {
                     </Grid>
 
                     {/* Upload Button */}
-                    <Grid size={{xs: 12}}>
+                    <Grid size={{xs:12}}>
                         <Button
                             variant="contained"
                             fullWidth
@@ -202,7 +209,7 @@ const ShpFileUploader = (props: IProps) => {
                             disabled={disableUpload}
                             onClick={uploadShpFile}
                         >
-                            Upload Files <CloudUploadRounded/>
+                            Upload Files <CloudUploadRounded />
                         </Button>
                     </Grid>
                 </Grid>

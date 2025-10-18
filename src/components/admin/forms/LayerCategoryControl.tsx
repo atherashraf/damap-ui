@@ -69,14 +69,14 @@ const LayerCategoryControl: React.FC<IProps> = (props) => {
 
     return (
         <FormControl variant="standard" fullWidth>
-            <Stack direction="row" alignItems="center" spacing={1}>
+            <Stack direction="row" alignItems="center" spacing={3}>
                 <InputLabel id="layer-category-label">Layer Category</InputLabel>
                 <Select
                     labelId="layer-category-label"
                     id="layer-category-select"
                     value={selectedLayerCat?.pk ?? ""}
                     onChange={handleLayerCategoryChange}
-                    sx={{ flexGrow: 1 }}
+                    sx={{ flexGrow: 1, p:2 }}
                 >
                     {layerCategories.map((item) => (
                         <MenuItem key={item.pk} value={item.pk}>

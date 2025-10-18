@@ -1,198 +1,241 @@
 /**
  * ChangeListToolbar
- * -----------------
+ * ------------------
+ * A reusable toolbar component designed for use with the `ChangeList` table.
+ * Supports declarative toolbar buttons, row-based actions, and table search.
  *
- * A reusable toolbar for ChangeList with:
- * - Plain Buttons with optional icons
- * - Simple separators between buttons
- * - Dynamic Actions dropdown (MUI Select)
- * - Go button with loading (MUI LoadingButton)
- * - Supports addButton() and addAction() via ref
+ * ✅ Features
+ * -----------
+ * - Custom toolbar buttons (Add, Refresh, Export, etc.)
+ * - Action dropdown menu using MUI Menu
+ * - Optional row-dependent actions (`requiresSelection`)
+ * - Supports actions even when no data exists (`visibleWhenEmpty`)
+ * - Built-in search with callback to parent
+ * - Keyboard focus support (`focusSearch()` using ref)
+ * - Clean buttons layout with optional separators
  *
- * Usage:
+ * ✅ Props
+ * --------
+ * | Prop            | Type                  | Description |
+ * |-----------------|----------------------|-------------|
+ * | buttons         | IToolbarButton[]     | Toolbar buttons |
+ * | actions         | Action[]             | Dropdown actions |
+ * | parent          | { startEditing() }   | Optional parent API hooks |
+ * | hasSelection    | boolean              | Enables/disables row actions |
+ * | onSearchChange  | (text: string)       | Search input callback |
  *
- * import ChangeListToolbar, { IToolbarButton, Action } from './ChangeListToolbar';
+ * ✅ Action Object
+ * ----------------
+ * ```
+ * {
+ *   name: string;
+ *   action: () => void;
+ *   requiresSelection?: boolean;   // Disable action until row selected
+ *   visibleWhenEmpty?: boolean;    // Show even if table has no rows
+ * }
+ * ```
  *
- * const toolbarRef = React.useRef<any>(null);
+ * ✅ Toolbar Button Object
+ * ------------------------
+ * ```
+ * {
+ *   label: string;
+ *   onClick: () => void;
+ *   disabled?: boolean;
+ *   tooltip?: string;
+ * }
+ * ```
+ *
+ * ✅ Ref Methods
+ * --------------
+ * | Method           | Description |
+ * |------------------|-------------|
+ * | focusSearch()    | Focuses the search input field |
+ *
+ * ✅ Usage
+ * --------
+ * ```tsx
+ * const toolbarRef = useRef<ChangeListToolbarHandle>(null);
  *
  * <ChangeListToolbar
  *   ref={toolbarRef}
- *   parent={{ startEditing: () => { ... } }}
- *   buttons={toolbarButtons}
- *   actions={actions}
+ *   buttons={[
+ *     { label: "Refresh", onClick: handleRefresh },
+ *   ]}
+ *   actions={[
+ *     { name: "Delete", action: handleDelete, requiresSelection: true },
+ *     { name: "Add Layer", action: handleAdd, visibleWhenEmpty: true },
+ *   ]}
+ *   hasSelection={selectedRow !== null}
+ *   onSearchChange={(s) => setSearchFilter(s)}
  * />
  *
- * toolbarRef.current?.addButton([{ id: 'refresh', title: 'Refresh', onClick: () => {...} }]);
- * toolbarRef.current?.addAction([{ name: 'Export CSV', action: () => {...} }]);
+ * toolbarRef.current?.focusSearch();
+ * ```
+ *
+ * ✅ Notes
+ * --------
+ * - Use `requiresSelection` on actions like **Delete**, **Edit**, **View Details**
+ * - Use `visibleWhenEmpty` on actions like **Add**, **Import**
+ * - Designed to integrate seamlessly with `ChangeList`
  */
 
-import { useState, forwardRef, useImperativeHandle } from "react";
-import {AppBar, Toolbar, Tooltip, Button, Select, MenuItem, Box, TextField} from "@mui/material";
-// import EditIcon from "@mui/icons-material/Edit";
 
-export interface Action {
-    name: string;
-    action: () => Promise<void> | void;
-}
+import React, { forwardRef, useImperativeHandle, useMemo, useRef, useState } from "react";
+import {
+    Toolbar,
+    Box,
+    TextField,
+    IconButton,
+    Tooltip,
+    Menu,
+    MenuItem,
+    Button,
+    Divider,
+} from "@mui/material";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import EditIcon from "@mui/icons-material/Edit";
+import SearchIcon from "@mui/icons-material/Search";
 
 export interface IToolbarButton {
-    id: string;
-    title?: string;
-    onClick?: (e?: any) => void;
-    imgSrc?: any;
-    type?: "button" | "separator"; // default is "button"
+    label: string;
+    onClick: () => void;
+    disabled?: boolean;
+    tooltip?: string;
 }
 
-interface IChangeListParent {
-    startEditing: () => void;
+export type Action = {
+    name: string;
+    action: () => void;
+    requiresSelection?: boolean;  // disables when no row selected
+    visibleWhenEmpty?: boolean;   // keep visible even if no data
+};
+
+type ParentApi = {
+    startEditing?: () => void;
+};
+
+type Props = {
+    parent?: ParentApi;
+    onSearchChange?: (text: string) => void;
+    actions?: Action[];
+    buttons?: IToolbarButton[];
+    hasSelection?: boolean; // supplied by ChangeList
+};
+
+export interface ChangeListToolbarHandle {
+    focusSearch: () => void;
 }
 
-interface IProps {
-    parent: IChangeListParent | null;
-    buttons: IToolbarButton[];
-    actions: Action[];
-    onSearchChange?: (text: string) => void; // <-- New
-}
+const ChangeListToolbar = forwardRef<ChangeListToolbarHandle, Props>((props, ref) => {
+    const {
+        parent,
+        onSearchChange,
+        actions = [],
+        buttons = [],
+        hasSelection = false,
+    } = props;
 
-const ChangeListToolbar = forwardRef((props: IProps, ref) => {
-    const [buttons, setButtons] = useState<IToolbarButton[]>([
-        ...getBasicButtons(),
-        ...props.buttons,
-    ]);
-    const [actions, setActions] = useState<Action[]>(props.actions);
-    const [selectedAction, setSelectedAction] = useState<Action | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [searchText, setSearchText] = useState('');
-
-    function getBasicButtons(): IToolbarButton[] {
-        return [
-            // {
-            //     id: "edit-button",
-            //     title: "Edit",
-            //     imgSrc: EditIcon,
-            //     onClick: () => {
-            //         props.parent?.startEditing();
-            //     },
-            // },
-        ];
-    }
+    const [search, setSearch] = useState("");
+    const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+    const searchRef = useRef<HTMLInputElement>(null);
 
     useImperativeHandle(ref, () => ({
-        addButton: (newButtons: IToolbarButton[]) => {
-            setButtons((prev) => [...prev, ...newButtons]);
-        },
-        addAction: (newActions: Action[]) => {
-            setActions((prev) => {
-                const updated = [...prev, ...newActions];
-                if (updated.length === 1) {
-                    setSelectedAction(updated[0]);
-                } else if (updated.length === 0) {
-                    setSelectedAction(null);
-                }
-                return updated;
-            });
-        },
+        focusSearch: () => searchRef.current?.focus(),
     }));
 
-    const handleActionClick = async () => {
-        if (selectedAction) {
-            try {
-                setLoading(true);
-                await selectedAction.action();
-            } finally {
-                setLoading(false);
-            }
-        }
+    const visibleActions = useMemo(
+        () => actions.filter((a) => a.visibleWhenEmpty ?? true),
+        [actions]
+    );
+
+    const handleOpenMenu = (e: React.MouseEvent<HTMLElement>) => setMenuAnchor(e.currentTarget);
+    const handleCloseMenu = () => setMenuAnchor(null);
+
+    const handleSearch = (value: string) => {
+        setSearch(value);
+        onSearchChange?.(value);
     };
 
     return (
-        <AppBar position="static" color="default" sx={{ mb: 1, boxShadow: 2 }}>
-            <Toolbar sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
-                {/* Left Buttons */}
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    {buttons.map((btn) =>
-                        btn.type !== "separator" ? (
-                            <Tooltip title={btn.title || ""} key={btn.id}>
-                                <Button
-                                    onClick={btn.onClick}
-                                    variant="contained"
-                                    size="small"
-                                    startIcon={btn.imgSrc ? <btn.imgSrc fontSize="small" /> : undefined}
-                                    sx={{
-                                        backgroundColor: "#333",
-                                        "&:hover": { backgroundColor: "#444" },
+        <Toolbar
+            // color={"secondary"}
+            sx={{
+                display: "flex",
+                gap: 1,
+                py: 1,
+                minHeight: 56,
+            }}
+        >
+            {/* Start editing (optional) */}
+            {parent?.startEditing && (
+                <Tooltip title="Start editing first row">
+          <span>
+            <IconButton color="primary" onClick={parent.startEditing}>
+              <EditIcon />
+            </IconButton>
+          </span>
+                </Tooltip>
+            )}
+
+            {/* Custom buttons */}
+            {buttons.map((b) => (
+                <Tooltip key={b.label} title={b.tooltip ?? ""}>
+          <span>
+            <Button variant="outlined" size="small" disabled={b.disabled} onClick={b.onClick}>
+              {b.label}
+            </Button>
+          </span>
+                </Tooltip>
+            ))}
+
+            {/* Actions menu */}
+            {visibleActions.length > 0 && (
+                <>
+                    <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
+                    <Button
+                        variant="contained"
+                        size="small"
+                        onClick={handleOpenMenu}
+                        endIcon={<MoreVertIcon />}
+                    >
+                        Actions
+                    </Button>
+                    <Menu anchorEl={menuAnchor} open={!!menuAnchor} onClose={handleCloseMenu}>
+                        {visibleActions.map((a) => {
+                            const disabled = !!a.requiresSelection && !hasSelection;
+                            return (
+                                <MenuItem
+                                    key={a.name}
+                                    disabled={disabled}
+                                    onClick={() => {
+                                        if (!disabled) a.action();
+                                        handleCloseMenu();
                                     }}
                                 >
-                                    {btn.title}
-                                </Button>
-                            </Tooltip>
-                        ) : (
-                            <Box key={btn.id} width="10px" />
-                        )
-                    )}
-
-                    {/* Search Field */}
-                    <TextField
-                        size="small"
-                        placeholder="Search..."
-                        variant="outlined"
-                        value={searchText}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            setSearchText(value);
-                            props.onSearchChange?.(value); // fire callback
-                        }}
-                        sx={{
-                            minWidth: 200,
-                            backgroundColor: '#fff',
-                            borderRadius: 1,
-                            '& input': { color: '#000' },
-                        }}
-                    />
-
-                </Box>
-
-                {/* Right Actions */}
-                {actions.length > 0 && (
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <Select
-                            size="small"
-                            value={selectedAction?.name || "-1"}
-                            onChange={(e) => {
-                                const action = actions.find((a) => a.name === e.target.value);
-                                setSelectedAction(action || null);
-                            }}
-                            displayEmpty
-                            sx={{
-                                minWidth: 200,
-                                backgroundColor: "#222",
-                                color: "white",
-                                "& .MuiOutlinedInput-notchedOutline": { borderColor: "#666" },
-                            }}
-                        >
-                            <MenuItem value="-1" disabled>
-                                Select an action
-                            </MenuItem>
-                            {actions.map((action) => (
-                                <MenuItem key={action.name} value={action.name}>
-                                    {action.name}
+                                    {a.name}
                                 </MenuItem>
-                            ))}
-                        </Select>
+                            );
+                        })}
+                    </Menu>
+                </>
+            )}
 
-                        <Button
-                            variant="contained"
-                            size="small"
-                            disabled={!selectedAction}
-                            onClick={handleActionClick}
-                            sx={{ backgroundColor: "#333", "&:hover": { backgroundColor: "#444" } }}
-                        >
-                            {loading ? "Loading..." : "Go"}
-                        </Button>
-                    </Box>
-                )}
-            </Toolbar>
-        </AppBar>
+            {/* Spacer */}
+            <Box sx={{ flexGrow: 1 }} />
+
+            {/* Search */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <SearchIcon fontSize="small" />
+                <TextField
+                    inputRef={searchRef}
+                    size="small"
+                    placeholder="Search…"
+                    value={search}
+                    onChange={(e) => handleSearch(e.target.value)}
+                />
+            </Box>
+        </Toolbar>
     );
 });
 

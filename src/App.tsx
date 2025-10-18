@@ -1,6 +1,6 @@
 import {Box} from "@mui/material";
 import MapRoutes from "@/routes/MapRoutes";
-import 'damap.css';
+import './damap.css';
 
 const App = () => (
 

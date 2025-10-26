@@ -58,23 +58,19 @@ class SelectionLayer extends AbstractOverlayLayer {
         return this?.getOlLayer()?.getSource() || undefined;
     }
 
-    addGeoJson2Selection(
-        geojson: IGeoJSON | IGeoJSONFeature,
-        clearPreviousSelection: boolean = true,
-        dataCRS: string = "EPSG:4326"  // let caller control CRS if needed
+    addGeoJson2Selection(geojson: IGeoJSON | IGeoJSONFeature, clearPreviousSelection: boolean = true, dataCRS: string = "EPSG:4326"  // let caller control CRS if needed
     ) {
         if (clearPreviousSelection) this.clearSelection();
 
-        const payload: IGeoJSON =
-            (geojson as any).type === "FeatureCollection"
-                ? (geojson as IGeoJSON)
-                : { type: "FeatureCollection", features: [geojson as IGeoJSONFeature] };
+        const payload: IGeoJSON = (geojson as any).type === "FeatureCollection" ? (geojson as IGeoJSON) : {
+            type: "FeatureCollection",
+            features: [geojson as IGeoJSONFeature]
+        };
 
         // console.log("geojson", geojson)
         // console.log("dataCRS", dataCRS)
         const features = new GeoJSON({
-            dataProjection: dataCRS,
-            featureProjection: "EPSG:3857",
+            dataProjection: dataCRS, featureProjection: "EPSG:3857",
         }).readFeatures(payload);
 
         this.getSource()?.addFeatures(features);
@@ -99,8 +95,7 @@ class SelectionLayer extends AbstractOverlayLayer {
 
         try {
             const features = new WKT().readFeatures(cleanWkt, {
-                dataProjection: srid,
-                featureProjection: "EPSG:3857",
+                dataProjection: srid, featureProjection: "EPSG:3857",
             });
 
             this.getSource()?.addFeatures(features);
@@ -125,6 +120,18 @@ class SelectionLayer extends AbstractOverlayLayer {
         this.getSource()?.addFeatures(features);
     }
 
+    hasFeature(feature: Feature): boolean {
+        const src = this.getSource();
+        if (!src) return false;
+        return src.getFeatures().includes(feature);
+    }
+
+    removeFeature(feature: Feature): void {
+        const src = this.getSource();
+        if (!src) return;
+        src.removeFeature(feature);
+    }
+
     getSelectStyle(feature: any) {
         let g_type = feature.getGeometry().getType();
         let selStyle;
@@ -135,11 +142,9 @@ class SelectionLayer extends AbstractOverlayLayer {
         if (g_type.indexOf("Point") !== -1) {
             selStyle = new Style({
                 image: new CircleStyle({
-                    radius: 8,
-                    fill: new Fill({
+                    radius: 8, fill: new Fill({
                         color: "rgba(0, 255, 255, 0.6)"  // semi-transparent cyan
-                    }),
-                    stroke: new Stroke({
+                    }), stroke: new Stroke({
                         color: "#00ffff", // bright cyan border
                         width: 2
                     }),
@@ -151,9 +156,7 @@ class SelectionLayer extends AbstractOverlayLayer {
             selStyle = new Style({
                 stroke: new Stroke({
                     color: "#00ffff",  // cyan
-                    width: 5,
-                    lineCap: "round",
-                    lineJoin: "round",
+                    width: 5, lineCap: "round", lineJoin: "round",
                 }),
             });
 
@@ -161,8 +164,7 @@ class SelectionLayer extends AbstractOverlayLayer {
             selStyle = new Style({
                 fill: new Fill({
                     color: "rgba(0, 255, 255, 0.15)",  // light transparent cyan fill
-                }),
-                stroke: new Stroke({
+                }), stroke: new Stroke({
                     color: "#00ffff",  // cyan outline
                     width: 3,
                 }),
@@ -176,6 +178,9 @@ class SelectionLayer extends AbstractOverlayLayer {
     getFeatures() {
         super.getFeatures();
         return this.getSource()?.getFeatures();
+    }
+    getFeatureCount() {
+        return this.getSource()?.getFeatures()?.length || 0;
     }
 
     zoomToSelection() {
@@ -212,17 +217,10 @@ class SelectionLayer extends AbstractOverlayLayer {
 
         const validExtents = features
             .map(f => f.getGeometry()?.getExtent())
-            .filter((ext): ext is [number, number, number, number] =>
-                !!ext && ext.every((v) => Number.isFinite(v))
-            );
+            .filter((ext): ext is [number, number, number, number] => !!ext && ext.every((v) => Number.isFinite(v)));
 
         if (validExtents.length > 0) {
-            const [minX, minY, maxX, maxY] = validExtents.reduce((acc, curr) => [
-                Math.min(acc[0], curr[0]),
-                Math.min(acc[1], curr[1]),
-                Math.max(acc[2], curr[2]),
-                Math.max(acc[3], curr[3]),
-            ]);
+            const [minX, minY, maxX, maxY] = validExtents.reduce((acc, curr) => [Math.min(acc[0], curr[0]), Math.min(acc[1], curr[1]), Math.max(acc[2], curr[2]), Math.max(acc[3], curr[3]),]);
             const bufferedExtent = buffer([minX, minY, maxX, maxY], 20000);
             this.mapVM.zoomToExtent(bufferedExtent);
         } else {

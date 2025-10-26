@@ -87,6 +87,10 @@ damap-ui/
 │   ├── types/                   # TypeScript types
 │   ├── utils/                   # Utilities
 │   ├── App.tsx
+│   ├── config.ts                # App config
+│   ├── damap.bootstrap.ts
+│   ├── damap.css
+│   ├── damap.ts
 │   └── index.tsx
 ├── .env
 ├── package.json
@@ -99,7 +103,6 @@ damap-ui/
 
 ## 🗺️ Map View and ViewModel
 
-### 🧱 Embed MapView Component
 
 ```tsx
 import {MapView} from "damap";
@@ -127,8 +130,37 @@ const App = () => {
 
 export default App;
 ```
+ need to add `damap.bootstrap.ts` to your project.
+ and add following line 
+```tsx 
+// src/damap.bootstrap.ts
+import {initDamap} from 'damap';
+// import appConfig from './config';
 
-### 🧠 Use ViewModel Functions
+initDamap({
+    mapPort: import.meta.env.VITE_MAP_PORT as string | undefined,
+    endpoint: import.meta.env.VITE_MAP_ENDPOINT as string | undefined,
+});
+```
+use this following line in your `index.tsx` or `main.tsx`
+```tsx
+// src/index.tsx or src/main.tsx
+import './damap.bootstrap.ts';
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import App from "@/App";
+import '@/assets/index.css'
+
+
+createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+        <App />
+    </StrictMode>,
+)
+
+```
+### 🧱 Embed MapView Component
+
 
 ```tsx
 import {useMapVM} from "damap";

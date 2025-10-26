@@ -61,7 +61,10 @@ const AddLayer = () => {
                     <h4>No Layer Available to Add</h4>
                 </Box>
             );
-        });
+
+        }).finally(()=> {
+            drawerRef?.current?.openDrawer();
+        })
     };
 
     return (

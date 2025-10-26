@@ -18,6 +18,7 @@ export { default as LayerInfoAdmin } from './pages/admin/LayerInfoAdmin';
 // ✅ Other Pages
 // -------------------------
 export { default as LayerDesigner } from './pages/LayerDesigner';
+export { default as MapEditor} from './pages/admin/MapEditor';
 export { default as DAMap } from './pages/DAMap';
 
 
@@ -148,4 +149,4 @@ export type { ITextStyle } from './types/typeDeclarations';
 export type { IRule } from './types/typeDeclarations';
 export type { IFilter } from './types/typeDeclarations';
 export type {IGeoJSON} from './types/typeDeclarations';
-export type {IGeoJSONFeature} from './types/typeDeclarations';
+// export type {IGeoJSONFeature} from './types/typeDeclarations';

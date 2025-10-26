@@ -8,6 +8,7 @@
 @import './LayerSwitcher.css';
 @import './ol-control.css';
 @import './side-drawer.css';
+@import './mui_material.css';
 
 /* ✅ Node module styles */
 @import 'ol/ol.css';

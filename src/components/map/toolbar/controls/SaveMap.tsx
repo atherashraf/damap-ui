@@ -2,20 +2,22 @@ import * as React from "react";
 import { IconButton, Tooltip } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
 import MapVM from "@/components/map/models/MapVM";
-import MapApi, { MapAPIs } from "@/api/MapApi";
+import { MapAPIs } from "@/api/MapApi";
+import {useMapVM} from "@/damap";
 
-interface IProps {
-    mapVM: MapVM;
-}
+// interface IProps {
+//     // mapVM: MapVM;
+// }
 
-const SaveMap = (props: IProps) => {
+const SaveMap = () => {
+    const mapVM: MapVM = useMapVM();
     const handleClick = () => {
-        const currentMapInfo = props.mapVM?.getMapInfo();
+        const currentMapInfo = mapVM?.getMapInfo();
         const mapName = currentMapInfo?.uuid !== "-1"
             ? currentMapInfo?.title
             : prompt("Please enter map name");
         const mapUUID = currentMapInfo?.uuid ?? "-1";
-        const extent = props.mapVM.getCurrentExtent();
+        const extent = mapVM.getCurrentExtent();
 
         interface LayerData {
             uuid: string;
@@ -32,7 +34,7 @@ const SaveMap = (props: IProps) => {
         };
 
         if (mapName) {
-            props.mapVM
+            mapVM
                 .getMap()
                 .getAllLayers()
                 .forEach((layer) => {
@@ -52,18 +54,17 @@ const SaveMap = (props: IProps) => {
                     }
                 });
 
-            const url = MapApi.getURL(MapAPIs.DCH_SAVE_MAP);
-
-            props.mapVM
-                .getApi()
-                .post(url, mapData)
+            // const url = MapApi.getURL(MapAPIs.DCH_SAVE_MAP);
+            // console.log(url)
+            mapVM.getApi()
+                .post(MapAPIs.DCH_SAVE_MAP, mapData)
                 .then((payload) => {
                     if (payload) {
-                        props.mapVM.showSnackbar("Map created successfully");
+                        mapVM.showSnackbar("Map created successfully");
                     }
                 });
         } else {
-            props.mapVM.showSnackbar("Please provide name of the map");
+            mapVM.showSnackbar("Please provide name of the map");
         }
     };
 

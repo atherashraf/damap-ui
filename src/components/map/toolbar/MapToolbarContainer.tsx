@@ -75,6 +75,7 @@ import {MapVMInjectProvider} from "@/hooks/MapVMContext";
 import LOISelector from "@/components/map/toolbar/controls/LOISelector";
 import {Tooltip} from "@mui/material";
 import {AddLayer} from "@/damap";
+// import SaveMap from "@/components/map/toolbar/controls/SaveMap";
 
 interface Props {
     mapVM: MapVM;
@@ -108,7 +109,7 @@ const MapToolbarContainer = forwardRef<MapToolbarHandle, Props>(
             <Zoom2Extent />
             {/*/!*<RasterArea mapVM={mapVM} drawerRef={mapVM?.getRightDrawerRef()}/>*!/*/}
             <RefreshMap />
-            {/*{optOptions.isCreateMap && <SaveMap mapVM={mapVM} />}*/}
+            {/*{optOptions.isCreateMap && <SaveMap />}*/}
             <ClearSelection />
             {/*{optOptions.isDesigner && (*/}
             {/*    <SymbologyControl />*/}

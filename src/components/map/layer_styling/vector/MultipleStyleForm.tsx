@@ -214,6 +214,7 @@ class MultipleStyleForm extends BaseStyleForm<IProps, IState> {
             pointSize={this.state.styleList[0].pointSize}
             pointShape={this.state.styleList[0].pointShape}
             updateStyle={this.updatePointParams.bind(this)}
+            showIconUpload={false}
           />
         )}
         <fieldset>

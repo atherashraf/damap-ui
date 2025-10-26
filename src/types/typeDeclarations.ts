@@ -116,6 +116,7 @@ export interface IGeomStyle {
     strokeColor?: string;
     strokeWidth?: number;
     fillColor?: string;
+    pointIconSrc?: string;
 }
 
 export interface IFilter {

@@ -10,6 +10,7 @@ import TestIDWLayer from "@/pages/TestIDWLayer";
 
 const DashboardLayout = React.lazy(() => import("@/layouts/DashboardLayout"));
 const MapAdmin = React.lazy(() => import("@/pages/MapAdmin"));
+const MapEditor = React.lazy(() => import("@/pages/admin/MapEditor"));
 const LayerDesigner = React.lazy(() => import("@/pages/LayerDesigner"));
 const LayerInfoAdmin = React.lazy(() => import("@/pages/admin/LayerInfoAdmin"));
 const DAMap = React.lazy(() => import("@/pages/DAMap"));
@@ -27,7 +28,7 @@ const MapRoutes = () => (
 
                 <Route path="designer/:layerId/" element={<AuthGuard><LayerDesigner /></AuthGuard>} />
                 <Route path="ViewMap/:mapId/" element={<DAMap />} />
-                {/*<Route path="EditMap/:mapId/" element={<DAMap isEditor />} />*/}
+                <Route path="EditMap/:mapId/" element={<MapEditor />} />
                 <Route path={"MapOverlays"} element={<MapOverlayer/>} />
                 <Route path={"CustomizeAttributeTable"} element={<CustomizeAttributeTable />} />
                 <Route path={"TestIDWLayer"} element={<TestIDWLayer />} />

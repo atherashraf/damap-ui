@@ -28,13 +28,13 @@ const AddLayerPanel = (props: AddLayerPanelProps) => {
     };
 
     return (
-        <Box width="100%" p={2}>
+        <Box width="100%" p={2} sx={{overflow:"hidden"}}>
             <Typography variant="h6" gutterBottom>
                 Add New Layer
             </Typography>
 
-            <Stack spacing={2} width="100%">
-                <FormControl fullWidth>
+            <Stack spacing={2} width="90%">
+                <FormControl >
                     <TypeAhead
                         data={props.layers}
                         inputLabel="Select Layer"
@@ -44,15 +44,16 @@ const AddLayerPanel = (props: AddLayerPanelProps) => {
                 </FormControl>
 
                 <Button
-                    fullWidth
+                    // fullWidth
                     variant="contained"
                     color="primary"
                     onClick={handleAddButton}
+                    sx={{overflow:"hidden"}}
                 >
                     Add Layer
                 </Button>
 
-                <Box id="div-add_layer" width="100%" height="auto" />
+                {/*<Box id="div-add_layer" width="100%" height="auto" />*/}
             </Stack>
         </Box>
     );

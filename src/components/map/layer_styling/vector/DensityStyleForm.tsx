@@ -201,6 +201,7 @@ class DensityStyleForm extends BaseStyleForm<IProps, IState> {
                 : 18
             }
             updateStyle={this.updatePointParams.bind(this)}
+            showIconUpload={false}
           />
         )}
         <fieldset>

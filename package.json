@@ -1,12 +1,14 @@
 {
   "name": "damap",
   "private": false,
-  "version": "1.0.7",
+  "version": "1.0.15",
   "type": "module",
   "main": "dist/damap.cjs.js",
   "module": "dist/damap.es.js",
   "types": "dist/damap.d.ts",
-  "sideEffects": ["*.css"],
+  "sideEffects": [
+    "*.css"
+  ],
   "exports": {
     ".": {
       "types": "./dist/damap.d.ts",
@@ -17,7 +19,10 @@
       "default": "./dist/damap.css"
     }
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "start": "vite",
     "clean": "rimraf dist",
@@ -31,41 +36,44 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
+    "@date-io/date-fns": "^3.2.1",
     "auto-bind": "^5.0.1",
     "copyfiles": "^2.4.1",
+    "date-fns": "^4.1.0",
     "geostyler-legend": "^5.2.0",
     "geostyler-openlayers-parser": "^5.1.2",
     "geostyler-sld-parser": "^6.1.2",
     "geostyler-style": "^10.4.0",
-    "ol": "^10.5.0",
-    "ol-ext": "^4.0.31",
     "pako": "^2.1.0",
     "pbf": "^4.0.1",
-    "plotly.js": "^3.1.0",
-    "plotly.js-dist-min": "^3.1.0",
+    "plotly.js-dist-min": "^3.1.2",
     "proj4": "^2.19.10",
     "react-color": "^2.19.3",
-    "react-pivottable": "^0.11.0",
-    "react-plotly.js": "^2.6.0",
-    "react-redux": "^9.2.0",
-    "react-router-dom": "^7.5.2",
-    "@date-io/date-fns": "^3.2.1",
-    "date-fns": "^4.1.0"
+    "react-pivottable": "^0.11.0"
   },
   "peerDependencies": {
-    "react": ">=18 <20",
-    "react-dom": ">=18 <20",
-    "@emotion/react": "^11.0.0",
-    "@emotion/styled": "^11.0.0",
-    "@mui/material": "^7.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^7.0.0",
     "@mui/lab": "^7.0.0-beta.12",
+    "@mui/material": "^7.0.0",
     "@mui/x-date-pickers": "^8.3.1",
-    "ol": "^10.5.0",
-    "ol-ext": "^4.0.31"
+    "ol": "^10.6.1",
+    "ol-ext": "^4.0.31",
+    "plotly.js": "^3.1.0",
+    "react-plotly.js": "^2.6.0"
   },
+
   "devDependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@eslint/js": "^9.22.0",
+    "@mui/icons-material": "^7.3.4",
+    "@mui/lab": "^7.0.1-beta.18",
+    "@mui/material": "^7.3.4",
+    "@mui/x-date-pickers": "^8.3.1",
     "@types/node": "^22.14.1",
     "@types/pako": "^2.0.3",
     "@types/react": "^19.0.10",
@@ -77,10 +85,14 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
-    "react": "19.1.1",
-    "react-dom": "19.1.1",
-    "rimraf": "^6.0.1",
     "npm-run-all": "^4.1.5",
+    "ol": "^10.6.1",
+    "ol-ext": "^4.0.31",
+    "plotly.js": "^3.1.0",
+    "react-plotly.js": "^2.6.0",
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^7.9.4",
+    "rimraf": "^6.0.1",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.26.1",
     "vite": "^6.3.1",

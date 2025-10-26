@@ -1,15 +1,31 @@
 import * as React from 'react';
 import {
-    AppBar, Box, IconButton, Toolbar, Typography, Paper, CircularProgress, Fade
+    AppBar,
+    Box,
+    IconButton,
+    Toolbar,
+    Typography,
+    Paper,
+    CircularProgress,
+    Slide,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import {JSX} from 'react';
+import type { JSX } from 'react';
 
 const LOCAL_STORAGE_KEY = 'rightDrawerWidth';
 
 interface RightDrawerProps {
     children?: React.ReactNode;
+    /** AppBar color */
+    appBarColor?: 'primary' | 'secondary' | 'default' | 'transparent' | 'inherit';
+    /** AppBar height in px */
+    appBarHeight?: number;
+    /** Initial width if nothing saved */
+    defaultWidth?: number;
+    /** Min/Max resize bounds */
+    minWidth?: number;
+    maxWidth?: number;
 }
 
 interface RightDrawerState {
@@ -23,69 +39,119 @@ interface RightDrawerState {
 }
 
 class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState> {
+    static defaultProps: Partial<RightDrawerProps> = {
+        appBarColor: 'secondary',
+        appBarHeight: 40,
+        defaultWidth: 350,
+        minWidth: 200,
+        maxWidth: 1200,
+    };
+
     constructor(props: RightDrawerProps) {
         super(props);
 
-        const savedWidth = typeof window !== 'undefined' ? localStorage.getItem(LOCAL_STORAGE_KEY) : null;
-        const width = savedWidth ? parseInt(savedWidth) : 350;
+        // Start with defaultWidth; we’ll override from localStorage in componentDidMount
+        const width = props.defaultWidth ?? 350;
 
         this.state = {
-            open: false, content: null, heading: '', isResizing: false, lastDownX: null, width, isLoading: false,
+            open: false,
+            content: null,
+            heading: '',
+            isResizing: false,
+            lastDownX: null,
+            width,
+            isLoading: false,
         };
     }
 
-    saveWidthToStorage(width: number) {
+    // ---------- persistence ----------
+    private saveWidthToStorage = (width: number) => {
         try {
             localStorage.setItem(LOCAL_STORAGE_KEY, width.toString());
         } catch (err) {
+            // non-blocking
             console.error('Error saving rightDrawer width:', err);
         }
-    }
+    };
 
-    openDrawer = () => this.setState({open: true});
+    // ---------- public API (kept same names) ----------
+    /** Show (unhide) while preserving content & width */
+    openDrawer = () => this.setState({ open: true });
 
-    // keeps content, just hides
-    hideDrawer = () => this.setState({open: false});
+    /** Hide but keep content & width */
+    hideDrawer = () => this.setState({ open: false });
 
-    setWidth = (width: number) => this.setState({width});
-
+    /** Close and clear everything */
     closeDrawer = () => {
         this.setState({
-            open: false, heading: '', content: null, isLoading: false,
+            open: false,
+            heading: '',
+            content: null,
+            isLoading: false,
         });
     };
 
-    setContent = (heading: string, content: JSX.Element | null, open: boolean = false, width: number = 350) => {
-        this.setState({heading, content, isLoading: false, open, width});
+    /** Set/replace content; opens by default; width preserved unless provided */
+    setContent = (heading: string, content: JSX.Element | null, open: boolean = true, width?: number) => {
+        this.setState((prev) => ({
+            heading,
+            content,
+            isLoading: false,
+            open,
+            width: width ?? prev.width, // keep current width unless new one provided
+        }));
     };
 
+    /** Begin loading spinner (also opens) */
     startLoading = (heading?: string) => {
-        this.setState({
-            isLoading: true, heading: heading ?? this.state.heading, open: true,
-        });
+        this.setState((prev) => ({
+            isLoading: true,
+            heading: heading ?? prev.heading,
+            open: true,
+        }));
     };
 
+    /** Stop spinner */
     stopLoading = () => {
-        this.setState({isLoading: false});
+        this.setState({ isLoading: false });
     };
 
+    /** Programmatically set width (clamped & persisted) */
+    setWidth = (width: number) => {
+        const minWidth = this.props.minWidth!;
+        const maxWidth = this.props.maxWidth!;
+        const clamped = Math.max(minWidth, Math.min(maxWidth, width));
+        this.setState({ width: clamped });
+        this.saveWidthToStorage(clamped);
+    };
+
+    /** Get current width */
+    getWidth = () => this.state.width;
+
+    /** Is open? */
+    isOpen = () => this.state.open;
+
+    // ---------- resize handlers ----------
     handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
         document.body.style.cursor = 'ew-resize';
         (document.body.style as any).userSelect = 'none';
-        this.setState({isResizing: true, lastDownX: e.clientX});
+        this.setState({ isResizing: true, lastDownX: e.clientX });
     };
 
     handleMouseMove = (e: MouseEvent) => {
         if (!this.state.isResizing) return;
 
+        const minWidth = this.props.minWidth!;
+        const maxWidth = this.props.maxWidth!;
+
         // Use viewport width for robust calculations
-        const viewportWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+        const viewportWidth =
+            window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
         const offsetRight = viewportWidth - e.clientX;
-        const minWidth = 200;
-        const maxWidth = 1200;
         const next = Math.max(minWidth, Math.min(maxWidth, offsetRight));
+
         if (next !== this.state.width) {
-            this.setState({width: next});
+            this.setState({ width: next });
         }
     };
 
@@ -95,10 +161,24 @@ class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState
         }
         document.body.style.cursor = '';
         (document.body.style as any).userSelect = '';
-        this.setState({isResizing: false});
+        this.setState({ isResizing: false });
     };
 
+    // ---------- lifecycle ----------
     componentDidMount() {
+        // init width from localStorage (safer here than in constructor for SSR)
+        try {
+            const savedWidth = localStorage.getItem(LOCAL_STORAGE_KEY);
+            if (savedWidth) {
+                const parsed = parseInt(savedWidth, 10);
+                if (!Number.isNaN(parsed)) {
+                    this.setState({ width: parsed });
+                }
+            }
+        } catch {
+            /* ignore */
+        }
+
         document.addEventListener('mousemove', this.handleMouseMove);
         document.addEventListener('mouseup', this.handleMouseUp);
     }
@@ -108,16 +188,16 @@ class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState
         document.removeEventListener('mouseup', this.handleMouseUp);
     }
 
-    isOpen() {
-        return this.state.open;
-    }
-
+    // ---------- render ----------
     render() {
-        const {open, heading, content, width, isLoading} = this.state;
+        const { open, heading, content, width, isLoading } = this.state;
+        const { children, appBarColor = 'secondary', appBarHeight = 40, minWidth } = this.props;
 
-        return (<>
-                {/* Show Tab */}
-                {!open && content && (<Box
+        return (
+            <>
+                {/* Unhide tab (only when we have content and the drawer is hidden) */}
+                {!open && content && (
+                    <Box
                         onClick={this.openDrawer}
                         sx={{
                             position: 'fixed',
@@ -131,7 +211,7 @@ class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState
                             py: 0.5,
                             borderRadius: '4px 0 0 4px',
                             cursor: 'pointer',
-                            zIndex: 1201,
+                            zIndex: 1400, // above any mounted content
                             writingMode: 'vertical-rl',
                             textAlign: 'center',
                             userSelect: 'none',
@@ -139,21 +219,20 @@ class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState
                         }}
                     >
                         Tap to Expand
-                    </Box>)}
+                    </Box>
+                )}
 
-                {/* Drawer (with internal left-edge resize handle) */}
-                <Fade in={open}>
+                {/* Drawer (unmounted when hidden to avoid overlay issues) */}
+                <Slide direction="left" in={open} mountOnEnter unmountOnExit>
                     <Box
                         sx={{
                             position: 'fixed',
                             top: 0,
                             right: 0,
                             width: `${width}px`,
-                            minWidth: '200px',
+                            minWidth: `${minWidth}px`,
                             height: '100%',
                             zIndex: 1300,
-                            transform: open ? 'translateX(0)' : `translateX(${width}px)`,
-                            transition: 'transform 0.3s ease',
                             display: 'flex',
                             flexDirection: 'column',
                             bgcolor: 'background.paper',
@@ -161,29 +240,36 @@ class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState
                             borderLeft: '1px solid #ccc',
                         }}
                     >
-                        {/* Left-edge internal resize handle (higher z-index so it's above content) */}
+                        {/* Left-edge internal resize handle */}
                         <Box
                             onMouseDown={this.handleMouseDown}
                             sx={{
-                                position: 'absolute', left: -3,            // slightly outside to ensure easy hit
-                                top: 0, bottom: 0, width: 8,            // a bit wider for easier grab
-                                cursor: 'ew-resize', bgcolor: '#e0e0e0', zIndex: 2,           // above content/appbar/paper
-                                '&:hover': {bgcolor: '#d5d5d5'}, '&:active': {bgcolor: '#cfcfcf'},
+                                position: 'absolute',
+                                left: -3, // slightly outside to ensure easy hit
+                                top: 0,
+                                bottom: 0,
+                                width: 8, // a bit wider for easier grab
+                                cursor: 'ew-resize',
+                                bgcolor: '#e0e0e0',
+                                zIndex: 2,
+                                pointerEvents: open ? 'auto' : 'none', // safety
+                                '&:hover': { bgcolor: '#d5d5d5' },
+                                '&:active': { bgcolor: '#cfcfcf' },
                             }}
                         />
 
-                        <AppBar position="static" color="secondary" sx={{height: 40, justifyContent: 'center'}}>
-                            <Toolbar variant="dense" sx={{minHeight: '40px !important', px: 1}}>
-                                <Typography variant="h6" sx={{flexGrow: 1, fontSize: 16}}>
+                        <AppBar position="static" color={appBarColor} sx={{ height: appBarHeight, justifyContent: 'center' }}>
+                            <Toolbar variant="dense" sx={{ minHeight: `${appBarHeight}px !important`, px: 1 }}>
+                                <Typography variant="h6" sx={{ flexGrow: 1, fontSize: 16 }}>
                                     {heading}
                                 </Typography>
 
-                                <IconButton size="small" onClick={this.hideDrawer} sx={{color: 'white'}}>
-                                    <VisibilityOffIcon fontSize="small"/>
+                                <IconButton size="small" onClick={this.hideDrawer} sx={{ color: 'white' }}>
+                                    <VisibilityOffIcon fontSize="small" />
                                 </IconButton>
 
-                                <IconButton size="small" onClick={this.closeDrawer} sx={{color: 'white'}}>
-                                    <CloseIcon fontSize="small"/>
+                                <IconButton size="small" onClick={this.closeDrawer} sx={{ color: 'white' }}>
+                                    <CloseIcon fontSize="small" />
                                 </IconButton>
                             </Toolbar>
                         </AppBar>
@@ -199,21 +285,27 @@ class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState
                                 borderTopLeftRadius: 8,
                                 borderBottomLeftRadius: 8,
                                 position: 'relative',
-                                zIndex: 1, // ensure the handle (zIndex:2) sits above
+                                zIndex: 1,
                             }}
                             elevation={0}
                         >
-
-                            <Box sx={{flexGrow: 1, p: 2, display: 'flex', justifyContent: 'center'}}>
-                                {isLoading ? (<CircularProgress size={40}
-                                                                thickness={4}/>) : (content ? content : this.props.children)}
+                            <Box sx={{ flexGrow: 1, p: 2, display: 'flex', justifyContent: 'center' }}>
+                                {isLoading ? (
+                                    <CircularProgress size={40} thickness={4} />
+                                ) : content ? (
+                                    content
+                                ) : (
+                                    children
+                                )}
                             </Box>
                         </Paper>
                     </Box>
-                </Fade>
-            </>);
+                </Slide>
+            </>
+        );
     }
 }
 
 export default RightDrawer;
+/** Keep your existing external type usage intact */
 export type RightDrawerHandle = typeof RightDrawer.prototype;

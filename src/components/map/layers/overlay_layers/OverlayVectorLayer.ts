@@ -314,17 +314,11 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         if (!src) return;
         src.removeFeature(feature);
     }
-    addFeature(Feature: Feature, clearPreviousSelection: boolean = true) {
-        if (clearPreviousSelection) {
-            this.clearSelection();
-        }
+    addFeature(Feature: Feature) {
         this.getSource()?.addFeature(Feature);
     }
 
-    addFeatures(features: Feature[], clearPreviousSelection: boolean = true) {
-        if (clearPreviousSelection) {
-            this.clearSelection();
-        }
+    addFeatures(features: Feature[]) {
         this.getSource()?.addFeatures(features);
     }
 

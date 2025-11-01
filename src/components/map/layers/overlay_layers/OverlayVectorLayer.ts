@@ -11,7 +11,7 @@ import {WKT} from "ol/format";
 import AbstractOverlayLayer from "./AbstractOverlayLayer";
 import {IFeatureStyle, IGeoJSON, ITextStyle} from "@/types/typeDeclarations";
 import StylingUtils from "../../layer_styling/utils/StylingUtils";
-import {Extent, createEmpty, extend } from 'ol/extent';
+import {Extent, createEmpty, extend} from 'ol/extent';
 import {Geometry} from "ol/geom";
 
 // import _ from "../../utils/lodash";
@@ -58,7 +58,7 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         return this.olLayer?.get("title");
     }
 
-    getExtent(): Extent{
+    getExtent(): Extent {
         const features = this.getSource().getFeatures();
 
         // Calculate the extent
@@ -76,8 +76,7 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
             name: this.layerInfo.uuid,
             title: this.layerInfo.title,
             displayInLayerSwitcher: true,
-            source: new VectorSource(),
-            //@ts-ignore
+            source: new VectorSource(), //@ts-ignore
             style: this.vectorStyleFunction,
             zIndex: 1000,
         });
@@ -89,9 +88,9 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         return this.getSource()?.getFeatures() || []
     }
 
-    // addGeojsonFeature(geojson: IGeoJSON, clearPreviousSelection: boolean = true) {
-    //     if (clearPreviousSelection) {
-    //         this.clearSelection();
+    // addGeojsonFeature(geojson: IGeoJSON, clearPreviousFeatures: boolean = true) {
+    //     if (clearPreviousFeatures) {
+    //         this.clearFeatures();
     //     }
     //     const features = new GeoJSON({
     //         dataProjection: "EPSG:4326",
@@ -101,22 +100,13 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
     //     this.getSource().addFeatures(features);
     // }
 
-    addGeojsonFeature(
-        geojson: IGeoJSON,
-        clearPreviousSelection: boolean = true,
-        dataCRS: string = "EPSG:4326",
-        // proj4def?: string
+    addGeojsonFeature(geojson: IGeoJSON, clearPreviousFeatures: boolean = true, dataCRS: string = "EPSG:4326", // proj4def?: string
     ): number {
-        if (clearPreviousSelection) this.clearSelection();
+        if (clearPreviousFeatures) this.clearFeatures();
 
         // Optional: detect EPSG from payload if present
-        const detected =
-            (geojson as any)?.crs?.properties?.name ??
-            (geojson as any)?.crs?.name;
-        const srid =
-            typeof detected === "string" && /^EPSG:\d+$/.test(detected)
-                ? detected
-                : dataCRS;
+        const detected = (geojson as any)?.crs?.properties?.name ?? (geojson as any)?.crs?.name;
+        const srid = typeof detected === "string" && /^EPSG:\d+$/.test(detected) ? detected : dataCRS;
 
         // Ensure we know this projection (MapVM can auto-build UTM defs on demand)
         // const ok = this.mapVM.ensureProjection(srid, proj4def);
@@ -128,8 +118,7 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         try {
             const viewProj = "EPSG:3857"; // or this.mapVM.getViewProjectionCode?.() ?? "EPSG:3857"
             const features = new GeoJSON({
-                dataProjection: srid,
-                featureProjection: viewProj,
+                dataProjection: srid, featureProjection: viewProj,
             }).readFeatures(geojson);
 
             if (!features?.length) {
@@ -140,13 +129,10 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
             this.getSource().addFeatures(features);
             return features.length;
         } catch (e) {
-            this.mapVM.showSnackbar(
-                `Failed to read GeoJSON (${srid} → 3857): ${(e as Error)?.message ?? e}`
-            );
+            this.mapVM.showSnackbar(`Failed to read GeoJSON (${srid} → 3857): ${(e as Error)?.message ?? e}`);
             return 0;
         }
     }
-
 
 
     getGeometryType(): string {
@@ -159,9 +145,9 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         }
     }
 
-    addWKTFeature(wkt: string, clearPreviousSelection: boolean = true) {
-        if (clearPreviousSelection) {
-            this.clearSelection();
+    addWKTFeature(wkt: string, clearPreviousFeatures: boolean = true) {
+        if (clearPreviousFeatures) {
+            this.clearFeatures();
         }
         const features = new WKT().readFeatures(wkt);
         this.getSource().addFeatures(features);
@@ -174,6 +160,7 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         // Force re-render so the vectorStyleFunction gets called again
         this.forcedRefresh();
     }
+
     setShowLabel(showLabel: boolean) {
         if (!this.layerInfo) return;
         // Toggle the showLabel flag
@@ -243,11 +230,7 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
             if (label !== undefined && label !== null) {
                 const fillColor = baseStyle.getFill()?.getColor()?.toString() ?? '#000'; // or any sensible default
 
-                styled.setText(
-                    StylingUtils.getTextStyle(
-                        String(label), fillColor, textStyle || {}
-                    )
-                );
+                styled.setText(StylingUtils.getTextStyle(String(label), fillColor, textStyle || {}));
             }
         }
 
@@ -264,7 +247,7 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         }
     }
 
-    clearSelection() {
+    clearFeatures() {
         this.getSource().clear();
     }
 
@@ -288,6 +271,7 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
             featureProjection: 'EPSG:3857', // Change the projection to match your needs
         });
     }
+
     getAttributeList(): string[] {
         const features: Feature<Geometry>[] = this.getFeatures();
         if (!features.length) return [];
@@ -314,6 +298,7 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         if (!src) return;
         src.removeFeature(feature);
     }
+
     addFeature(Feature: Feature) {
         this.getSource()?.addFeature(Feature);
     }
@@ -321,6 +306,51 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
     addFeatures(features: Feature[]) {
         this.getSource()?.addFeatures(features);
     }
+
+    findFeatureByProperty(propertyName: string, value: any): Feature[] {
+        const source = this.getSource();
+        if (!source) return [];
+
+        const features = source.getFeatures();
+        if (!features.length) return [];
+
+        // Match by property value (strict equality)
+        return features.filter((feature) => {
+            const propValue = feature.get(propertyName);
+            return propValue === value;
+        });
+    }
+
+    /**
+     * identifyFeature(evt)
+     * --------------------
+     * Returns all features from THIS OverlayVectorLayer that are under the click.
+     *
+     * Usage:
+     * map.on("click", (evt) => {
+     *   const matches = overlayLayer.identifyFeature(evt);
+     *   // do something with matches
+     * });
+     */
+    identifyFeature(evt: any): Feature[] {
+        const map = this.mapVM.getMap();
+        const layer = this.getOlLayer();
+
+        if (!map || !layer) return [];
+
+        const hitsSet = new Set<Feature>();
+
+        map.forEachFeatureAtPixel(evt.pixel, (featureLike: any, clickedLayer: any) => {
+            if (clickedLayer === layer) {
+                hitsSet.add(featureLike as Feature);
+            }
+        }, {
+            layerFilter: (candidateLayer: any) => candidateLayer === layer, hitTolerance: 5,
+        });
+
+        return Array.from(hitsSet);
+    }
+
 
 }
 

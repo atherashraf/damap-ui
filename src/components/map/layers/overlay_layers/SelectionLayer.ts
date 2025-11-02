@@ -69,7 +69,7 @@ class SelectionLayer extends AbstractOverlayLayer {
         // console.log("geojson", geojson)
         // console.log("dataCRS", dataCRS)
         const features = new GeoJSON({
-            dataProjection: dataCRS, featureProjection: "EPSG:3857",
+            dataProjection: dataCRS, featureProjection:  this.mapVM.getViewProjectionCode() ?? "EPSG:3857",
         }).readFeatures(payload);
 
         this.getSource()?.addFeatures(features);
@@ -94,7 +94,7 @@ class SelectionLayer extends AbstractOverlayLayer {
 
         try {
             const features = new WKT().readFeatures(cleanWkt, {
-                dataProjection: srid, featureProjection: "EPSG:3857",
+                dataProjection: srid, featureProjection: this.mapVM.getViewProjectionCode() ?? "EPSG:3857",
             });
 
             this.getSource()?.addFeatures(features);

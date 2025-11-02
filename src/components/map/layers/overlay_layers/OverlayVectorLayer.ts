@@ -116,7 +116,7 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         // }
 
         try {
-            const viewProj = "EPSG:3857"; // or this.mapVM.getViewProjectionCode?.() ?? "EPSG:3857"
+            const viewProj = this.mapVM.getViewProjectionCode?.() ?? "EPSG:3857"
             const features = new GeoJSON({
                 dataProjection: srid, featureProjection: viewProj,
             }).readFeatures(geojson);
@@ -145,12 +145,34 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         }
     }
 
-    addWKTFeature(wkt: string, clearPreviousFeatures: boolean = true) {
+    addWKTFeature(wkt: string, clearPreviousFeatures: boolean = true, dataProjectionOverride?: string) {
+        const source = this.getSource();
         if (clearPreviousFeatures) {
-            this.clearFeatures();
+            source.clear(true);
         }
-        const features = new WKT().readFeatures(wkt);
-        this.getSource().addFeatures(features);
+
+        // Get the current view projection (e.g. "EPSG:3857")
+        const featureProjection =
+            this.mapVM?.getMap()?.getView()?.getProjection()?.getCode() ?? "EPSG:3857";
+
+        // Try to extract SRID from WKT like: "SRID=4326;POINT(...)"
+        const sridMatch = wkt.match(/SRID\s*=\s*(\d+)\s*;/i);
+        const sridFromWkt = sridMatch ? `EPSG:${sridMatch[1]}` : undefined;
+
+        // If SRID prefix exists, remove it before parsing
+        const wktBody = sridFromWkt ? wkt.replace(/^\s*SRID\s*=\s*\d+\s*;\s*/i, "") : wkt;
+
+        const dataProjection =
+            dataProjectionOverride ?? sridFromWkt ?? "EPSG:4326";
+
+        const wktFormat = new WKT();
+        const features = wktFormat.readFeatures(wktBody, {
+            dataProjection,
+            featureProjection,
+        });
+
+        source.addFeatures(features);
+        return features;
     }
 
     toggleShowLabel() {

@@ -918,6 +918,9 @@ class MapVM {
     //     }
     //     return false;
     // }
+    getViewProjectionCode() {
+       return  this.getMap().getView().getProjection().getCode();
+    }
 }
 
 export default MapVM;

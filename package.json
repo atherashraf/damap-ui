@@ -1,7 +1,7 @@
 {
   "name": "damap",
   "private": false,
-  "version": "1.0.18",
+  "version": "1.0.20",
   "type": "module",
   "main": "dist/damap.cjs.js",
   "module": "dist/damap.es.js",

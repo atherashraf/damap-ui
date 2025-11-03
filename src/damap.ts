@@ -33,7 +33,11 @@ export { default as MapPanel } from './components/map/MapPanel';
 // ✅ Map Models & ViewModels
 // -------------------------
 export { default as MapVM } from './components/map/models/MapVM';
-
+export { default as CustomToolManager} from './components/map/manager/CustomToolManager'
+export type {OLMapEventType, ArmerFn, OnType, ToolOptions} from './components/map/manager/CustomToolManager'
+export type {ChipMessagePayload} from './components/map/manager/CustomToolManager'
+export {default as MapMessageChipManager} from './components/map/manager/mapMessageChipManager'
+export type {PayloadType, MapMessageAction, SeverityType, MapMessageChipHandle} from './components/map/widgets/MapMessageChip'
 
 // -------------------------
 // ✅ Hooks
@@ -150,3 +154,4 @@ export type { IRule } from './types/typeDeclarations';
 export type { IFilter } from './types/typeDeclarations';
 export type {IGeoJSON} from './types/typeDeclarations';
 export type {IGeoJSONFeature} from './types/typeDeclarations';
+

@@ -1,8 +1,8 @@
 import "ol/ol.css";
 import "ol-ext/dist/ol-ext.css";
 import "@/assets/css/da-ol.css";
-import Map from "ol/Map.js";
-import View from "ol/View.js";
+import OLMap from "ol/Map.js";
+import OLView from "ol/View.js";
 import {defaults as defaultControls} from "ol/control";
 import BaseLayers from "../layers/BaseLayers";
 import MapToolbar from "@/components/map/toolbar/MapToolbar";
@@ -55,6 +55,8 @@ import timeSliderControl from "@/components/map/time_slider/TimeSliderControl";
 // import {register} from "ol/proj/proj4";
 // import {get as getProjection} from "ol/proj";
 import {AttributeTableToolbarHandle} from "@/components/map/table/AttributeTableToolbar";
+import CustomToolManager, {ArmerFn, OLMapEventType} from "@/components/map/manager/CustomToolManager";
+
 
 export interface IDALayers {
     [key: string]: AbstractDALayer;
@@ -68,10 +70,13 @@ interface IXYZLayers {
     [key: string]: XYZLayer
 }
 
+
+
+
 class MapVM {
 
     // @ts-ignore
-    private map: Map;
+    private map: OLMap;
     daLayers: IDALayers = {};
     temporalLayers: IDALayers = {};
     overlayLayers: IOverlays = {};
@@ -80,18 +85,6 @@ class MapVM {
     private _domRef: IDomRef;
     private _layerOfInterest: string | null = null;
     private _daLayerAddedEvent = new Event("DALayerAdded");
-    // @ts-ignore
-    currentMapInteraction = null;
-    // leftDrawerRef: any
-    // Default extent fallback
-    // private defaultExtent: number[] = [
-    //     7031250.271849444,
-    //     2217134.3474655207,
-    //     8415677.728150556,
-    //     4922393.652534479,
-    // ];
-
-    // Dynamically loaded extent from .env or default
     mapExtent: number[] | undefined;  //this._loadMapExtent();
     isInit: Boolean = false;
     public readonly api: MapApi;
@@ -107,7 +100,7 @@ class MapVM {
     private mapToolbar: MapToolbar;
     private _theme: Theme | undefined;
     private _identifierFeatureRenderer: ((feature: Feature<Geometry>) => ReactNode) | null = null;
-    // private projectionsInitialized = false;
+    public tools: CustomToolManager;
 
     constructor(domRef: IDomRef, isDesigner: boolean = false) {
         this._domRef = domRef;
@@ -120,6 +113,15 @@ class MapVM {
             // isCreateMap: (!this.isDesigner && !mapInfo) || mapInfo?.isEditor || false,
         })
         // this.initProjections();
+        this.tools = new CustomToolManager(
+            () => this.getMap?.(),
+            (cursor) => this.setMapCursor(cursor)
+        );
+    }
+    /** Safely set the map target’s cursor (uses provided setter if available) */
+    public setMapCursor(cursor: string) {
+        const t = this.getMap()?.getTargetElement?.();
+        if (t) t.style.cursor = cursor;
     }
 
     // private initProjections() {
@@ -147,9 +149,9 @@ class MapVM {
     initMap(mapInfo?: IMapInfo) {
         // @ts-ignore
         this.mapInfo = mapInfo;
-        this.map = new Map({
+        this.map = new OLMap({
             controls: defaultControls().extend([// this.fullScreen,
-                this.mapToolbar]), view: new View({
+                this.mapToolbar]), view: new OLView({
                 center: [7723464, 3569764], zoom: 5,
             }),
         });
@@ -380,7 +382,7 @@ class MapVM {
         }, 100);
     }
 
-    getMap(): Map {
+    getMap(): OLMap {
         return this.map;
     }
 
@@ -920,6 +922,34 @@ class MapVM {
     // }
     getViewProjectionCode() {
        return  this.getMap().getView().getProjection().getCode();
+    }
+
+
+    // ==== Facade methods (same signatures as before) ====
+
+    public onCustomTool(type: OLMapEventType, toolId: string, handler: (...args: any[]) => void) {
+        return this.tools.onCustomTool(type, toolId, handler);
+    }
+
+    public offCustomTool(toolId: string, resetCursor: boolean = true) {
+        this.tools.offCustomTool(toolId, resetCursor);
+    }
+
+    public offAllCustom(resetCursor: boolean = true) {
+        this.tools.offAllCustom(resetCursor);
+    }
+
+    public countCustom(toolId?: string) {
+        return this.tools.countCustom(toolId);
+    }
+
+    public activateCustomExclusive(toolId: string, armer: ArmerFn, cursor?: string) {
+        this.tools.activateCustomExclusive(toolId, armer, cursor);
+    }
+
+    /** Optional cleanup */
+    public dispose() {
+        this.tools.destroy();
     }
 }
 

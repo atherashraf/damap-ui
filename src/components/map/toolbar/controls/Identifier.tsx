@@ -16,7 +16,7 @@ const Identifier = () => {
 
     const handleClick = () => {
         mapVM.showSnackbar("Click on feature to view its details.");
-        drawerRef?.current?.setContent("Identify Feature",  <IdentifyResult ref={identifyResultRef}/>)
+        drawerRef?.current?.setContent("Identify Feature",  <IdentifyResult ref={identifyResultRef}/>, true)
         // showIdentifyResult();
     };
 

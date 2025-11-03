@@ -100,8 +100,7 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
     //     this.getSource().addFeatures(features);
     // }
 
-    addGeojsonFeature(geojson: IGeoJSON, clearPreviousFeatures: boolean = true, dataCRS: string = "EPSG:4326", // proj4def?: string
-    ): number {
+    addGeojsonFeature(geojson: IGeoJSON, dataCRS: string = "EPSG:4326", clearPreviousFeatures: boolean = false): number {
         if (clearPreviousFeatures) this.clearFeatures();
 
         // Optional: detect EPSG from payload if present
@@ -145,7 +144,7 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         }
     }
 
-    addWKTFeature(wkt: string, clearPreviousFeatures: boolean = true, dataProjectionOverride?: string) {
+    addWKTFeature(wkt: string, dataProjectionOverride?: string, clearPreviousFeatures: boolean = false) {
         const source = this.getSource();
         if (clearPreviousFeatures) {
             source.clear(true);

@@ -325,7 +325,43 @@ const MyCustomButton = () => {
     );
 };
 ```
+## 🔧 Advanced: Custom Tool System (CustomToolManager)
 
+CustomToolManager lets you register / unregister OpenLayers event handlers per tool (e.g. identify, measure) without manual map.on / map.un.
+It also supports exclusive activation and cursor control.
+
+```ts 
+    const vm = useMapVM();
+
+vm.tools.activateCustomExclusive(
+    "identify",
+    (on) => {
+
+        on("click", (evt) => {
+            const map = vm.getMap();
+            const features: any[] = [];
+            const layerTitles: string[] = [];
+
+            map?.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
+                if (layer?.get("displayInLayerSwitcher") !== false) {
+                    features.push(feature);
+                    layerTitles.push(layer?.get("title") || "Unknown Layer");
+                }
+            });
+
+            if (features.length === 0) {
+                vm.showSnackbar("No feature identified at this location");
+                vm.getRightDrawerRef()?.current?.closeDrawer();
+            } else {
+                vm.getRightDrawerRef()?.current?.openDrawer();
+            }
+        });
+
+    },
+    "crosshair"
+);
+
+```
 ## 🕒 Time Slider Usage
 
 The `TimeSlider` component allows users to visualize and select temporal data over a range of dates for layers that support time-based filtering.

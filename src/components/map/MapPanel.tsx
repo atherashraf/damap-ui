@@ -8,6 +8,7 @@ import {MapAPIs} from "@/api/MapApi";
 import {IMapInfo} from "@/types/typeDeclarations";
 
 import {Control} from "ol/control";
+import MapMessageChip, {mapMessageChipRef} from "@/components/map/widgets/MapMessageChip";
 
 interface IMapPanelProps {
     isMap: boolean;
@@ -176,6 +177,7 @@ const MapPanel = ({isMap, uuid, isEditor, children}: IMapPanelProps) => {
                 </IconButton>
 
                 {mapVM.getMapPanelButtons().map((button) => button)}
+                <MapMessageChip ref={mapMessageChipRef}/>
             </div>
         </Fragment>
     )

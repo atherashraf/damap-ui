@@ -18,6 +18,7 @@ import {IdentifyResultHandle} from "@/components/map/widgets/IdentifyResult";
 import {ContextMenuHandle} from "@/components/map/layer_switcher/ContextMenu";
 import {AttributeTableToolbarHandle} from "@/components/map/table/AttributeTableToolbar";
 
+
 export interface IBaseMapProps {
     mapVM: MapVM;
     layerId?: string;

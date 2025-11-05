@@ -176,7 +176,7 @@ const IdentifyResult = forwardRef<IdentifyResultHandle>((_, ref) => {
             },
             "crosshair",
             {
-                message: { text: "Click on layer feature to get its info", severity: "info" }
+                message: { text: "Click on layer feature to get its info    ", severity: "info" }
                 // actions: [{ label: "Cancel", onClick: () => vm.tools.offCustomTool("measure") }]
             }
         );

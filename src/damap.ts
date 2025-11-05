@@ -58,8 +58,21 @@ export { default as AuthServices } from './api/authServices';
 // -------------------------
 // ✅ Map Layers
 // -------------------------
-export * from './components/map/layers/overlay_layers';
-export * from './components/map/layers/da_layers';
+// export * from './components/map/layers/overlay_layers';
+export { default as AbstractOverlayLayer } from './components/map/layers/overlay_layers/AbstractOverlayLayer';
+export { default as IDWLayer } from './components/map/layers/overlay_layers/IDWLayer';
+export { default as OverlayVectorLayer } from './components/map/layers/overlay_layers/OverlayVectorLayer';
+export { default as SelectionLayer } from './components/map/layers/overlay_layers/SelectionLayer';
+export {type SelectionMode} from './components/map/layers/overlay_layers/SelectionLayer';
+export { default as XYZLayer } from './components/map/layers/overlay_layers/XYZLayer';
+export type {IXYZLayerInfo} from './components/map/layers/overlay_layers/XYZLayer';
+export type { IOverLayVectorInfo } from './components/map/layers/overlay_layers/OverlayVectorLayer';
+//
+// export * from './components/map/layers/da_layers';
+export { default as AbstractDALayer } from './components/map/layers/da_layers/AbstractDALayer';
+export { default as DAVectorLayer } from './components/map/layers/da_layers/DAVectorLayer';
+export { default as MVTLayer } from './components/map/layers/da_layers/MVTLayer';
+export { default as RasterTileLayer } from './components/map/layers/da_layers/RasterTileLayer';
 
 
 // -------------------------

@@ -1,6 +1,6 @@
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
-import Feature from "ol/Feature";
+import Feature, {FeatureLike} from "ol/Feature";
 import MapVM from "@/components/map/models/MapVM";
 import {Fill, Stroke, Style} from "ol/style";
 import CircleStyle from "ol/style/Circle";
@@ -11,13 +11,18 @@ import {WKT} from "ol/format";
 import AbstractOverlayLayer from "./AbstractOverlayLayer";
 import StylingUtils from "../../layer_styling/utils/StylingUtils";
 import {Geometry} from "ol/geom";
+import {StyleFunction} from "ol/style/Style";
 
 // import {getPointShapes} from "../../components/styling/vector/symbolizer/PointSymbolizer";
+// As a type alias:
+export type SelectionMode = 'default' | 'drawing';
+
 
 class SelectionLayer extends AbstractOverlayLayer {
     //@ts-ignore
     olLayer: VectorLayer<VectorSource>;
     mapVM: MapVM;
+    private selectionMode: SelectionMode = 'default';
 
     constructor(mapVM: MapVM) {
 
@@ -27,6 +32,14 @@ class SelectionLayer extends AbstractOverlayLayer {
         // this.createSelectionLayer();
     }
 
+    /** Call this when entering/leaving draw mode */
+    setSelectionMode(mode: SelectionMode) {
+        this.selectionMode = mode;
+        // refresh layer styling
+        this.olLayer?.changed();
+    }
+
+
     createSelectionLayer(title: string = "selection layer") {
         // const title = "sel_layer";
         this.olLayer = new VectorLayer({
@@ -35,7 +48,9 @@ class SelectionLayer extends AbstractOverlayLayer {
             name: title,
             displayInLayerSwitcher: false,
             source: new VectorSource(),
-            style: this.getSelectStyle,
+            // style: this.getSelectStyle,
+            style: this.dynamicSelectStyle,
+
             zIndex: 1000,
         });
 
@@ -45,6 +60,7 @@ class SelectionLayer extends AbstractOverlayLayer {
     clearSelection() {
         this.getSource()?.clear();
     }
+
 
     getOlLayer(): VectorLayer<VectorSource> {
         if (!this.olLayer) {
@@ -131,6 +147,14 @@ class SelectionLayer extends AbstractOverlayLayer {
         src.removeFeature(feature);
     }
 
+    /** Style dispatcher: prefer an explicit feature flag, fall back to layer mode */
+    private dynamicSelectStyle: StyleFunction = (feature: FeatureLike, _resolution: number) => {
+        const isDrawing =
+            (feature as any).get?.('selectionType') === 'drawing' || this.selectionMode === 'drawing';
+        // Return undefined instead of null
+        return isDrawing ? this.getDrawingStyle(feature) : this.getSelectStyle(feature);
+    };
+
     getSelectStyle(feature: any) {
         let g_type = feature.getGeometry().getType();
         let selStyle;
@@ -173,6 +197,36 @@ class SelectionLayer extends AbstractOverlayLayer {
         return selStyle;
     }
 
+    /** Alternate style shown while drawing */
+    private getDrawingStyle(feature: any) {
+        let g_type = feature.getGeometry().getType();
+        if (!g_type) g_type = feature.f;
+
+        if (g_type.indexOf("Point") !== -1) {
+            return new Style({
+                image: new CircleStyle({
+                    radius: 10,
+                    fill: new Fill({ color: "rgba(255, 165, 0, 0.6)" }), // orange-ish
+                    stroke: new Stroke({ color: "#ffa500", width: 2 }),
+                }),
+            });
+        } else if (g_type.indexOf("LineString") !== -1) {
+            return new Style({
+                stroke: new Stroke({
+                    color: "#ffa500",
+                    width: 4,
+                    lineDash: [8, 6], // dashed while drawing
+                    lineCap: "round",
+                    lineJoin: "round",
+                }),
+            });
+        } else {
+            return new Style({
+                fill: new Fill({ color: "rgba(255, 165, 0, 0.15)" }),
+                stroke: new Stroke({ color: "#ffa500", width: 3, lineDash: [8, 6] }),
+            });
+        }
+    }
 
     getFeatures() {
         super.getFeatures();

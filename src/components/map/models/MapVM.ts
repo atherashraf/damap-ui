@@ -36,7 +36,7 @@ import {DASnackbarHandle} from "@/components/base/DASnackbar";
 import {BottomDrawerHandle} from "@/components/map/drawers/BottomDrawer";
 import {AlertColor, Theme} from "@mui/material";
 
-import SelectionLayer from "@/components/map/layers/overlay_layers/SelectionLayer";
+import SelectionLayer, {SelectionMode} from "@/components/map/layers/overlay_layers/SelectionLayer";
 import {Column, Row} from "@/types/gridTypeDeclaration";
 import {Feature} from "ol";
 import _ from "@/utils/lodash";
@@ -672,9 +672,10 @@ class MapVM {
 
 
 
-    getSelectionLayer() {
+    getSelectionLayer(mode: SelectionMode = 'default') {
 
         this.selectionLayer = this.selectionLayer ? this.selectionLayer : new SelectionLayer(this);
+        this.selectionLayer.setSelectionMode(mode)
         return this.selectionLayer;
     }
 

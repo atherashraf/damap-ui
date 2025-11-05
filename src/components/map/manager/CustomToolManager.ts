@@ -78,6 +78,13 @@ export type ToolOptions = {
 };
 
 // ----- Armer types ----------------------------------------------------------
+/***
+ * Usage
+ * const myArmerFn: ArmerFn = (on) => {
+ *   on('click', (evt) => console.log('map clicked', evt));
+ *   on('move',  () => console.log('map moved'));
+ * };
+ ***/
 export type OnType = (
     type: OLMapEventType,
     handler: (...args: any[]) => void,

@@ -314,11 +314,26 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         return src.getFeatures().includes(feature);
     }
 
-    removeFeature(feature: Feature): void {
+    // removeFeature(feature: Feature): void {
+    //     const src = this.getSource();
+    //     if (!src) return;
+    //     src.removeFeature(feature);
+    // }
+
+    removeFeature(feature: Feature): boolean {
         const src = this.getSource();
-        if (!src) return;
-        src.removeFeature(feature);
+        if (!src) return false;
+
+        const alreadyInside = src.hasFeature(feature); // or src.getFeatures().includes(feature)
+
+        if (alreadyInside) {
+            src.removeFeature(feature);
+            return true;
+        }
+
+        return false;
     }
+
 
     addFeature(Feature: Feature) {
         this.getSource()?.addFeature(Feature);

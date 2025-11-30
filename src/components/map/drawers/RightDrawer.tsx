@@ -75,8 +75,13 @@ class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState
     };
 
     // ---------- public API (kept same names) ----------
-    /** Show (unhide) while preserving content & width */
-    openDrawer = () => this.setState({ open: true });
+
+    /** Show (unhide) while preserving content & width; optional width override */
+    openDrawer = (width?: number) =>
+        this.setState((prev) => ({
+            open: true,
+            width: width ?? prev.width, // keep last width by default
+        }));
 
     /** Hide but keep content & width */
     hideDrawer = () => this.setState({ open: false });
@@ -92,7 +97,12 @@ class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState
     };
 
     /** Set/replace content; opens by default; width preserved unless provided */
-    setContent = (heading: string, content: JSX.Element | null, open: boolean = true, width?: number) => {
+    setContent = (
+        heading: string,
+        content: JSX.Element | null,
+        open: boolean = true,
+        width?: number
+    ) => {
         this.setState((prev) => ({
             heading,
             content,
@@ -198,7 +208,15 @@ class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState
                 {/* Unhide tab (only when we have content and the drawer is hidden) */}
                 {!open && content && (
                     <Box
-                        onClick={this.openDrawer}
+                        onClick={() => this.openDrawer()}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                this.openDrawer();
+                            }
+                        }}
                         sx={{
                             position: 'fixed',
                             top: '50%',
@@ -258,8 +276,15 @@ class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState
                             }}
                         />
 
-                        <AppBar position="static" color={appBarColor} sx={{ height: appBarHeight, justifyContent: 'center' }}>
-                            <Toolbar variant="dense" sx={{ minHeight: `${appBarHeight}px !important`, px: 1 }}>
+                        <AppBar
+                            position="static"
+                            color={appBarColor}
+                            sx={{ height: appBarHeight, justifyContent: 'center' }}
+                        >
+                            <Toolbar
+                                variant="dense"
+                                sx={{ minHeight: `${appBarHeight}px !important`, px: 1 }}
+                            >
                                 <Typography variant="h6" sx={{ flexGrow: 1, fontSize: 16 }}>
                                     {heading}
                                 </Typography>
@@ -289,7 +314,14 @@ class RightDrawer extends React.PureComponent<RightDrawerProps, RightDrawerState
                             }}
                             elevation={0}
                         >
-                            <Box sx={{ flexGrow: 1, p: 2, display: 'flex', justifyContent: 'center' }}>
+                            <Box
+                                sx={{
+                                    flexGrow: 1,
+                                    p: 2,
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                }}
+                            >
                                 {isLoading ? (
                                     <CircularProgress size={40} thickness={4} />
                                 ) : content ? (

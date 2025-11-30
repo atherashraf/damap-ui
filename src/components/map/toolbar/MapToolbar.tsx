@@ -99,7 +99,7 @@ class MapToolbar extends Control {
         this._toolbarContainerRefObject.current = instance;
 
         if (instance) {
-            const event = new CustomEvent("toolbarContainerReady", { detail: instance });
+            const event = new CustomEvent("mapToolbarContainerReady", { detail: instance });
             window.dispatchEvent(event);
         }
     };

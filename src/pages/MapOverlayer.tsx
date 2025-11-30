@@ -36,9 +36,9 @@ const CustomAppBar = () =>{
             toolbar.addButton(<AddTextStyle mapVM={mapVM} />);
         };
 
-        window.addEventListener("toolbarContainerReady", handleToolbarReady);
+        window.addEventListener("mapToolbarContainerReady", handleToolbarReady);
         return () => {
-            window.removeEventListener("toolbarContainerReady", handleToolbarReady);
+            window.removeEventListener("mapToolbarContainerReady", handleToolbarReady);
         };
 
     }, [mapVM]);

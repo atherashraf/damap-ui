@@ -4,7 +4,7 @@ import {
     Toolbar,
     IconButton,
     Typography,
-    Paper,
+    // Paper,
     Box,
     Fade,
 } from "@mui/material";
@@ -32,15 +32,22 @@ class LeftDrawer extends React.PureComponent<LeftDrawerProps, LeftDrawerState> {
             open: props.initState || false,
             content: null,
             heading: "",
-            width: 250,
+            width: 350,
             isResizing: false,
             lastDownX: null,
         };
     }
 
-    openDrawer = () => this.setState({ open: true });
+    setWidth = (width: number) => {this.setState({width})}
 
-    hideDrawer = () => this.setState({ open: false }); // keeps content
+    openDrawer = (width?: number) => {
+        this.setState((prev) => ({
+            open: true,
+            width: width ?? prev.width, // keep last width if none provided
+        }));
+    };
+
+    hideDrawer = () => this.setState({ open: false }); // keeps content & width
 
     closeDrawer = () => {
         this.setState({
@@ -73,7 +80,7 @@ class LeftDrawer extends React.PureComponent<LeftDrawerProps, LeftDrawerState> {
 
         const offsetLeft = e.clientX;
         const minWidth = 200;
-        const maxWidth = 500;
+        const maxWidth = 1200;
         if (offsetLeft >= minWidth && offsetLeft <= maxWidth) {
             this.setState({ width: offsetLeft });
         }
@@ -101,7 +108,16 @@ class LeftDrawer extends React.PureComponent<LeftDrawerProps, LeftDrawerState> {
                 {/* Show Tab */}
                 {!open && content && (
                     <Box
-                        onClick={this.openDrawer}
+                        onClick={() => this.openDrawer()}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                this.openDrawer();
+                            }
+                        }}
+                        aria-label="Tap to Expand"
                         sx={{
                             position: "fixed",
                             top: "50%",
@@ -124,12 +140,11 @@ class LeftDrawer extends React.PureComponent<LeftDrawerProps, LeftDrawerState> {
                         Tap to Expand
                     </Box>
                 )}
-
                 {/* Resize handle on right edge of drawer */}
                 {open && (
-                    <div
+                    <Box
                         onMouseDown={this.handleMouseDown}
-                        style={{
+                        sx={{
                             position: "fixed",
                             top: 0,
                             bottom: 0,
@@ -137,19 +152,15 @@ class LeftDrawer extends React.PureComponent<LeftDrawerProps, LeftDrawerState> {
                             width: "6px",
                             cursor: "ew-resize",
                             backgroundColor: "#e0e0e0",
-                            zIndex: 1200,
+                            zIndex: 1301,
+                            "&:hover": {
+                                backgroundColor: "#d0d0d0",
+                            },
                         }}
-                        onMouseOver={(e) =>
-                            (e.currentTarget.style.backgroundColor = "#d0d0d0")
-                        }
-                        onMouseOut={(e) =>
-                            (e.currentTarget.style.backgroundColor = "#e0e0e0")
-                        }
                     />
                 )}
-
                 {/* Drawer */}
-                <Fade in={open}>
+                <Fade in={open} timeout={300}>
                     <Box
                         sx={{
                             position: "fixed",
@@ -187,6 +198,7 @@ class LeftDrawer extends React.PureComponent<LeftDrawerProps, LeftDrawerState> {
                                     size="small"
                                     onClick={this.hideDrawer}
                                     sx={{ color: "white" }}
+                                    aria-label="Hide drawer"
                                 >
                                     <VisibilityOffIcon fontSize="small" />
                                 </IconButton>
@@ -194,13 +206,14 @@ class LeftDrawer extends React.PureComponent<LeftDrawerProps, LeftDrawerState> {
                                     size="small"
                                     onClick={this.closeDrawer}
                                     sx={{ color: "white" }}
+                                    aria-label="Close drawer"
                                 >
                                     <CloseIcon fontSize="small" />
                                 </IconButton>
                             </Toolbar>
                         </AppBar>
 
-                        <Paper
+                        <Box
                             sx={{
                                 display: "flex",
                                 flexDirection: "column",
@@ -211,10 +224,9 @@ class LeftDrawer extends React.PureComponent<LeftDrawerProps, LeftDrawerState> {
                                 borderTopRightRadius: 8,
                                 borderBottomRightRadius: 8,
                             }}
-                            elevation={0}
                         >
                             {content}
-                        </Paper>
+                        </Box>
                     </Box>
                 </Fade>
             </>

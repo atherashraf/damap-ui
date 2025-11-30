@@ -74,7 +74,7 @@ import AttributeTableControl from "@/components/map/toolbar/controls/AttributeTa
 import {MapVMInjectProvider} from "@/hooks/MapVMContext";
 import LOISelector from "@/components/map/toolbar/controls/LOISelector";
 import {Tooltip} from "@mui/material";
-import {AddLayer} from "@/damap";
+// import {AddLayer} from "@/damap";
 // import SaveMap from "@/components/map/toolbar/controls/SaveMap";
 
 interface Props {
@@ -101,7 +101,7 @@ const MapToolbarContainer = forwardRef<MapToolbarHandle, Props>(
 
     return (
         <MapVMInjectProvider mapVM={mapVM}>
-            <AddLayer />
+            {/*<AddLayer />*/}
             <LayerSwitcherControl />
             {/* Add more static buttons as needed */}
             {/*<AddClassificationSurface mapVM={mapVM}/>*/}

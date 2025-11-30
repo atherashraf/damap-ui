@@ -25,7 +25,7 @@ const LayerSwitcherControl = (): JSX.Element => {
     const openLayerSwitcher = () => {
         const leftDrawer = mapVM.getLeftDrawerRef();
         leftDrawer.current.setContent("Table of Content", <LayerSwitcherPaper mapVM={mapVM}/>);
-        leftDrawer.current.openDrawer();
+        leftDrawer.current.openDrawer(300);
     };
 
     return (

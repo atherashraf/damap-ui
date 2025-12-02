@@ -1,58 +1,73 @@
+/***
+ * Label zoom control examples:
+ *
+ * // 1) Labels from zoom 17 upwards (no upper limit)
+ * overlay.updateLabelOptions("name", { font: "bold 12px Arial" }, true, 17);
+ *
+ * // 2) Labels only between zoom 14 and 18
+ * overlay.updateLabelOptions("name", { font: "bold 12px Arial" }, true, 14, 18);
+ *
+ ***/
+
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 import MapVM from "@/components/map/models/MapVM";
 import autoBind from "auto-bind";
-import {Style} from "ol/style";
+import { Style } from "ol/style";
 
-import {Feature} from "ol";
+import { Feature } from "ol";
 
 import GeoJSON from "ol/format/GeoJSON";
-import {WKT} from "ol/format";
+import { WKT } from "ol/format";
 import AbstractOverlayLayer from "./AbstractOverlayLayer";
-import {IFeatureStyle, IGeoJSON, ITextStyle} from "@/types/typeDeclarations";
+import { IFeatureStyle, IGeoJSON, ITextStyle } from "@/types/typeDeclarations";
 import StylingUtils from "../../layer_styling/utils/StylingUtils";
-import {Extent, createEmpty, extend} from 'ol/extent';
-import {Geometry} from "ol/geom";
+import { Extent, createEmpty, extend } from "ol/extent";
+import { Geometry } from "ol/geom";
 
 // import _ from "../../utils/lodash";
 
 export interface IOverLayVectorInfo {
-    uuid: string  // use mapVM.generateUUID()
-    title: string
-    style: IFeatureStyle
-    dataModel?: "V" | "R"
-    geomType?: "Polygon" | "LineString" | "Point"
+    uuid: string;
+    title: string;
+    style: IFeatureStyle;
+    dataModel?: "V" | "R";
+    geomType?: "Polygon" | "LineString" | "Point";
 
-    // ✅ Labeling-related options
-    showLabel?: boolean;              // Whether to show label or not
-    labelProperty?: string;          // Feature property to label by (e.g., "unique_id", "name")
-    textStyle?: ITextStyle;          // Style config for the label text
+    showLabel?: boolean;
+    labelProperty?: string;
+    textStyle?: ITextStyle;
+
+    // Label zoom window
+    minLabelZoom?: number;   // labels start appearing from this zoom (inclusive)
+    maxLabelZoom?: number;   // labels stop appearing after this zoom (inclusive)
 }
 
 class OverlayVectorLayer extends AbstractOverlayLayer {
     olLayer: VectorLayer<VectorSource>;
     mapVM: MapVM;
-    layerInfo: IOverLayVectorInfo
+    layerInfo: IOverLayVectorInfo;
 
     //@ts-ignore
     constructor(info: IOverLayVectorInfo, mapVM: MapVM) {
-        super()
+        super();
         this.mapVM = mapVM;
-        this.layerInfo = info
-        this.layerInfo["dataModel"] = "V"
+        this.layerInfo = info;
+        this.layerInfo["dataModel"] = "V";
         this.layerInfo.showLabel = info.showLabel !== undefined ? info.showLabel : false;
+
         autoBind(this);
+
         this.olLayer = this.createLayer();
         this.mapVM.addOverlayLayer(this);
-        const gtype = this.getGeometryType()
-        // console.log("geom type", gtype)
-        StylingUtils.addLegendGraphic(this.olLayer, this.layerInfo.style, gtype)
+
+        const gtype = this.getGeometryType();
+        StylingUtils.addLegendGraphic(this.olLayer, this.layerInfo.style, gtype);
     }
 
     getLayerUUID(): string {
         return this.layerInfo.uuid;
     }
-
 
     getLayerTitle(): string {
         return this.olLayer?.get("title");
@@ -61,7 +76,6 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
     getExtent(): Extent {
         const features = this.getSource().getFeatures();
 
-        // Calculate the extent
         const featureExtent = createEmpty();
         features.forEach((feature: any) => {
             extend(featureExtent, feature?.getGeometry?.().getExtent?.());
@@ -70,54 +84,44 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
     }
 
     createLayer() {
-        // const title = title;
         return new VectorLayer({
             // @ts-ignore
             name: this.layerInfo.uuid,
             title: this.layerInfo.title,
             displayInLayerSwitcher: true,
-            source: new VectorSource(), //@ts-ignore
+            source: new VectorSource(),
+            // @ts-ignore
             style: this.vectorStyleFunction,
             zIndex: 1000,
+            declutter: true, // reduce overlapping labels
         });
-
     }
 
     getFeatures() {
         super.getFeatures();
-        return this.getSource()?.getFeatures() || []
+        return this.getSource()?.getFeatures() || [];
     }
 
-    // addGeojsonFeature(geojson: IGeoJSON, clearPreviousFeatures: boolean = true) {
-    //     if (clearPreviousFeatures) {
-    //         this.clearFeatures();
-    //     }
-    //     const features = new GeoJSON({
-    //         dataProjection: "EPSG:4326",
-    //         featureProjection: "EPSG:3857",
-    //     }).readFeatures(geojson);
-    //     // @ts-ignore
-    //     this.getSource().addFeatures(features);
-    // }
-
-    addGeojsonFeature(geojson: IGeoJSON, dataCRS: string = "EPSG:4326", clearPreviousFeatures: boolean = false): number {
+    addGeojsonFeature(
+        geojson: IGeoJSON,
+        dataCRS: string = "EPSG:4326",
+        clearPreviousFeatures: boolean = false
+    ): number {
         if (clearPreviousFeatures) this.clearFeatures();
 
         // Optional: detect EPSG from payload if present
-        const detected = (geojson as any)?.crs?.properties?.name ?? (geojson as any)?.crs?.name;
-        const srid = typeof detected === "string" && /^EPSG:\d+$/.test(detected) ? detected : dataCRS;
-
-        // Ensure we know this projection (MapVM can auto-build UTM defs on demand)
-        // const ok = this.mapVM.ensureProjection(srid, proj4def);
-        // if (!ok) {
-        //     this.mapVM.showSnackbar(`Projection ${srid} is not registered.`);
-        //     return 0;
-        // }
+        const detected =
+            (geojson as any)?.crs?.properties?.name ?? (geojson as any)?.crs?.name;
+        const srid =
+            typeof detected === "string" && /^EPSG:\d+$/.test(detected)
+                ? detected
+                : dataCRS;
 
         try {
-            const viewProj = this.mapVM.getViewProjectionCode?.() ?? "EPSG:3857"
+            const viewProj = this.mapVM.getViewProjectionCode?.() ?? "EPSG:3857";
             const features = new GeoJSON({
-                dataProjection: srid, featureProjection: viewProj,
+                dataProjection: srid,
+                featureProjection: viewProj,
             }).readFeatures(geojson);
 
             if (!features?.length) {
@@ -128,23 +132,32 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
             this.getSource().addFeatures(features);
             return features.length;
         } catch (e) {
-            this.mapVM.showSnackbar(`Failed to read GeoJSON (${srid} → 3857): ${(e as Error)?.message ?? e}`);
+            this.mapVM.showSnackbar(
+                `Failed to read GeoJSON (${srid} → 3857): ${
+                    (e as Error)?.message ?? e
+                }`
+            );
             return 0;
         }
     }
 
-
     getGeometryType(): string {
         if (this.layerInfo.geomType) {
-            return this.layerInfo.geomType
+            return this.layerInfo.geomType;
         } else {
-            const features = this.getFeatures()
+            const features = this.getFeatures();
             // @ts-ignore
-            return features.length > 0 ? features[0]?.getGeometry()?.getType().toString() : "Polygon";
+            return features.length > 0
+                ? features[0]?.getGeometry()?.getType().toString()
+                : "Polygon";
         }
     }
 
-    addWKTFeature(wkt: string, dataProjectionOverride?: string, clearPreviousFeatures: boolean = false) {
+    addWKTFeature(
+        wkt: string,
+        dataProjectionOverride?: string,
+        clearPreviousFeatures: boolean = false
+    ) {
         const source = this.getSource();
         if (clearPreviousFeatures) {
             source.clear(true);
@@ -152,17 +165,19 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
 
         // Get the current view projection (e.g. "EPSG:3857")
         const featureProjection =
-            this.mapVM?.getMap()?.getView()?.getProjection()?.getCode() ?? "EPSG:3857";
+            this.mapVM?.getMap()?.getView()?.getProjection()?.getCode() ??
+            "EPSG:3857";
 
         // Try to extract SRID from WKT like: "SRID=4326;POINT(...)"
         const sridMatch = wkt.match(/SRID\s*=\s*(\d+)\s*;/i);
         const sridFromWkt = sridMatch ? `EPSG:${sridMatch[1]}` : undefined;
 
         // If SRID prefix exists, remove it before parsing
-        const wktBody = sridFromWkt ? wkt.replace(/^\s*SRID\s*=\s*\d+\s*;\s*/i, "") : wkt;
+        const wktBody = sridFromWkt
+            ? wkt.replace(/^\s*SRID\s*=\s*\d+\s*;\s*/i, "")
+            : wkt;
 
-        const dataProjection =
-            dataProjectionOverride ?? sridFromWkt ?? "EPSG:4326";
+        const dataProjection = dataProjectionOverride ?? sridFromWkt ?? "EPSG:4326";
 
         const wktFormat = new WKT();
         const features = wktFormat.readFeatures(wktBody, {
@@ -176,28 +191,22 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
 
     toggleShowLabel() {
         if (!this.layerInfo) return;
-        // Toggle the showLabel flag
         this.layerInfo.showLabel = !this.layerInfo.showLabel;
-        // Force re-render so the vectorStyleFunction gets called again
         this.forcedRefresh();
     }
 
     setShowLabel(showLabel: boolean) {
         if (!this.layerInfo) return;
-        // Toggle the showLabel flag
         this.layerInfo.showLabel = showLabel;
-        // Force re-render so the vectorStyleFunction gets called again
         this.forcedRefresh();
     }
 
     setLabelProperty(labelProperty: string) {
         this.layerInfo.labelProperty = labelProperty || "";
-        // this.forcedRefresh()
     }
 
     setTextStyle(textStyle: ITextStyle) {
         this.layerInfo.textStyle = textStyle;
-        // this.forcedRefresh()
     }
 
     getTextStyle(): ITextStyle | undefined {
@@ -212,8 +221,13 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         return this.layerInfo.showLabel || undefined;
     }
 
-
-    updateLabelOptions(labelProperty: string, textStyle?: ITextStyle, showLabel?: boolean) {
+    updateLabelOptions(
+        labelProperty: string,
+        textStyle?: ITextStyle,
+        showLabel?: boolean,
+        minLabelZoom?: number,
+        maxLabelZoom?: number
+    ) {
         if (!this.layerInfo) return;
 
         // Always set the label property
@@ -224,40 +238,91 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
             this.layerInfo.textStyle = textStyle;
         }
 
-        // Optionally toggle showLabel
+        // Show / hide flag
+        if (showLabel !== undefined) {
+            this.layerInfo.showLabel = showLabel;
+        } else {
+            this.layerInfo.showLabel = !this.layerInfo.showLabel;
+        }
 
-        this.layerInfo.showLabel = showLabel != undefined ? showLabel : !this.layerInfo.showLabel;
-
+        // Zoom window for labels
+        if (minLabelZoom !== undefined) {
+            this.layerInfo.minLabelZoom = minLabelZoom;
+        }
+        if (maxLabelZoom !== undefined) {
+            this.layerInfo.maxLabelZoom = maxLabelZoom;
+        }
 
         // Force style re-evaluation
         this.forcedRefresh();
     }
 
-
     forcedRefresh() {
-        // Trigger the style function again for each feature
         const source = this.getSource();
         source.getFeatures().forEach((f) => f.changed());
     }
 
-    vectorStyleFunction(feature: Feature): Style {
-        const baseStyle = StylingUtils.vectorStyleFunction(feature, this.layerInfo.style);
+    vectorStyleFunction(feature: Feature, resolution: number): Style {
+        const baseStyle = StylingUtils.vectorStyleFunction(
+            feature,
+            this.layerInfo.style
+        );
         const styled = baseStyle.clone();
 
-        const {showLabel, labelProperty, textStyle} = this.layerInfo;
+        const {
+            showLabel,
+            labelProperty,
+            textStyle,
+            minLabelZoom,
+            maxLabelZoom,
+        } = this.layerInfo;
 
-        if (showLabel && labelProperty) {
-            const label = feature.get(labelProperty);
-            if (label !== undefined && label !== null) {
-                const fillColor = baseStyle.getFill()?.getColor()?.toString() ?? '#000'; // or any sensible default
+        // Labels globally off or no field → no text
+        if (!showLabel || !labelProperty) {
+            // @ts-ignore
+            styled.setText(null);
+            return styled;
+        }
 
-                styled.setText(StylingUtils.getTextStyle(String(label), fillColor, textStyle || {}));
+        // Get current zoom from map/view
+        const map = this.mapVM.getMap();
+        const view = map?.getView();
+
+        let zoom: number | undefined;
+        if (view) {
+            if ((view as any).getZoomForResolution) {
+                const z = (view as any).getZoomForResolution(resolution);
+                zoom = z ?? view.getZoom();
+            } else {
+                zoom = view.getZoom();
             }
+        }
+
+        // If zoom is known, enforce min/max window
+        if (zoom !== undefined) {
+            const minZ = minLabelZoom ?? -Infinity; // no lower limit if not set
+            const maxZ = maxLabelZoom ?? +Infinity; // no upper limit if not set
+
+            // Hide labels if outside [minZ, maxZ]
+            if (zoom < minZ || zoom > maxZ) {
+                // @ts-ignore
+                styled.setText(null);
+                return styled;
+            }
+        }
+
+        // OK to draw label here
+        const label = feature.get(labelProperty);
+        if (label !== undefined && label !== null) {
+            const fillColor =
+                baseStyle.getFill()?.getColor()?.toString() ?? "#000";
+            styled.setText(
+                StylingUtils.getTextStyle(String(label), fillColor, textStyle || {})
+            );
         }
 
         return styled;
     }
-
 
     zoomToFeatures() {
         if (this.getSource().getFeatures().length > 0) {
@@ -273,7 +338,7 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
     }
 
     getSource(): VectorSource {
-        //@ts-ignore
+        // @ts-ignore
         return this.getOlLayer().getSource();
     }
 
@@ -287,9 +352,9 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
 
     toGeoJson() {
         const geojsonFormat = new GeoJSON();
-        const features = this.getFeatures()
+        const features = this.getFeatures();
         return geojsonFormat.writeFeaturesObject(features, {
-            featureProjection: 'EPSG:3857', // Change the projection to match your needs
+            featureProjection: "EPSG:3857",
         });
     }
 
@@ -297,11 +362,8 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         const features: Feature<Geometry>[] = this.getFeatures();
         if (!features.length) return [];
 
-        // Extract property names of the first feature
         const names: string[] = Object.keys(features[0].getProperties());
-
-        // Optionally, exclude geometry property if it exists
-        return names.filter(n => n !== features[0].getGeometryName());
+        return names.filter((n) => n !== features[0].getGeometryName());
     }
 
     getFeatureCount() {
@@ -314,17 +376,11 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         return src.getFeatures().includes(feature);
     }
 
-    // removeFeature(feature: Feature): void {
-    //     const src = this.getSource();
-    //     if (!src) return;
-    //     src.removeFeature(feature);
-    // }
-
     removeFeature(feature: Feature): boolean {
         const src = this.getSource();
         if (!src) return false;
 
-        const alreadyInside = src.hasFeature(feature); // or src.getFeatures().includes(feature)
+        const alreadyInside = src.hasFeature(feature);
 
         if (alreadyInside) {
             src.removeFeature(feature);
@@ -334,9 +390,8 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         return false;
     }
 
-
-    addFeature(Feature: Feature) {
-        this.getSource()?.addFeature(Feature);
+    addFeature(feature: Feature) {
+        this.getSource()?.addFeature(feature);
     }
 
     addFeatures(features: Feature[]) {
@@ -350,7 +405,6 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         const features = source.getFeatures();
         if (!features.length) return [];
 
-        // Match by property value (strict equality)
         return features.filter((feature) => {
             const propValue = feature.get(propertyName);
             return propValue === value;
@@ -376,18 +430,21 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
 
         const hitsSet = new Set<Feature>();
 
-        map.forEachFeatureAtPixel(evt.pixel, (featureLike: any, clickedLayer: any) => {
-            if (clickedLayer === layer) {
-                hitsSet.add(featureLike as Feature);
+        map.forEachFeatureAtPixel(
+            evt.pixel,
+            (featureLike: any, clickedLayer: any) => {
+                if (clickedLayer === layer) {
+                    hitsSet.add(featureLike as Feature);
+                }
+            },
+            {
+                layerFilter: (candidateLayer: any) => candidateLayer === layer,
+                hitTolerance: 5,
             }
-        }, {
-            layerFilter: (candidateLayer: any) => candidateLayer === layer, hitTolerance: 5,
-        });
+        );
 
         return Array.from(hitsSet);
     }
-
-
 }
 
 export default OverlayVectorLayer;

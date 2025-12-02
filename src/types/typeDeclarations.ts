@@ -94,7 +94,7 @@ export interface IMapInfo {
     isEditor?: boolean;
 }
 export interface ITextStyle {
-    font?: string;  //"bold 14px Arial"
+    font?: string;            //"bold 14px Arial"
     fillColor?: string;
     strokeColor?: string;
     strokeWidth?: number;

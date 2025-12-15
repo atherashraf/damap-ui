@@ -95,6 +95,21 @@ export { getPointShapes } from './components/map/layer_styling/vector/symbolizer
 export * from './components/map/table/AttributeTable'; // named exports
 export { default as AttributeTable } from './components/map/table/AttributeTable'; // default export
 
+// -------------------------
+// ✅ Attribute Table Toolbar (types + component, if you want to expose it)
+// -------------------------
+export {
+    AttributeTableToolbar,
+} from "./components/map/table/AttributeTableToolbar";
+
+export type {
+    AttributeTableToolbarHandle,
+    AttributeTableToolbarProps,
+    ToolbarEntry,
+    ToolbarSlot,
+} from "./components/map/table/AttributeTableToolbar";
+
+
 
 // -------------------------
 // ✅ Time Slider
@@ -167,4 +182,6 @@ export type { IRule } from './types/typeDeclarations';
 export type { IFilter } from './types/typeDeclarations';
 export type {IGeoJSON} from './types/typeDeclarations';
 export type {IGeoJSONFeature} from './types/typeDeclarations';
-
+export type {Column} from './types/gridTypeDeclaration'
+export type {Row} from './types/gridTypeDeclaration'
+export type {Filter} from './types/gridTypeDeclaration'

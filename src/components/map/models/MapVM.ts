@@ -54,7 +54,7 @@ import timeSliderControl from "@/components/map/time_slider/TimeSliderControl";
 // import proj4 from "proj4";
 // import {register} from "ol/proj/proj4";
 // import {get as getProjection} from "ol/proj";
-import {AttributeTableToolbarHandle} from "@/components/map/table/AttributeTableToolbar";
+import {AttributeTableToolbarHandle, ToolbarEntry, ToolbarSlot} from "@/components/map/table/AttributeTableToolbar";
 import CustomToolManager, {ArmerFn, OLMapEventType} from "@/components/map/manager/CustomToolManager";
 
 
@@ -69,8 +69,6 @@ interface IOverlays {
 interface IXYZLayers {
     [key: string]: XYZLayer
 }
-
-
 
 
 class MapVM {
@@ -96,11 +94,12 @@ class MapVM {
     // private additionalToolbarButtons: JSX.Element[] = [];
     private attributeTableSelectedRowKey: string | null = null;
     private attributeTableScrollTop: number = 0;
-    private selectionLayer: SelectionLayer | undefined ;
+    private selectionLayer: SelectionLayer | undefined;
     private mapToolbar: MapToolbar;
     private _theme: Theme | undefined;
     private _identifierFeatureRenderer: ((feature: Feature<Geometry>) => ReactNode) | null = null;
     public tools: CustomToolManager;
+
 
     constructor(domRef: IDomRef, isDesigner: boolean = false) {
         this._domRef = domRef;
@@ -113,11 +112,9 @@ class MapVM {
             // isCreateMap: (!this.isDesigner && !mapInfo) || mapInfo?.isEditor || false,
         })
         // this.initProjections();
-        this.tools = new CustomToolManager(
-            () => this.getMap?.(),
-            (cursor) => this.setMapCursor(cursor)
-        );
+        this.tools = new CustomToolManager(() => this.getMap?.(), (cursor) => this.setMapCursor(cursor));
     }
+
     /** Safely set the map target’s cursor (uses provided setter if available) */
     public setMapCursor(cursor: string) {
         const t = this.getMap()?.getTargetElement?.();
@@ -253,7 +250,7 @@ class MapVM {
         return this.api;
     }
 
-    getAttributeTableRef(): RefObject<AttributeTableToolbarHandle | null> {
+    getAttributeTableToolbarRef(): RefObject<AttributeTableToolbarHandle | null> {
         return this._domRef.attributeTableToolbarRef
     }
 
@@ -716,6 +713,76 @@ class MapVM {
         };
     }
 
+
+    addAttributeToolbarButton(entry: ToolbarEntry) {
+        /**
+         * mapVM.addAttributeToolbarButton({
+         *   id: "btn-selection",
+         *   slot: "end",
+         *   order: 10,
+         *   node: (
+         *     <Button
+         *       size="small"
+         *       variant="contained"
+         *       onClick={() => mapVM.openSelectionTable(250)}
+         *     >
+         *       Selection
+         *     </Button>
+         *   ),
+         * });
+         */
+        const toolbar = this.getAttributeTableToolbarRef().current;
+        if (!toolbar) return;
+
+        return toolbar.addAction(entry);
+    }
+
+
+
+
+    clearAttributeToolbarButtons(slot?: ToolbarSlot) {
+        this.getAttributeTableToolbarRef().current?.clear(slot);
+    }
+
+
+    openCustomAttributeTable = (args: {
+        columns: Column[]; rows: Row[]; pkCols?: string[]; tableHeight?: number;
+    }) => {
+        /***
+         * mapVM.openCustomAttributeTable({
+         *   columns: [
+         *     { id: "name", label: "Name", disablePadding: false, type: "string" },
+         *     { id: "age", label: "Age", disablePadding: false, type: "number" },
+         *   ],
+         *   rows: [
+         *     { name: "Ali", age: 20 },
+         *     { name: "Sara", age: 22 },
+         *   ],
+         *   // optional, otherwise it auto uses "__rowId"
+         *   pkCols: ["name"],
+         *   tableHeight: 320,
+         * });
+         ***/
+        const bottomDrawer = this.getBottomDrawerRef();
+        const drawerRef = bottomDrawer.current;
+        if (!drawerRef) return;
+
+        const {columns, rows} = args;
+
+        // pkCols: use provided or generate a stable one
+        const pkCols = args.pkCols?.length ? args.pkCols : ["__rowId"];
+
+        const safeRows: Row[] = pkCols[0] === "__rowId" ? rows.map((r: any, i) => ({
+            ...r,
+            __rowId: r.__rowId ?? i + 1
+        })) : rows;
+
+        bottomDrawer.current?.requestAttributeTable({
+            columns, rows: safeRows, pkCols, tableHeight: args.tableHeight ?? 250,
+        });
+    };
+
+
     openAttributeTable = (tableHeight = 250) => {
         try {
             const bottomDrawer = this.getBottomDrawerRef();
@@ -922,7 +989,7 @@ class MapVM {
     //     return false;
     // }
     getViewProjectionCode() {
-       return  this.getMap().getView().getProjection().getCode();
+        return this.getMap().getView().getProjection().getCode();
     }
 
 

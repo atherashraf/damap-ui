@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo, useEffect } from "react";
+import React, {useRef, useState, useMemo, useEffect} from "react";
 import {
     Table,
     TableBody,
@@ -37,6 +37,7 @@ const AttributeTable: React.FC<IDataGridProps> = ({ columns, data, pkCols }: IDa
     const [selectedRowKey, setSelectedRowKey] = useState<string | null>(initialSelectedRowKey);
     const [searchText, setSearchText] = useState("");
     const [headerRaised, setHeaderRaised] = useState(false);
+
 
     const theme = useTheme();
     const [contrastText, setContrastText] = useState(theme.palette.primary.contrastText);
@@ -224,7 +225,7 @@ const AttributeTable: React.FC<IDataGridProps> = ({ columns, data, pkCols }: IDa
         <>
             <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
                 <AttributeTableToolbar
-                    ref={mapVM?.getAttributeTableRef()}
+                    ref={mapVM?.getAttributeTableToolbarRef()}
                     onZoom={handleZoom}
                     onClear={handleClear}
                     onPivot={handlePivot}

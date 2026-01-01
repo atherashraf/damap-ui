@@ -2,7 +2,7 @@ import {mapDivInfo} from "@/components/map/MapView";
 import {alpha, IconButton, useTheme} from "@mui/material";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
-import React, {Fragment, useEffect, useRef, useState} from "react";
+import {Fragment, PropsWithChildren, useEffect, useRef, useState} from "react";
 import {useMapVM} from "@/hooks/MapVMContext";
 import {MapAPIs} from "@/api/MapApi";
 import {IMapInfo} from "@/types/typeDeclarations";
@@ -14,10 +14,10 @@ interface IMapPanelProps {
     isMap: boolean;
     uuid?: string;
     isEditor?: boolean;
-    children?: React.ReactNode; // already for toolbar
 }
 
-const MapPanel = ({isMap, uuid, isEditor, children}: IMapPanelProps) => {
+const MapPanel = ({ isMap, uuid, isEditor, children }: PropsWithChildren<IMapPanelProps>) => {
+
     const theme = useTheme();
     const [isFullscreen, setIsFullscreen] = useState(false);
     const mapVM = useMapVM();

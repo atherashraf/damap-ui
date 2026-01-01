@@ -30,6 +30,8 @@ class IDWLayer extends AbstractOverlayLayer {
     ) {
         super()
         this.mapVM = mapVM;
+        info.declutter ??= true;
+
         this.layerInfo = info;
         if (aoi !== null) {
             this.createClipLayer(aoi);

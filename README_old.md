@@ -194,19 +194,19 @@ import {useTheme} from "@mui/material/styles";
 
 
 const App = () => {
-    const mapUUID = "-1";
-    const theme = useTheme()
-    return (
-        <Box sx={{height: '500px'}}>
-            <MapView uuid={mapUUID} isMap={true} theme={theme}>
-                <AppBar position="static" color="secondary">
-                    <Toolbar variant="dense">
-                            <Button variant="contained">Custom Toolbar Button</Button>
-                    </Toolbar>
-                </AppBar>
-            </MapView>
-        </Box>
-    )
+        const mapUUID = "-1";
+        const theme = useTheme()
+        return (
+                <Box sx={{height: '500px'}}>
+                <MapView uuid={mapUUID} isMap={true} theme={theme}>
+                    <AppBar position="static" color="secondary">
+                        <Toolbar variant="dense">
+                                <Button variant="contained">Custom Toolbar Button</Button>
+                        </Toolbar>
+                    </AppBar>
+                </MapView>
+            </Box>
+        )
 }
 
 export default App;

@@ -518,7 +518,9 @@ class MapVM {
         }
 
     }
-
+    dispatchLayerAddedEvent() {
+        window.dispatchEvent(this._daLayerAddedEvent);
+    }
     getOverlayLayer(key: string) {
         //either name or title of the layer
         return this.overlayLayers[key]
@@ -797,7 +799,7 @@ class MapVM {
 
             if (drawerRef.isOpen()) {
                 if (drawerRef.isHidden?.()) {
-                    drawerRef.handleUnhide?.();
+                    drawerRef.unhideDrawer();
                 }
                 return;
             }

@@ -80,7 +80,7 @@ const AttributeTable: React.FC<IDataGridProps> = ({ columns, data, pkCols }: IDa
 
     const handleRowDoubleClick = (row: Row) => {
         const bottomDrawer = mapVM.getBottomDrawerRef();
-        bottomDrawer.current?.handleHide();
+        bottomDrawer.current?.hideDrawer();
         handleRowSelect(row);
         mapVM.getSelectionLayer()?.zoomToSelection();
     };
@@ -111,7 +111,7 @@ const AttributeTable: React.FC<IDataGridProps> = ({ columns, data, pkCols }: IDa
 
     const handleZoom = () => {
         const bottomDrawer = mapVM.getBottomDrawerRef();
-        bottomDrawer.current?.handleHide?.();
+        bottomDrawer.current?.unhideDrawer();
         mapVM.getSelectionLayer()?.zoomToSelection();
     };
 
@@ -123,7 +123,7 @@ const AttributeTable: React.FC<IDataGridProps> = ({ columns, data, pkCols }: IDa
     };
 
     const handlePivot = async () => {
-        mapVM.getBottomDrawerRef().current?.handleHide?.();
+        mapVM.getBottomDrawerRef().current?.hideDrawer();
         const appDialogRef = mapVM.getDialogBoxRef();
         appDialogRef?.current?.openDialog({
             title: "Pivot Table",

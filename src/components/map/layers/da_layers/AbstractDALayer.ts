@@ -29,7 +29,10 @@ class AbstractDALayer {
 
     constructor(info: ILayerInfo, mapVM: MapVM) {
         autoBind(this);
+        info.declutter ??= true;
+
         this.layerInfo = info;
+
         this.mapVM = mapVM;
         //@ts-ignore
         this.uuid = info && "uuid" in info && info["uuid"];

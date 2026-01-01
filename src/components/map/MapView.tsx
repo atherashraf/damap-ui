@@ -1,21 +1,22 @@
-import React, { useRef} from "react";
+import {useEffect, useLayoutEffect, useMemo, useRef, useState} from "react";
 
 import DADialogBox, {DADialogBoxHandle} from "@/components/base/DADialogBox";
-import DASnackbar  from "@/components/base/DASnackbar";
+import DASnackbar from "@/components/base/DASnackbar";
 import DAMapLoading, {DAMapLoadingHandle} from "@/components/map/widgets/DAMapLoading";
 import {IDomRef} from "@/types/typeDeclarations";
 
 import BottomDrawer, {BottomDrawerHandle} from "@/components/map/drawers/BottomDrawer";
-import RightDrawer, { RightDrawerHandle } from "@/components/map/drawers/RightDrawer";
+import RightDrawer, {RightDrawerHandle} from "@/components/map/drawers/RightDrawer";
 import LeftDrawer, {LeftDrawerHandle} from "./drawers/LeftDrawer";
-import {Paper, Theme, useTheme} from "@mui/material";
+
+import {Box, Paper, Theme, useTheme} from "@mui/material";
 import CustomAlertBox from "@/components/base/CustomAlertBox";
 import {MapVMProvider} from "@/hooks/MapVMContext";
 import MapPanel from "@/components/map/MapPanel";
 import {ThemeProvider} from "@mui/material/styles";
-import 'ol/ol.css';
-import 'ol-ext/dist/ol-ext.css';
 
+import "ol/ol.css";
+import "ol-ext/dist/ol-ext.css";
 
 import ContextMenu, {ContextMenuHandle} from "@/components/map/layer_switcher/ContextMenu";
 import {snackbarRef} from "@/utils/snackbarRef";
@@ -23,93 +24,177 @@ import {IdentifyResultHandle} from "@/components/map/widgets/IdentifyResult";
 import {TimeSliderHandle} from "@/components/map/time_slider/TimeSlider";
 import {AttributeTableToolbarHandle} from "@/components/map/table/AttributeTableToolbar";
 
-
 interface MapLayoutProps {
     uuid?: string;
     isMap?: boolean;
     theme?: Theme;
+    height?: string | number;
     children?: React.ReactNode;
 }
 
 export const mapDivInfo = {
-    mapDivId: "map",
-    minMapHeight: 300,
-    maxMapHeight: "100vh",
+    mapDivId: "map", minMapHeight: 300, maxMapHeight: "100vh",
 };
 
 const MapView: React.FC<React.PropsWithChildren<MapLayoutProps>> = ({
+                                                                        height="100%",
                                                                         uuid = "-1",
                                                                         isMap = true,
-                                                                        children,
-                                                                        theme
+                                                                        children, theme
                                                                     }) => {
     const mapDivId = mapDivInfo.mapDivId;
+    const mapWrapRef = useRef<HTMLDivElement | null>(null);
+    const [padding, setPadding] = useState({left: 0, right: 0, bottom: 0});
+    const [drawerSizes, setDrawerSizes] = useState({left: 0, right: 0, bottom: 0});
+
+    useEffect(() => {
+        const handler = (e: Event) => {
+            const ce = e as CustomEvent<{ side: "left" | "right" | "bottom"; size: number }>;
+            const {side, size} = ce.detail;
+            setDrawerSizes((prev) => ({...prev, [side]: size}));
+        };
+
+        window.addEventListener("drawerLayout", handler as EventListener);
+        return () => window.removeEventListener("drawerLayout", handler as EventListener);
+    }, []);
 
 
-    const domRefs: IDomRef = {
-        rightDrawerRef: useRef<RightDrawerHandle>(null),
-        leftDrawerRef: useRef<LeftDrawerHandle>(null),
-        bottomDrawerRef: useRef<BottomDrawerHandle>(null),
-        dialogBoxRef: useRef<DADialogBoxHandle>(null),
-        timeSliderRef: useRef<TimeSliderHandle>(null),
-        snackBarRef: snackbarRef,
-        loadingRef: useRef<DAMapLoadingHandle>(null),
-        identifyResultRef: useRef<IdentifyResultHandle>(null),
-        contextMenuRef: useRef<ContextMenuHandle>(null),
-        attributeTableToolbarRef: useRef<AttributeTableToolbarHandle>(null)
-    };
+    useLayoutEffect(() => {
+        const el = mapWrapRef.current;
+        if (!el) return;
 
-    // const mapVMRef = useRef<MapVM | null>(null);
-    // if (!mapVMRef.current) {
-    //     mapVMRef.current = new MapVM(domRefs, isDesigner);
-    // }
+        const compute = () => {
+            const r = el.getBoundingClientRect();
+            const leftPad = Math.max(0, drawerSizes.left - r.left);
+            const rightPad = Math.max(0, drawerSizes.right - (window.innerWidth - r.right));
+            const bottomPad = Math.max(0, drawerSizes.bottom - (window.innerHeight - r.bottom));
 
-    const th = theme ? theme: useTheme()
+            setPadding((prev) => {
+                const next = {
+                    left: Math.round(leftPad),
+                    right: Math.round(rightPad),
+                    bottom: Math.round(bottomPad),
+                };
+                return (prev.left === next.left && prev.right === next.right && prev.bottom === next.bottom)
+                    ? prev
+                    : next;
+            });
 
-    return (
+        };
 
-        <MapVMProvider domRef={domRefs}>
+        compute();
+
+        const onResize = () => compute();
+        const onScroll = () => compute();
+
+        window.addEventListener("resize", onResize);
+        window.addEventListener("scroll", onScroll, true);
+
+        const ro = new ResizeObserver(compute);
+        ro.observe(el);
+
+        return () => {
+            window.removeEventListener("resize", onResize);
+            window.removeEventListener("scroll", onScroll, true);
+            ro.disconnect();
+        };
+    }, [drawerSizes.left, drawerSizes.right, drawerSizes.bottom]);
+
+
+    // useEffect(() => {
+    //     const handler = (e: any) => {
+    //         const { side, size } = e.detail as { side: "left" | "right" | "bottom"; size: number };
+    //
+    //         setOffsets((prev) => ({ ...prev, [side]: size }));
+    //     };
+    //
+    //     window.addEventListener("drawerLayout", handler);
+    //     return () => window.removeEventListener("drawerLayout", handler);
+    // }, []);
+
+    const rightDrawerRef = useRef<RightDrawerHandle>(null);
+    const leftDrawerRef = useRef<LeftDrawerHandle>(null);
+    const bottomDrawerRef = useRef<BottomDrawerHandle>(null);
+    const dialogBoxRef = useRef<DADialogBoxHandle>(null);
+    const timeSliderRef = useRef<TimeSliderHandle>(null);
+    const loadingRef = useRef<DAMapLoadingHandle>(null);
+    const identifyResultRef = useRef<IdentifyResultHandle>(null);
+    const contextMenuRef = useRef<ContextMenuHandle>(null);
+    const attributeTableToolbarRef = useRef<AttributeTableToolbarHandle>(null);
+
+    const domRefs: IDomRef = useMemo(
+        () => ({
+            rightDrawerRef,
+            leftDrawerRef,
+            bottomDrawerRef,
+            dialogBoxRef,
+            timeSliderRef,
+            snackBarRef: snackbarRef,
+            loadingRef,
+            identifyResultRef,
+            contextMenuRef,
+            attributeTableToolbarRef,
+        }),
+        []
+    );
+
+
+    const th = theme ? theme : useTheme();
+
+    return (<MapVMProvider domRef={domRefs}>
             <ThemeProvider theme={th}>
-                <div
+                {/* Use 100vh so layout is stable even if parents don't set height */}
+                <Box
                     id="fullscreen"
-                    style={{
+                    sx={{
                         display: "flex",
                         width: "100%",
-                        height: "100%",
+                        height: height,
                         flexDirection: "row",
                         position: "relative",
+                        overflow: "hidden",
                     }}
                 >
                     <LeftDrawer ref={domRefs.leftDrawerRef}/>
 
-                    <Paper
-                        sx={{
-                            flex: 1,
-                            height: "100%",
-                            position: "relative",
-                            overflow: "hidden",
-                        }}
-                        elevation={6}
-                    >
-                        <CustomAlertBox/>
+                    {/* Map container */}
+                    <Paper sx={{flex: 1, height: "100%", position: "relative", overflow: "hidden"}} elevation={6}>
+                        <Box
+                            ref={mapWrapRef}
+                            sx={{
+                                position: "relative",
+                                height: "100%",
+                                width: "100%",
+                                pl: `${padding.left}px`,
+                                pr: `${padding.right}px`,
+                                pb: `${padding.bottom}px`,
+                                boxSizing: "border-box",
+                            }}
+                        >
 
-                        <MapPanel children={children} isMap={isMap} uuid={uuid}/>
+                            <CustomAlertBox/>
+
+                            <MapPanel isMap={isMap} uuid={uuid}>
+                                {children}
+                            </MapPanel>
+
+                        </Box>
 
                         <BottomDrawer ref={domRefs.bottomDrawerRef} target={mapDivId}/>
                     </Paper>
 
 
-                    <RightDrawer ref={domRefs.rightDrawerRef} />
+                    <RightDrawer ref={domRefs.rightDrawerRef}/>
 
+                    {/* Global overlays */}
                     <DADialogBox ref={domRefs.dialogBoxRef}/>
                     <DASnackbar ref={domRefs.snackBarRef}/>
                     <DAMapLoading ref={domRefs.loadingRef}/>
                     <ContextMenu ref={domRefs.contextMenuRef}/>
-                </div>
+                </Box>
             </ThemeProvider>
-        </MapVMProvider>
-
-    );
+        </MapVMProvider>);
 };
 
+//@ts-ignore
 export default MapView;

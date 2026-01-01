@@ -116,7 +116,7 @@ const MapOverlayer = () => {
 
 
     return (
-        <Paper elevation={3} sx={{ m: 0, height: '100%', overflow: 'hidden' }}>
+        <Paper elevation={3} sx={{ m: 0, height: "100%", overflow: 'auto' }}>
             <MapView theme={theme}>
                <CustomAppBar />
             </MapView>

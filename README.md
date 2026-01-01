@@ -107,23 +107,22 @@ createRoot(document.getElementById('root')!).render(
 ## 🗺️ MapView – Minimal Example
 
 ```tsx
-import { Box, AppBar, Toolbar, Button } from '@mui/material';
+import { Paper, AppBar, Toolbar, Button } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { MapView } from 'damap';
 
 export default function App() {
   const theme = useTheme();
 
-  return (
-    <Box sx={{ height: 500 }}>
-      <MapView uuid="-1" isMap theme={theme}>
+  return (<Paper elevation={3} sx={{ m: 0, height: '100%', overflow: 'auto' }}>
+      <MapView uuid="-1" isMap theme={theme} height="100%">
         <AppBar position="static" color="secondary">
           <Toolbar variant="dense">
             <Button variant="contained">Custom Toolbar Button</Button>
           </Toolbar>
         </AppBar>
       </MapView>
-    </Box>
+    </Paper>
   );
 }
 ```

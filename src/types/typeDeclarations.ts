@@ -73,7 +73,7 @@ export interface ILayerInfo {
     layerSetting?: any
     format?: string
     zIndex?: number
-    declutter: boolean
+    declutter?: boolean
     dateRangeURL?: string
 }
 

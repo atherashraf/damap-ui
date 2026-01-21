@@ -16,12 +16,14 @@ export default function MapAdmin() {
             {name: "Overlay testing", href: "/MapOverlays"},
             {name: "Customize Attributes Table", href: "/CustomizeAttributeTable"},
             {name: "Test IDW Layer", href: "/TestIDWLayer"},
+            {name: "GIS Viewer", href: "/GISViewer"}
         ],
     };
     return (
         <>
             {Object.keys(items).map((key) => (
-                <Accordion key={"accordion-" + key} expanded={true}>
+                <Accordion key={"accordion-" + key} sx={{backgroundColor:"#504f4f",
+                    fontSize:"20px", fontFamily:"San Serif"}} expanded={true}>
                     <AccordionSummary
                         key={"accordion-summary-" + key}
                         expandIcon={<ExpandMoreIcon/>}

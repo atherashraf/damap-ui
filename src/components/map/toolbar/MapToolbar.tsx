@@ -96,9 +96,11 @@ class MapToolbar extends Control {
      * @param instance The instance of MapToolbarHandle (from MapToolbarContainer).
      */
     private handleContainerRefReady = (instance: MapToolbarHandle | null) => {
+        console.log("MapToolbarContainer ready:", instance);
         this._toolbarContainerRefObject.current = instance;
 
         if (instance) {
+            console.log("Dispatching event to parent window:", instance);
             const event = new CustomEvent("mapToolbarContainerReady", { detail: instance });
             window.dispatchEvent(event);
         }

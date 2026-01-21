@@ -73,6 +73,9 @@ export const MapAPIs = Object.freeze({
     FF_FLOW_NETWORK_GRAPH: "api/ff/flow_network_graph/",
 
     // LBDC_DISCHARGE:"https://irrigation.punjab.gov.pk/admin/api/fetch_LBDC_Discharge.php?"
+
+    PDMA_DCH_UPLOAD_RASTER:"api/layers/rasters/upload_raster/",
+    PDMA_DCH_RASTER_TMS: "api/layers/raster_tms/{uuid}",
 });
 
 

@@ -149,9 +149,12 @@ mapVM.zoomToFullExtent();
 
 ---
 
-## 🧰 Toolbar System
+# 🧰 Toolbar System
 
-### Dynamic Toolbar Buttons
+## Dynamic Toolbar Buttons
+
+* Used when `MapToolbarContainer` is rendered directly
+* Buttons are known at render time
 
 ```tsx
 <MapToolbarContainer
@@ -161,6 +164,196 @@ mapVM.zoomToFullExtent();
 ```
 
 ---
+
+## Event-Based Toolbar Injection
+
+* Used when toolbar lives outside `MapView`
+* Supports late binding
+* Avoids initialization race conditions
+
+---
+
+### mapToolbarContainerReady
+
+```ts
+window.dispatchEvent(
+  new CustomEvent<MapToolbarHandle>("mapToolbarContainerReady", {
+    detail: toolbarHandle,
+  })
+);
+```
+
+---
+
+### Inject Toolbar Button
+
+```tsx
+import { Toolbar } from "@mui/material";
+import { useEffect } from "react";
+import { useMapVM, MapToolbarHandle } from "damap";
+
+const GISViewerToolbar = () => {
+  const mapVM = useMapVM();
+
+  useEffect(() => {
+    if (!mapVM) return;
+
+    const handleToolbarReady = (e: Event) => {
+      const customEvent = e as CustomEvent<MapToolbarHandle>;
+      const toolbar = customEvent.detail;
+
+      toolbar.addButton(<AddLabel mapVM={mapVM} />);
+    };
+
+    window.addEventListener("mapToolbarContainerReady", handleToolbarReady);
+    return () => {
+      window.removeEventListener("mapToolbarContainerReady", handleToolbarReady);
+    };
+  }, [mapVM]);
+
+  return (
+    <Toolbar sx={{ justifyContent: "center" }}>
+      <h2>GIS Viewer Toolbar</h2>
+    </Toolbar>
+  );
+};
+
+export default GISViewerToolbar;
+```
+
+---
+
+### Toolbar Injection Flow
+
+* `MapView` initializes toolbar
+* `mapToolbarContainerReady` is emitted
+* `MapToolbarHandle` is received
+* Buttons are injected via:
+
+```ts
+toolbar.addButton(node);
+```
+
+---
+
+# 🛠️ Custom Tools
+
+## Access mapVM.tools
+
+```ts
+import { useMapVM } from "damap";
+
+const mapVM = useMapVM();
+// mapVM.tools → CustomToolManager
+```
+
+---
+
+## Tool Features
+
+* Exclusive tool activation
+* OpenLayers listener cleanup
+* ESC-to-cancel (default)
+* Message chip support
+* Cursor control
+
+---
+
+## tools.activateCustomExclusive
+
+```ts
+mapVM.tools.activateCustomExclusive(
+  "measure",
+  (on) => {
+    on("click", (evt) => console.log(evt.coordinate));
+    on("pointermove", (evt) => console.log("moving", evt.coordinate));
+  },
+  "crosshair",
+  {
+    message: { text: "Measuring: click to start", severity: "info" },
+    // esc: { enabled: true, onEsc: () => console.log("ESC pressed") }
+  }
+);
+```
+
+---
+
+## ToolOptions
+
+```ts
+type ToolOptions = {
+  message?: {
+    text: string | ReactNode;
+    severity?: "info" | "success" | "warning" | "error";
+    actions?: MapMessageAction[];
+  };
+  esc?: {
+    enabled?: boolean;
+    onEsc?: () => void;
+  };
+};
+```
+
+---
+
+## tools.offCustomTool
+
+```ts
+mapVM.tools.offCustomTool("measure");
+```
+
+```ts
+mapVM.tools.offCustomTool("measure", false);
+```
+
+---
+
+## Complete Example
+
+```tsx
+import { Button } from "@mui/material";
+import { useMapVM } from "damap";
+
+export function MeasureButton() {
+  const mapVM = useMapVM();
+
+  return (
+    <Button
+      size="small"
+      variant="contained"
+      onClick={() => {
+        if (!mapVM) return;
+
+        mapVM.tools.activateCustomExclusive(
+          "measure",
+          (on) => {
+            on("click", (e) => console.log("clicked:", e.coordinate));
+            on("pointermove", (e) => console.log("moving:", e.coordinate));
+          },
+          "crosshair",
+          {
+            message: { text: "Measuring: click on map to start", severity: "info" },
+            esc: { enabled: true },
+          }
+        );
+      }}
+    >
+      Measure
+    </Button>
+  );
+}
+```
+
+---
+
+## MapVM Facade Methods
+
+```ts
+mapVM.activateCustomExclusive(toolId, armer, cursor);
+mapVM.offCustomTool(toolId);
+mapVM.offAllCustom();
+```
+
 
 ## 🧾 Attribute Table – Custom Data
 

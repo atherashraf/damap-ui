@@ -49,15 +49,16 @@ class RasterTileLayer extends AbstractDALayer {
 
 
   setDataSource() {
-    const url = MapApi.getURL(MapAPIs.DCH_LAYER_RASTER, {
+    const url = this.layerInfo.dataURL || MapApi.getURL(MapAPIs.DCH_LAYER_RASTER, {
       uuid: this.layerInfo.uuid,
     });
+   console.log("url", url)
     this.dataSource = new XYZ({
       // url: 'https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?' +
       //     'apikey=873e70e2e69e4a36ae3f2c525f19425e'
       attributions: "Digital Arz Raster Tile Layer",
       url: `${url}/{z}/{x}/{y}`,
-      crossOrigin: 'anonymous',
+      // crossOrigin: 'anonymous',
       // tileLoadFunction: (imageTile, src) => {
       //     console.log("src", src)
       //     // imageTile.getImage().src = src;

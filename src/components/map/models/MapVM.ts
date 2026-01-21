@@ -604,6 +604,12 @@ class MapVM {
         }
     }
 
+    addRasterLayer(layerInfo: ILayerInfo){
+        const daLayer = new RasterTileLayer(layerInfo, this);
+        this.daLayers[layerInfo.uuid] = daLayer;
+        window.dispatchEvent(this._daLayerAddedEvent);
+    }
+
     getDALayer(layerId: string | undefined): any {
         if (layerId) return this.daLayers[layerId]
         return undefined;

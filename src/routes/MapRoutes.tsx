@@ -5,6 +5,7 @@ import MapInfoAdmin from "@/pages/admin/MapInfoAdmin";
 import MapOverlayer from "@/pages/MapOverlayer";
 import CustomizeAttributeTable from "@/pages/CustomizeAttributeTable";
 import TestIDWLayer from "@/pages/TestIDWLayer";
+import GISViewer from "@/pages/GISViewer";
 
 
 
@@ -15,6 +16,8 @@ const LayerDesigner = React.lazy(() => import("@/pages/LayerDesigner"));
 const LayerInfoAdmin = React.lazy(() => import("@/pages/admin/LayerInfoAdmin"));
 const DAMap = React.lazy(() => import("@/pages/DAMap"));
 const LoginForm = React.lazy(() => import("@/components/auth/LoginForm"));
+// const GISViewer = React.lazy(() => import("@/pages/GISViewer"));
+
 
 const MapRoutes = () => (
     <Suspense fallback={<div style={{padding: "1rem", color: "white"}}>Loading Routes...</div>}>
@@ -32,8 +35,9 @@ const MapRoutes = () => (
                 <Route path={"MapOverlays"} element={<MapOverlayer/>} />
                 <Route path={"CustomizeAttributeTable"} element={<CustomizeAttributeTable />} />
                 <Route path={"TestIDWLayer"} element={<TestIDWLayer />} />
-            </Route>
 
+            </Route>
+            <Route path={"/GISViewer"} element={<GISViewer />} />
             {/*<Route path="*" element={<Navigate to="/" replace />} />*/}
             {/*<Route path="*" element={<Navigate to="/login" replace />} />*/}
 

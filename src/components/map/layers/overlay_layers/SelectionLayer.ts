@@ -265,21 +265,6 @@ class SelectionLayer extends AbstractOverlayLayer {
         }
     }
 
-    // zoomToFeatures() {
-    //     const features = this.getSource()?.getFeatures() || [];
-    //
-    //     const validExtents = features
-    //         .map(f => f.getGeometry()?.getExtent())
-    //         .filter((ext): ext is [number, number, number, number] => !!ext && ext.every((v) => Number.isFinite(v)));
-    //
-    //     if (validExtents.length > 0) {
-    //         const [minX, minY, maxX, maxY] = validExtents.reduce((acc, curr) => [Math.min(acc[0], curr[0]), Math.min(acc[1], curr[1]), Math.max(acc[2], curr[2]), Math.max(acc[3], curr[3]),]);
-    //         const bufferedExtent = buffer([minX, minY, maxX, maxY], 20000);
-    //         this.mapVM.zoomToExtent(bufferedExtent);
-    //     } else {
-    //         this.mapVM.showSnackbar("No valid features to zoom to", "warning");
-    //     }
-    // }
 
 }
 

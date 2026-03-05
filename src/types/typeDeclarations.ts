@@ -118,6 +118,9 @@ export interface IGeomStyle {
     strokeWidth?: number;
     fillColor?: string;
     pointIconSrc?: string;
+
+    lineDash?: number[];       // e.g. [8, 6]
+    lineDashOffset?: number;   // optional
 }
 
 export interface IFilter {

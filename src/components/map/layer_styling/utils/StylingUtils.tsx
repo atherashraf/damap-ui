@@ -33,6 +33,8 @@ class StylingUtils {
                         stroke: new Stroke({
                             color: style.strokeColor,
                             width: style.strokeWidth,
+                            lineDash: style.lineDash,               // ✅ add
+                            lineDashOffset: style.lineDashOffset,   // ✅ optional
                         }),
                         fill: new Fill({
                             color: style.fillColor, //"rgba(255, 255, 0, 0.1)"
@@ -45,6 +47,8 @@ class StylingUtils {
                         stroke: new Stroke({
                             color: style.strokeColor,
                             width: style.strokeWidth,
+                            lineDash: style.lineDash,               // ✅ add
+                            lineDashOffset: style.lineDashOffset,   // ✅ optional
                         }),
                     });
                     break;

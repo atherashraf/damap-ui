@@ -6,39 +6,69 @@ import {
     List,
     ListItem,
     Typography,
+    Link
 } from "@mui/material";
 
 export default function MapAdmin() {
+
     const items = {
         DCH: [
-            {name: "Layer Info", href: "/LayerInfo"},
-            {name: "Map Info", href: "/MapInfo"},
-            {name: "Overlay testing", href: "/MapOverlays"},
-            {name: "Customize Attributes Table", href: "/CustomizeAttributeTable"},
-            {name: "Test IDW Layer", href: "/TestIDWLayer"},
-            {name: "GIS Viewer", href: "/GISViewer"}
+            { name: "Layer Info", href: "/LayerInfo" },
+            { name: "Map Info", href: "/MapInfo" },
+            { name: "Overlay testing", href: "/MapOverlays" },
+            { name: "Customize Attributes Table", href: "/CustomizeAttributeTable" },
+            { name: "Test IDW Layer", href: "/TestIDWLayer" },
+            { name: "GIS Viewer", href: "/GISViewer" },
+            {name: "Geoserver Test", href: "/GeoserverTest" }
         ],
     };
+
     return (
         <>
             {Object.keys(items).map((key) => (
-                <Accordion key={"accordion-" + key} sx={{backgroundColor:"#504f4f",
-                    fontSize:"20px", fontFamily:"San Serif"}} expanded={true}>
+                <Accordion
+                    key={"accordion-" + key}
+                    expanded={true}
+                    sx={{
+                        backgroundColor: "#2f2f2f",
+                        color: "#ffffff",
+                        mb: 1
+                    }}
+                >
                     <AccordionSummary
-                        key={"accordion-summary-" + key}
-                        expandIcon={<ExpandMoreIcon/>}
-                        aria-controls="panel1a-content"
-                        id="panel1a-header"
+                        expandIcon={<ExpandMoreIcon sx={{ color: "#ffffff" }} />}
                     >
-                        <Typography key={"typo-" + key}>{key}</Typography>
+                        <Typography
+                            sx={{
+                                fontSize: "18px",
+                                fontWeight: 600,
+                                fontFamily: "sans-serif"
+                            }}
+                        >
+                            {key}
+                        </Typography>
                     </AccordionSummary>
-                    <AccordionDetails key={"accordion-detail-" + key}>
-                        <List key={"accordion-list-" + key}>
+
+                    <AccordionDetails>
+                        <List>
                             {
                                 //@ts-ignore
                                 items[key].map((item: any) => (
-                                    <ListItem key={item.name}>
-                                        <a href={item.href}>{item.name}</a>
+                                    <ListItem key={item.name} sx={{ py: 0.5 }}>
+                                        <Link
+                                            href={item.href}
+                                            underline="none"
+                                            sx={{
+                                                color: "#90caf9",
+                                                fontSize: "1.3rem",
+                                                "&:hover": {
+                                                    color: "#42a5f5",
+                                                    textDecoration: "underline"
+                                                }
+                                            }}
+                                        >
+                                            {item.name}
+                                        </Link>
                                     </ListItem>
                                 ))
                             }
@@ -49,6 +79,3 @@ export default function MapAdmin() {
         </>
     );
 }
-
-
-

@@ -6,6 +6,7 @@ import MapOverlayer from "@/pages/MapOverlayer";
 import CustomizeAttributeTable from "@/pages/CustomizeAttributeTable";
 import TestIDWLayer from "@/pages/TestIDWLayer";
 import GISViewer from "@/pages/GISViewer";
+import GeoServerTest from "@/pages/GeoserverTest";
 
 
 
@@ -32,11 +33,12 @@ const MapRoutes = () => (
                 <Route path="designer/:layerId/" element={<AuthGuard><LayerDesigner /></AuthGuard>} />
                 <Route path="ViewMap/:mapId/" element={<DAMap />} />
                 <Route path="EditMap/:mapId/" element={<MapEditor />} />
-                <Route path={"MapOverlays"} element={<MapOverlayer/>} />
+                <Route path={"MapOverlays"} element={<MapOverlayer />} />
                 <Route path={"CustomizeAttributeTable"} element={<CustomizeAttributeTable />} />
                 <Route path={"TestIDWLayer"} element={<TestIDWLayer />} />
 
             </Route>
+            <Route path={"/GeoserverTest"} element={<GeoServerTest />} />
             <Route path={"/GISViewer"} element={<GISViewer />} />
             {/*<Route path="*" element={<Navigate to="/" replace />} />*/}
             {/*<Route path="*" element={<Navigate to="/login" replace />} />*/}

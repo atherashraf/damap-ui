@@ -65,6 +65,34 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         StylingUtils.addLegendGraphic(this.olLayer, this.layerInfo.style, gtype);
     }
 
+    setStyle(style: IFeatureStyle, refreshLegend: boolean = true) {
+        if (!this.layerInfo) return;
+
+        this.layerInfo.style = style;
+
+        // Re-attach style function (not strictly required if it already points to this.vectorStyleFunction,
+        // but safe if you ever swapped styles elsewhere)
+        // @ts-ignore
+        this.olLayer.setStyle(this.vectorStyleFunction);
+
+        // Force redraw
+        this.forcedRefresh();
+
+        // Optional: update legend graphic
+        if (refreshLegend) {
+            const gtype = this.getGeometryType();
+            StylingUtils.addLegendGraphic(this.olLayer, this.layerInfo.style, gtype);
+        }
+    }
+
+    /**
+     * Merge/patch style (handy if you only want to tweak a few props)
+     */
+    updateStyle(partial: Partial<IFeatureStyle>, refreshLegend: boolean = true) {
+        const current = this.layerInfo?.style ?? ({} as IFeatureStyle);
+        this.setStyle({ ...current, ...partial } as IFeatureStyle, refreshLegend);
+    }
+
     getLayerUUID(): string {
         return this.layerInfo.uuid;
     }

@@ -51,19 +51,18 @@ import {Geometry} from "ol/geom";
 import TimeSliderControl from "@/components/map/time_slider/TimeSliderControl";
 import timeSliderControl from "@/components/map/time_slider/TimeSliderControl";
 
-// import proj4 from "proj4";
-// import {register} from "ol/proj/proj4";
-// import {get as getProjection} from "ol/proj";
+
 import {AttributeTableToolbarHandle, ToolbarEntry, ToolbarSlot} from "@/components/map/table/AttributeTableToolbar";
 import CustomToolManager, {ArmerFn, OLMapEventType} from "@/components/map/manager/CustomToolManager";
-
+import WMSLayer, {IGeoServerWMSInfo} from "@/components/map/layers/overlay_layers/WMSLayer";
+import WFSLayer, {IGeoServerWFSInfo} from "@/components/map/layers/overlay_layers/WFSLayer";
 
 export interface IDALayers {
     [key: string]: AbstractDALayer;
 }
 
 interface IOverlays {
-    [key: string]: OverlayVectorLayer | IDWLayer | SelectionLayer;
+    [key: string]: OverlayVectorLayer | IDWLayer | SelectionLayer | WMSLayer | WFSLayer;
 }
 
 interface IXYZLayers {
@@ -499,7 +498,7 @@ class MapVM {
     }
 
 
-    addOverlayLayer(overlayLayer: IDWLayer | OverlayVectorLayer | SelectionLayer) {
+    addOverlayLayer(overlayLayer: IDWLayer | OverlayVectorLayer | SelectionLayer | WMSLayer | WFSLayer) {
 
         const layer = overlayLayer.olLayer
         const key: string = layer.get("name")
@@ -513,14 +512,19 @@ class MapVM {
             this.overlayLayers[key] = overlayLayer;
             this.map.addLayer(layer);
         }
-        if (overlayLayer instanceof OverlayVectorLayer && layer.get("displayInLayerSwitcher") == true) {
+        // if (overlayLayer instanceof OverlayVectorLayer && layer.get("displayInLayerSwitcher") == true) {
+        //     window.dispatchEvent(this._daLayerAddedEvent);
+        // }
+        if (layer.get("displayInLayerSwitcher") == true) {
             window.dispatchEvent(this._daLayerAddedEvent);
         }
 
     }
+
     dispatchLayerAddedEvent() {
         window.dispatchEvent(this._daLayerAddedEvent);
     }
+
     getOverlayLayer(key: string) {
         //either name or title of the layer
         return this.overlayLayers[key]
@@ -604,7 +608,7 @@ class MapVM {
         }
     }
 
-    addRasterLayer(layerInfo: ILayerInfo){
+    addRasterLayer(layerInfo: ILayerInfo) {
         const daLayer = new RasterTileLayer(layerInfo, this);
         this.daLayers[layerInfo.uuid] = daLayer;
         window.dispatchEvent(this._daLayerAddedEvent);
@@ -746,8 +750,6 @@ class MapVM {
     }
 
 
-
-
     clearAttributeToolbarButtons(slot?: ToolbarSlot) {
         this.getAttributeTableToolbarRef().current?.clear(slot);
     }
@@ -843,6 +845,16 @@ class MapVM {
 
             } else if (this.isOverlayLayerExist(uuid)) {
                 const overlayLayer = this.getOverlayLayer(uuid);
+
+                // ✅ WMS is image-only: no client-side features => no attribute table
+                if (overlayLayer instanceof WMSLayer) {
+                    this.showSnackbar(
+                        "Attribute Table is not supported for WMS layers (image overlay). Use Identify (GetFeatureInfo) instead.",
+                        "info",
+                        5000
+                    );
+                    return;
+                }
                 const features = overlayLayer.getFeatures();
                 const columns: Column[] = [];
                 const rows: Row[] = [];
@@ -927,6 +939,31 @@ class MapVM {
             }
         };
     }
+
+
+    createWFSLayer(info: IGeoServerWFSInfo) {
+        if (this.isOverlayLayerExist(info.uuid)) return false;
+        new WFSLayer(info, this);
+        return true;
+    }
+
+
+    createWMSLayer(info: IGeoServerWMSInfo): boolean {
+        const uuid = info.uuid;
+        if (!uuid) {
+            console.warn("createWMSLayer: uuid is required");
+            return false;
+        }
+
+        if (this.isOverlayLayerExist(uuid)) return false;
+        //@ts-ignore
+        const wms = new WMSLayer(info, this);
+
+        this.dispatchLayerAddedEvent();
+
+        return true;
+    }
+
 
 
     createOverlayLayer(uuid: string, geoJSON: IGeoJSON, title: string, style?: IFeatureStyle): boolean {

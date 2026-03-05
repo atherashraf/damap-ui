@@ -1,13 +1,140 @@
-/***
- * Label zoom control examples:
+/**
+ * OverlayVectorLayer (Vector Overlay)
+ * ==================================
+ * A reusable OpenLayers Vector overlay wrapper for DAMap.
  *
- * // 1) Labels from zoom 17 upwards (no upper limit)
- * overlay.updateLabelOptions("name", { font: "bold 12px Arial" }, true, 17);
+ * Features:
+ * - Add GeoJSON / WKT features.
+ * - Apply styles (single / multiple / density) using IFeatureStyle.
+ * - Update style after layer creation (setStyle / updateStyle).
+ * - Optional labels with TextStyle + zoom window control (minLabelZoom / maxLabelZoom).
+ * - Identify features on click (identifyFeature).
+ * - Extent utilities (getExtent / zoomToFeatures).
  *
- * // 2) Labels only between zoom 14 and 18
- * overlay.updateLabelOptions("name", { font: "bold 12px Arial" }, true, 14, 18);
+ * -----------------------------------------------------------------------------
+ * QUICK USAGE (React) - Same pattern as your MapOverlayer example
+ * -----------------------------------------------------------------------------
  *
- ***/
+ * @example
+ * import { useEffect, RefObject } from "react";
+ * import { getMapVM, MapVM, MapView, useMapVM, ContextMenuHandle, IFeatureStyle } from "@/damap";
+ * import OverlayVectorLayer from "@/components/map/layers/overlay_layers/OverlayVectorLayer";
+ * import { ITextStyle } from "@/types/typeDeclarations";
+ *
+ * const MyOverlayExample = () => {
+ *   const mapVM = useMapVM();
+ *   const pakLayerUUID = MapVM.generateUUID();
+ *   const provinceLayerUUID = MapVM.generateUUID();
+ *
+ *   // 1) Add boundary GeoJSON, then update style later (dashed green stroke)
+ *   useEffect(() => {
+ *     fetch("/media/pak_boundary.geojson")
+ *       .then((res) => res.json())
+ *       .then((json) => {
+ *         const vm = getMapVM();
+ *
+ *         // Create overlay layer (internally creates OverlayVectorLayer)
+ *         vm.createOverlayLayer(pakLayerUUID, json, "pak_boundary");
+ *
+ *         const overlay = vm.getOverlayLayer(pakLayerUUID) as OverlayVectorLayer;
+ *
+ *         const dashedGreen: IFeatureStyle = {
+ *           type: "single",
+ *           style: {
+ *             default: {
+ *               strokeColor: "#00AA00",
+ *               strokeWidth: 4,
+ *               lineDash: [6, 10],                 // requires lineDash support in IGeomStyle + StylingUtils
+ *               fillColor: "rgba(0,0,0,0)"
+ *             }
+ *           }
+ *         };
+ *
+ *         // Update style AFTER features were added
+ *         setTimeout(() => overlay.setStyle(dashedGreen, true), 2000);
+ *
+ *         vm.zoomToAllLayersExtent();
+ *       });
+ *   }, []);
+ *
+ *   // 2) Categorized styling by a property (adm1_en) using "multiple" rules
+ *   useEffect(() => {
+ *     fetch("/media/pak_provinces.geojson")
+ *       .then((res) => res.json())
+ *       .then((json) => {
+ *         const vm = getMapVM();
+ *         vm.createOverlayLayer(provinceLayerUUID, json, "province");
+ *
+ *         const overlay = vm.getOverlayLayer(provinceLayerUUID) as OverlayVectorLayer;
+ *
+ *         const provinceStyle: IFeatureStyle = {
+ *           type: "multiple",
+ *           style: {
+ *             default: { strokeColor: "#666", strokeWidth: 1, fillColor: "rgba(200,200,200,0.2)" },
+ *             rules: [
+ *               { title: "Punjab", filter: { field: "adm1_en", op: "==", value: "Punjab" }, style: { strokeColor: "#2ecc71", strokeWidth: 2, fillColor: "rgba(46,204,113,0.3)" } },
+ *               { title: "Sindh", filter: { field: "adm1_en", op: "==", value: "Sindh" }, style: { strokeColor: "#3498db", strokeWidth: 2, fillColor: "rgba(52,152,219,0.3)" } },
+ *               { title: "Balochistan", filter: { field: "adm1_en", op: "==", value: "Balochistan" }, style: { strokeColor: "#e67e22", strokeWidth: 2, fillColor: "rgba(230,126,34,0.3)" } },
+ *               { title: "Khyber Pakhtunkhwa", filter: { field: "adm1_en", op: "==", value: "Khyber Pakhtunkhwa" }, style: { strokeColor: "#9b59b6", strokeWidth: 2, fillColor: "rgba(155,89,182,0.3)" } },
+ *               { title: "Gilgit Baltistan", filter: { field: "adm1_en", op: "==", value: "Gilgit Baltistan" }, style: { strokeColor: "#e74c3c", strokeWidth: 2, fillColor: "rgba(231,76,60,0.3)" } },
+ *               { title: "Azad Kashmir", filter: { field: "adm1_en", op: "==", value: "Azad Kashmir" }, style: { strokeColor: "#16a085", strokeWidth: 2, fillColor: "rgba(22,160,133,0.3)" } },
+ *               { title: "Islamabad", filter: { field: "adm1_en", op: "==", value: "Islamabad" }, style: { strokeColor: "#f1c40f", strokeWidth: 2, fillColor: "rgba(241,196,15,0.3)" } }
+ *             ]
+ *           }
+ *         };
+ *
+ *         overlay.setStyle(provinceStyle, true);
+ *         vm.zoomToAllLayersExtent();
+ *       });
+ *   }, []);
+ *
+ *   // 3) Label controls (toggle labels, set label property + style, optional zoom window)
+ *   // Examples:
+ *   //   overlay.updateLabelOptions("name", { font: "bold 12px Arial" }, true, 17);
+ *   //   overlay.updateLabelOptions("name", { font: "bold 12px Arial" }, true, 14, 18);
+ *
+ *   // 4) Context menu example: toggle labels from right-click menu
+ *   useEffect(() => {
+ *     const vm = getMapVM();
+ *     const contextMenuRef: RefObject<ContextMenuHandle | null> = vm.getContextMenuRef();
+ *     if (!contextMenuRef?.current) return;
+ *
+ *     contextMenuRef.current.addMenuItem({
+ *       id: "toggle_label",
+ *       name: "Toggle Label",
+ *       onClick: () => {
+ *         const layer = contextMenuRef.current?.getCurrentLayer?.();
+ *         if (!layer) return;
+ *
+ *         const uuid = layer.get("name");
+ *         const overlay = vm.getOverlayLayer(uuid) as OverlayVectorLayer;
+ *
+ *         const textStyle: ITextStyle = {
+ *           font: "20px Calibri, sans-serif",
+ *           fillColor: "#ff0000",
+ *           strokeColor: "#000000",
+ *           strokeWidth: 1,
+ *           offsetX: 10,
+ *           offsetY: 10,
+ *           placement: "point",
+ *         };
+ *
+ *         // Toggle label (if showLabel is undefined, updateLabelOptions toggles it)
+ *         overlay.updateLabelOptions("property_type", textStyle);
+ *       },
+ *     });
+ *   }, []);
+ *
+ *   return null;
+ * };
+ *
+ * -----------------------------------------------------------------------------
+ * Notes
+ * -----------------------------------------------------------------------------
+ * - Dashed lines require:
+ *   1) adding `lineDash?: number[]` (and optional `lineDashOffset?: number`) to IGeomStyle
+ *   2) passing them to `new Stroke({ lineDash, lineDashOffset })` inside StylingUtils.createOLStyle()
+ */
 
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";

@@ -74,6 +74,8 @@ export { default as DAVectorLayer } from './components/map/layers/da_layers/DAVe
 export { default as MVTLayer } from './components/map/layers/da_layers/MVTLayer';
 export { default as RasterTileLayer } from './components/map/layers/da_layers/RasterTileLayer';
 
+export { default as WMSLayer } from './components/map/layers/overlay_layers/WMSLayer';
+export type { IGeoServerWMSInfo } from './components/map/layers/overlay_layers/WMSLayer';
 
 // -------------------------
 // ✅ Map Layer Styling
@@ -151,6 +153,7 @@ export type { DADialogBoxHandle } from './components/base/DADialogBox';
 export type { DAMapLoadingHandle } from './components/map/widgets/DAMapLoading';
 export type { IdentifyResultHandle } from './components/map/widgets/IdentifyResult';
 export { default as ColorUtils } from './utils/colorUtils';
+export {default as MapUtils} from './utils/mapUtils';
 
 
 // -------------------------

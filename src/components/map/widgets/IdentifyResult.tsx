@@ -9,6 +9,8 @@ import {
 import { useMapVM } from "@/hooks/MapVMContext";
 import { Feature } from "ol";
 import { Geometry } from "ol/geom";
+
+
 import {
     Accordion,
     AccordionSummary,
@@ -24,47 +26,55 @@ import {
     TableBody,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import MapUtils from "@/utils/mapUtils";
 
 export interface IdentifyResultHandle {
     setFeature: (feature: any) => void;
     clearFeatures: () => void;
 }
+type IdentifyItem =
+    | { kind: "vector"; layerTitle: string; feature: Feature<Geometry> }
+    | { kind: "wms"; layerTitle: string; feature: any }; // GeoJSON feature (properties + geometry)
+
 
 const IdentifyResult = forwardRef<IdentifyResultHandle>((_, ref) => {
     const mapVM = useMapVM();
 
-    const [features, setFeatures] = useState<Feature<Geometry>[]>([]);
-    const [layerTitles, setLayerTitles] = useState<string[]>([]);
     const [expandedIndex, setExpandedIndex] = useState<number | false>(false);
+    const [items, setItems] = useState<IdentifyItem[]>([]);
 
     // imperative API
     useImperativeHandle(ref, () => ({
-        setFeature: (feature) => setFeatures((prev) => [...prev, feature]),
-        clearFeatures: () => setFeatures([]),
+        setFeature: (feature: any) => {
+            setItems((prev) => [...prev, { kind: "vector", layerTitle: "Unknown Layer", feature }]);
+        },
+        clearFeatures: () => {
+            setItems([]);
+            setExpandedIndex(false);
+        },
     }));
 
-    // default content renderer (same logic as before)
-    const defaultRenderFeatureContent = (feature: Feature<Geometry>) => {
-        const properties = feature.getProperties();
-        const keys = Object.keys(properties).filter((k) => k !== "geometry");
+
+    const defaultRenderAnyContent = useCallback((item: IdentifyItem) => {
+        const props =
+            item.kind === "vector"
+                ? (item.feature as Feature<Geometry>).getProperties()
+                : item.feature?.properties ?? {};
+
+        const keys = Object.keys(props).filter((k) => k !== "geometry");
 
         return (
             <TableContainer component={Paper} variant="outlined" sx={{ display: "flex" }}>
                 <Table size="small">
                     <TableBody>
                         {keys.map((key) => {
-                            const value = properties[key];
+                            const value = props[key];
                             let displayValue: string;
 
-                            if (typeof value === "number") {
-                                displayValue = value.toFixed(3);
-                            } else if (Array.isArray(value)) {
-                                displayValue = value
-                                    .map((v) => (typeof v === "number" ? v.toFixed(3) : v))
-                                    .join(", ");
-                            } else {
-                                displayValue = String(value);
-                            }
+                            if (typeof value === "number") displayValue = value.toFixed(3);
+                            else if (Array.isArray(value))
+                                displayValue = value.map((v) => (typeof v === "number" ? v.toFixed(3) : v)).join(", ");
+                            else displayValue = String(value);
 
                             return (
                                 <TableRow key={key}>
@@ -75,93 +85,114 @@ const IdentifyResult = forwardRef<IdentifyResultHandle>((_, ref) => {
                                 </TableRow>
                             );
                         })}
-                        <TableRow>
-                            <TableCell colSpan={2}>
-                                <Button
-                                    variant="outlined"
-                                    size="small"
-                                    sx={{ marginTop: "8px" }}
-                                    onClick={() => {
-                                        mapVM.getSelectionLayer()?.addFeature(feature);
-                                        mapVM.getSelectionLayer()?.zoomToFeature(feature);
-                                    }}
-                                >
-                                    Zoom to Feature
-                                </Button>
-                            </TableCell>
-                        </TableRow>
+
+                        {/* Zoom-to only makes sense for vector right now (unless you convert WMS geojson to OL feature) */}
+                        {item.kind === "vector" && (
+                            <TableRow>
+                                <TableCell colSpan={2}>
+                                    <Button
+                                        variant="outlined"
+                                        size="small"
+                                        sx={{ marginTop: "8px" }}
+                                        onClick={() => {
+                                            mapVM.getSelectionLayer()?.addFeature(item.feature as any);
+                                            mapVM.getSelectionLayer()?.zoomToFeature(item.feature as any);
+                                        }}
+                                    >
+                                        Zoom to Feature
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </TableContainer>
         );
-    };
+    }, [mapVM]);
 
     // Render content
     const renderContent = useCallback(() => {
-        // if (features.length === 0) return null;
-
         return (
             <Box sx={{ p: 1, overflowY: "auto" }}>
-                {features.map((feature, index) => (
+                {items.map((item, index) => (
                     <Accordion
                         key={index}
                         expanded={expandedIndex === index}
-                        onChange={(_, isExpanded) => {
-                            setExpandedIndex(isExpanded ? index : false);
-                            if (isExpanded) {
-                                mapVM.getSelectionLayer()?.addFeature(feature);
-                            }
-                        }}
+                        onChange={(_, isExpanded) => setExpandedIndex(isExpanded ? index : false)}
                     >
                         <AccordionSummary
                             expandIcon={<ExpandMoreIcon sx={{ color: "primary.contrastText" }} />}
                             sx={{
                                 backgroundColor: "primary.main",
-                                "&.Mui-expanded": {
-                                    backgroundColor: "primary.dark",
-                                },
+                                "&.Mui-expanded": { backgroundColor: "primary.dark" },
                                 color: "primary.contrastText",
                             }}
                         >
                             <Typography variant="subtitle1">
-                                {layerTitles[index]}-{index}
+                                {item.layerTitle} ({item.kind})
                             </Typography>
                         </AccordionSummary>
                         <AccordionDetails>
-                            {(mapVM.getCustomIdentifyRenderer() ?? defaultRenderFeatureContent)(feature)}
+                            {/* custom renderer only supports OL Features; fallback for WMS */}
+                            {item.kind === "vector"
+                                ? (mapVM.getCustomIdentifyRenderer() ?? ((_: any) => defaultRenderAnyContent(item)))(
+                                    item.feature as any
+                                )
+                                : defaultRenderAnyContent(item)}
                         </AccordionDetails>
                     </Accordion>
                 ))}
             </Box>
         );
-    }, [features, expandedIndex, layerTitles, mapVM]);
-
+    }, [items, expandedIndex, mapVM]);
     // Click handler (uses mapVM + OL)
     const displayFeatureInfo = useCallback(
-        (evt: any) => {
-            const map = mapVM.getMap();
+        async (evt: any) => {
+            const map = mapVM.getMap?.();
             if (!map) return;
 
-            const clickedFeatures: Feature<Geometry>[] = [];
-            const clickedLayerTitles: string[] = [];
+            const found: IdentifyItem[] = [];
 
+            // 1) Vector hits
             map.forEachFeatureAtPixel(evt.pixel, (feature: any, layer: any) => {
                 if (layer?.get("displayInLayerSwitcher") !== false) {
-                    clickedFeatures.push(feature);
-                    clickedLayerTitles.push(layer?.get("title") || "Unknown Layer");
+                    found.push({
+                        kind: "vector",
+                        layerTitle: layer?.get("title") || "Unknown Layer",
+                        feature: feature as Feature<Geometry>,
+                    });
                 }
             });
 
-            if (clickedFeatures.length === 0) {
+            // 2) WMS hits (GeoServer GetFeatureInfo) — only if layers implement identify()
+            const overlays = Object.values((mapVM as any).overlayLayers || {});
+            const wmsOverlays = overlays.filter((o: any) => {
+                const ol = o?.getOlLayer?.();
+                return typeof o?.identify === "function" && ol?.getVisible?.();
+            });
+
+            for (const o of wmsOverlays as any[]) {
+                try {
+                    const geojson = await o.identify(evt); // must return FeatureCollection
+                    const feats = geojson?.features;
+                    if (Array.isArray(feats) && feats.length) {
+                        const title = o.getOlLayer?.()?.get?.("title") || "WMS Layer";
+                        feats.forEach((f: any) => found.push({ kind: "wms", layerTitle: title, feature: f }));
+                    }
+                } catch {
+                    // ignore
+                }
+            }
+
+            if (found.length === 0) {
                 mapVM.showSnackbar("No feature identified at this location");
                 mapVM.getRightDrawerRef()?.current?.closeDrawer();
             } else {
                 mapVM.getRightDrawerRef()?.current?.openDrawer();
             }
 
-            setFeatures(clickedFeatures);
-            setLayerTitles(clickedLayerTitles);
-            setExpandedIndex(clickedFeatures.length > 0 ? clickedFeatures.length - 1 : false);
+            setItems(found);
+            setExpandedIndex(found.length ? found.length - 1 : false);
         },
         [mapVM]
     );
@@ -188,15 +219,34 @@ const IdentifyResult = forwardRef<IdentifyResultHandle>((_, ref) => {
     }, [mapVM, displayFeatureInfo]);
 
     // Keep selection layer in sync with the expanded panel
+
+
     useEffect(() => {
-        if (features.length > 0 && typeof expandedIndex === "number" && features[expandedIndex]) {
-            mapVM.getSelectionLayer()?.addFeature(features[expandedIndex]);
+        if (typeof expandedIndex !== "number") return;
+
+        const item = items[expandedIndex];
+        if (!item) return;
+
+        const selectionLayer = mapVM.getSelectionLayer();
+        if (!selectionLayer) return;
+
+        if (item.kind === "vector") {
+            selectionLayer.addFeature(item.feature as any);
         }
-    }, [features, expandedIndex, mapVM]);
+
+        if (item.kind === "wms") {
+            const crs = MapUtils.detectGeoJsonCrs(item.feature);
+
+            // fallback to map projection if unknown
+            const dataCrs = crs === "unknown" ? mapVM.getViewProjectionCode() : crs;
+            selectionLayer.addGeoJson2Selection(item.feature, true, dataCrs)
+        }
+
+    }, [items, expandedIndex, mapVM]);
 
     return (
         <>
-            {features.length === 0
+            {items.length === 0
                 ? <Typography>Click on feature to see its property</Typography>
                 : renderContent()
             }

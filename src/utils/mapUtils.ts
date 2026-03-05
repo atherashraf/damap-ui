@@ -165,6 +165,58 @@ class MapUtils {
         // });
         // };
     }
+
+    // ---- CRS detection helpers ----
+    static detectGeoJsonCrs(geo: any): "EPSG:4326" | "EPSG:3857" | "unknown" {
+        if (!geo) return "unknown";
+
+        // 1) If GeoJSON has explicit CRS info
+        const crsName =
+            geo?.crs?.properties?.name ??
+            geo?.crs?.name ??
+            geo?.features?.[0]?.crs?.properties?.name ??
+            geo?.features?.[0]?.crs?.name;
+
+        if (typeof crsName === "string") {
+            const m = crsName.match(/EPSG:\d+/i);
+            if (m) {
+                const epsg = m[0].toUpperCase();
+                if (epsg === "EPSG:4326") return "EPSG:4326";
+                if (epsg === "EPSG:3857") return "EPSG:3857";
+            }
+        }
+
+        // 2) Heuristic: check coordinate magnitude
+        const coords =
+            geo?.type === "Feature"
+                ? geo?.geometry?.coordinates
+                : geo?.type === "FeatureCollection"
+                    ? geo?.features?.[0]?.geometry?.coordinates
+                    : geo?.coordinates;
+
+        const n = MapUtils.firstNumberDeep(coords);
+        if (n == null) return "unknown";
+
+        const abs = Math.abs(n);
+
+        // lon/lat typically in [-180, 180]
+        if (abs <= 180) return "EPSG:4326";
+
+        // WebMercator meters typically up to ~20,037,508
+        if (abs <= 20037508.34) return "EPSG:3857";
+
+        return "unknown";
+    }
+
+    private static firstNumberDeep(v: any): number | null {
+        if (typeof v === "number" && isFinite(v)) return v;
+        if (!Array.isArray(v)) return null;
+        for (const x of v) {
+            const n = MapUtils.firstNumberDeep(x);
+            if (n !== null) return n;
+        }
+        return null;
+    }
 }
 
 export default MapUtils;

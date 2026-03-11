@@ -42,40 +42,44 @@ export const MapAPIs = Object.freeze({
     DCH_LAYER_CATEGORIES: "api/dch/layer_categories/",
     DCH_ADD_RASTER_INFO: "api/dch/add_raster_layer_info/",
     DCH_DATA_MODEL_TYPES: "api/dch/raster_data_model_types/",
-    DCH_UPLOAD_SHP_FILE: "api/dch/upload_shp_file/",
     DCH_GET_FEATURE_GEOMETRY: "api/dch/get_feature_geometry/{uuid}/{pk_values}/",
-    DCH_ADD_MODEL_ROW: "api/dch/add_model_row/",
+
+
     DCH_DELETE_MODEL_ROW: "api/dch/delete_model_row/",
     DCH_EDIT_MODEL_ROW: "api/dch/edit_model_row/{modelName}/",
     DCH_DELETE_LAYER_INFO: "api/dch/delete_layerinfo_row/{uuid}/",
     DCH_DOWNLOAD_SLD: "api/dch/download_sld_style/{uuid}/",
     DCH_DOWNLOAD_DA_STYLE: "api/dch/download_da_style/{uuid}/",
-    DCH_DB_CONNECTION: "api/dch/get_db_connection/",
-    DCH_DB_TABLE_LIST: "api/dch/db_table_list/{db_id}/",
-    DCH_SAVE_DB_LAYER_INFO:
-        "api/dch/save_db_layer_info/{db_id}/{table_name}/{layer_category_id}/",
-    DCH_ADD_URL_LAYER_INFO:
-        "api/dch/add_layer_url_info/{layer_title}/{layer_category_id}/{layer_url}/{url_type}/",
+
+    DCH_UPLOAD_SHP_FILE: "api/dch/admin/upload_shp_file/",
+    DCH_PREVIEW_APPEND_SHP: "api/dch/admin/preview_append_shp/",
+    DCH_COMMIT_APPEND_SHP: "api/dch/admin/commit_append_shp/",
+    DCH_SAVE_DB_LAYER_INFO: "api/dch/admin/save_db_layer_info/{db_id}/{table_name}/{layer_category_id}/",
     DCH_COLUMN_VALUE: "api/dch/column_value/{uuid}/{pk_val} /{col_name}/",
     DCH_NAVIGATION_LIST: "api/dch/navigation_list/{map_uuid}/",
-    DCH_NAVIGATION_GEOMETRY:
-        "api/dch/navigation_geometry/{map_uuid}/{selected_key}/{node_id}/",
+    DCH_NAVIGATION_GEOMETRY: "api/dch/navigation_geometry/{map_uuid}/{selected_key}/{node_id}/",
 
     DCH_ADMIN_LAYER_INFO_EDIT: "admin/layer-info/edit/{id}/",
-    DCH_SAVE_LAYER_INFO: "api/dch/save_layer_info/",
     DCH_SAVE_MAP_INFO: "api/dch/save_map_info/",
 
-    DCH_ADD_DB_CONNECTION:"api/dch/add-db-connection/",
-    DCH_TEST_DB_CONNECTION:"api/dch/test-db-connection/",
-    WATER_QUALITY_DATA: "api/lbdc/water_quality_data/",
+    DCH_ADD_URL_LAYER_INFO: "/api/dch/admin/add_layer_url_info/",
+        // "api/dch/admin/add_layer_url_info/{layer_title}/{layer_category_id}/{layer_url}/{url_type}/",
+    DCH_ADD_MODEL_ROW: "api/dch/admin/add_model_row/",
+    DCH_DB_CONNECTION: "api/dch/admin/get_db_connection/",
+    DCH_DB_TABLE_LIST: "api/dch/admin/db_table_list/{db_id}/",
+    DCH_ADD_DB_CONNECTION:"api/dch/admin/add-db-connection/",
+    DCH_TEST_DB_CONNECTION:"api/dch/admin/test-db-connection/",
+    DCH_SAVE_MODEL_DATA: "api/dch/admin/save_model_data/",
+    DCH_SAVE_LAYER_INFO: "api/dch/admin/save_layer_info/",
+    // WATER_QUALITY_DATA: "api/lbdc/water_quality_data/",
     /** test apis **/
-    LBDC_AOI: "api/lbdc/lbdc_aoi/",
-    FF_FLOW_NETWORK_GRAPH: "api/ff/flow_network_graph/",
+    // LBDC_AOI: "api/lbdc/lbdc_aoi/",
+    // FF_FLOW_NETWORK_GRAPH: "api/ff/flow_network_graph/",
 
     // LBDC_DISCHARGE:"https://irrigation.punjab.gov.pk/admin/api/fetch_LBDC_Discharge.php?"
 
-    PDMA_DCH_UPLOAD_RASTER:"api/layers/rasters/upload_raster/",
-    PDMA_DCH_RASTER_TMS: "api/layers/raster_tms/{uuid}",
+    // PDMA_DCH_UPLOAD_RASTER:"api/layers/rasters/upload_raster/",
+    // PDMA_DCH_RASTER_TMS: "api/layers/raster_tms/{uuid}",
 });
 
 

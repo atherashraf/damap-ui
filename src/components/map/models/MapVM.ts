@@ -941,39 +941,38 @@ class MapVM {
     }
 
 
-    createWFSLayer(info: IGeoServerWFSInfo) {
-        if (this.isOverlayLayerExist(info.uuid)) return false;
-        new WFSLayer(info, this);
-        return true;
+    createWFSLayer(info: IGeoServerWFSInfo) : WFSLayer | undefined {
+        if (this.isOverlayLayerExist(info.uuid)) return undefined;
+        return new WFSLayer(info, this);
     }
 
 
-    createWMSLayer(info: IGeoServerWMSInfo): boolean {
+    createWMSLayer(info: IGeoServerWMSInfo): WMSLayer | undefined {
         const uuid = info.uuid;
         if (!uuid) {
             console.warn("createWMSLayer: uuid is required");
-            return false;
+            return undefined;
         }
 
-        if (this.isOverlayLayerExist(uuid)) return false;
+        if (this.isOverlayLayerExist(uuid)) return undefined;
         //@ts-ignore
         const wms = new WMSLayer(info, this);
 
         this.dispatchLayerAddedEvent();
 
-        return true;
+        return wms;
     }
 
 
 
-    createOverlayLayer(uuid: string, geoJSON: IGeoJSON, title: string, style?: IFeatureStyle): boolean {
-        if (this.isOverlayLayerExist(uuid)) return false
+    createOverlayLayer(uuid: string, geoJSON: IGeoJSON, title: string, style?: IFeatureStyle): OverlayVectorLayer | undefined {
+        if (this.isOverlayLayerExist(uuid)) return undefined
 
-        const daLayer = new OverlayVectorLayer({
+        const overlayVectorLayer = new OverlayVectorLayer({
             uuid: uuid, title: title, style: style || MapVM.getDefaultStyle(), showLabel: false
         }, this)
-        daLayer.addGeojsonFeature(geoJSON)
-        return true
+        overlayVectorLayer.addGeojsonFeature(geoJSON)
+        return overlayVectorLayer
     }
 
     private _mapPanelButtons: ReactNode[] = [];

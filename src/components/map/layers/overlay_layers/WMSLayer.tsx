@@ -130,6 +130,8 @@ import ImageWMS from "ol/source/ImageWMS";
 import MapVM from "@/components/map/models/MapVM";
 import autoBind from "auto-bind";
 import AbstractOverlayLayer from "./AbstractOverlayLayer";
+import WMSCapabilities from "ol/format/WMSCapabilities";
+import { transformExtent } from "ol/proj";
 
 export interface IGeoServerWMSInfo {
     uuid: string;
@@ -188,6 +190,8 @@ class WMSLayer extends AbstractOverlayLayer {
 
         this.olLayer = this.createLayer();
         this.mapVM.addOverlayLayer(this);
+
+        void this.loadExtentFromCapabilities();
     }
 
     getLayerUUID(): string {
@@ -436,6 +440,97 @@ class WMSLayer extends AbstractOverlayLayer {
             return await res.json();
         }
         return await res.text();
+    }
+
+    /**
+     *  getting layer capabilities and extent
+     */
+    private findCapabilityLayer(layerNode: any, targetName: string): any | null {
+        if (!layerNode) return null;
+
+        const nodeName = layerNode.Name;
+        const targetLocal = targetName.split(":").pop(); // remove namespace
+
+        if (
+            nodeName === targetName ||           // workspace:layer
+            nodeName === targetLocal ||          // layer
+            nodeName?.split(":").pop() === targetLocal // defensive
+        ) {
+            return layerNode;
+        }
+
+        const children = layerNode.Layer;
+
+        if (Array.isArray(children)) {
+            for (const child of children) {
+                const found = this.findCapabilityLayer(child, targetName);
+                if (found) return found;
+            }
+        }
+
+        return null;
+    }
+
+    async loadExtentFromCapabilities(): Promise<number[] | null> {
+        try {
+            const baseUrl = this.layerInfo.url.includes("?")
+                ? this.layerInfo.url.split("?")[0]
+                : this.layerInfo.url;
+
+            const url = `${baseUrl}?service=WMS&request=GetCapabilities`;
+
+            const res = await fetch(url);
+            if (!res.ok) return null;
+            console.log("res", res);
+
+            const xml = await res.text();
+
+            const parser = new WMSCapabilities();
+            const caps: any = parser.read(xml);
+            console.log("caps", caps);
+            const rootLayer = caps?.Capability?.Layer;
+            const target = this.findCapabilityLayer(rootLayer, this.layerInfo.layers);
+            console.log("target", target);
+            if (!target) return null;
+
+            const mapProjection = this.mapVM.getViewProjectionCode();
+            console.log("mapProjection", mapProjection);
+            // Prefer explicit BoundingBox first
+            if (Array.isArray(target.BoundingBox) && target.BoundingBox.length > 0) {
+                const bbox = target.BoundingBox.find((b: any) =>
+                    b.crs === mapProjection || b.srs === mapProjection
+                ) || target.BoundingBox[0];
+
+                if (bbox?.extent?.length === 4) {
+                    const sourceCrs = bbox.crs || bbox.srs || mapProjection;
+                    const extent =
+                        sourceCrs === mapProjection
+                            ? bbox.extent
+                            : transformExtent(bbox.extent, sourceCrs, mapProjection);
+
+                    this.olLayer.set("dataExtent", extent);
+                    return extent;
+                }
+            }
+
+            // Fallback: geographic bbox in EPSG:4326
+            const geo = target.EX_GeographicBoundingBox;
+            console.log("geo extent", geo);
+            if (Array.isArray(geo) && geo.length === 4) {
+                const extent = transformExtent(geo, "EPSG:4326", mapProjection);
+                this.olLayer.set("dataExtent", extent);
+                return extent;
+            }
+
+            return null;
+        } catch (err) {
+            console.error("Failed to load WMS extent from GetCapabilities", err);
+            return null;
+        }
+    }
+
+    getDataExtent(): number[] | null {
+        return this.olLayer.get("dataExtent") ?? null;
     }
 }
 

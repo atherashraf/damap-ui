@@ -104,7 +104,12 @@ const ContextMenu = React.forwardRef<ContextMenuHandle>((_props, ref) => {
                 drawerRef?.current?.openDrawer();
                 break;
             case "zoom":
-                const extent = olLayer.getExtent?.() ?? olLayer.getSource?.()?.getExtent?.();
+                // const extent = olLayer.getExtent?.() ?? olLayer.getSource?.()?.getExtent?.();
+                let extent =
+                    olLayer.get("dataExtent") ??
+                    olLayer.getExtent?.() ??
+                    olLayer.getSource?.()?.getExtent?.();
+
                 if (extent && extent.length === 4) {
                     mapVM.zoomToExtent(extent);
                 } else {

@@ -39,7 +39,7 @@ import {
     SelectChangeEvent,
     Stack
 } from "@mui/material";
-import ShpFileUploader from "@/components/admin/forms/ShpFileUploader";
+import ShpFileUploader from "@/components/admin/forms/shpfile/ShpFileUploader";
 import PostGISInfo from "@/components/admin/forms/PostGISInfo";
 import {Fragment, RefObject, useState} from "react";
 

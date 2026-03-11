@@ -16,6 +16,7 @@ import LayerSwitcherLayerCard from "@/components/map/layer_switcher_mui/LayerSwi
 import LayerSwitcherLayerMenu from "@/components/map/layer_switcher_mui/LayerSwitcherLayerMenu";
 import { LayerItem, LayerMenuState } from "@/components/map/layer_switcher_mui/types";
 import LayerSwitcherBaseLayerCard from "@/components/map/layer_switcher_mui/LayerSwitcherBaseLayerCard";
+import WMSLayer from "@/components/map/layers/overlay_layers/WMSLayer";
 
 interface LayerSwitcherMuiProps {
   mapVM: MapVM;
@@ -216,11 +217,117 @@ const LayerSwitcherMUIPaper = ({ mapVM }: LayerSwitcherMuiProps): React.ReactEle
     };
   }, [menuState]);
 
-  const handleAboutLayer = (_item: LayerItem) => {};
+  const handleAboutLayer = (_item: LayerItem) => {
+    const olLayer = _item.layer as any;
 
-  const handleAttributeTable = (_item: LayerItem) => {};
+    const title = olLayer.get("title") ?? "Untitled Layer";
+    const uuid = olLayer.get("name") ?? "unknown";
 
-  const handleZoomToLayer = (_item: LayerItem) => {};
+    const visible = olLayer.getVisible?.() ?? false;
+    const opacity = olLayer.getOpacity?.() ?? 1;
+
+    const source = olLayer.getSource?.();
+    const params = source?.getParams?.() ?? {};
+
+    const sourceUrl =
+        source?.getUrl?.() ??
+        source?.getUrls?.()?.[0] ??
+        "N/A";
+
+    const layerType =
+        source?.getFeatureInfoUrl
+            ? "WMS"
+            : source?.getFeatures
+                ? "Vector"
+                : "Raster / Tile";
+
+    mapVM.getDialogBoxRef().current?.openDialog({
+      title: `Layer Information`,
+      content: (
+          <Box sx={{ p: 2, minWidth: 320 }}>
+            <Stack spacing={1}>
+
+              <Box><b>Title:</b> {title}</Box>
+              <Box><b>UUID:</b> {uuid}</Box>
+              <Box><b>Type:</b> {layerType}</Box>
+              <Box><b>Visible:</b> {String(visible)}</Box>
+              <Box><b>Opacity:</b> {opacity}</Box>
+
+              <Box sx={{ mt: 1 }}>
+                <b>Source URL</b>
+              </Box>
+
+              <Box
+                  sx={{
+                    fontSize: 12,
+                    wordBreak: "break-all",
+                    bgcolor: "grey.100",
+                    p: 1,
+                    borderRadius: 1,
+                  }}
+              >
+                {sourceUrl}
+              </Box>
+
+              {params && Object.keys(params).length > 0 && (
+                  <>
+                    <Box sx={{ mt: 1 }}>
+                      <b>WMS Parameters</b>
+                    </Box>
+
+                    <Box
+                        sx={{
+                          fontSize: 12,
+                          bgcolor: "grey.100",
+                          p: 1,
+                          borderRadius: 1,
+                        }}
+                    >
+                <pre style={{ margin: 0 }}>
+                  {JSON.stringify(params, null, 2)}
+                </pre>
+                    </Box>
+                  </>
+              )}
+
+            </Stack>
+          </Box>
+      ),
+    });
+  };
+  const handleAttributeTable = (_item: LayerItem) => {
+    const olLayer = _item.layer as any;
+    const uuid = olLayer.get("name");
+    try {
+      mapVM.setLayerOfInterest(uuid);
+      setTimeout(() => mapVM?.openAttributeTable?.(), 1000);
+    } catch {
+      mapVM.showSnackbar("Attribute table is not available");
+    }
+
+  };
+
+  const handleZoomToLayer = async (item: LayerItem) => {
+    const olLayer = item.layer as any;
+    let extent =
+        olLayer.get("dataExtent") ??
+        olLayer.getExtent?.() ??
+        olLayer.getSource?.()?.getExtent?.();
+    // console.log("extent", extent, olLayer.get("dataExtent"));
+    // If this is your custom WMSLayer wrapper, optionally trigger loading here too
+    if (!extent) {
+      const overlay = mapVM.getOverlayLayer(olLayer.get("name"));
+      if (overlay instanceof  WMSLayer && overlay?.loadExtentFromCapabilities) {
+        extent = await overlay.loadExtentFromCapabilities();
+      }
+    }
+
+    if (extent && extent.length === 4) {
+      mapVM.zoomToExtent(extent);
+    } else {
+      mapVM.showSnackbar("Layer extent is not available");
+    }
+  };
 
   const handleDeleteLayer = (_item: LayerItem) => {};
 

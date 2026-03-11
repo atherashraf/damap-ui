@@ -5,15 +5,13 @@ import GeoTiffUploadForm from "@/components/gis_viewer/form/GeoTiffUploadForm";
 
 
 const AddRasterLayerTool = () => {
-    const mapVM = getMapVM();
     const handleAddRaster = () => {
-        // alert("Add Raster Layer")
-        const dialogRef = mapVM.getDialogBoxRef();
-        dialogRef?.current?.openDialog({
-            title:"Add Raster Layer",
-            content: <GeoTiffUploadForm />
+        const mapVM = getMapVM();
+        mapVM.getDialogBoxRef()?.current?.openDialog({
+            title: "Add Raster Layer",
+            content: <GeoTiffUploadForm />,
         });
-    }
+    };
     return(
         <>
             <IconButton

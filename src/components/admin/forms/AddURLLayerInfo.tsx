@@ -69,7 +69,7 @@ const AddURLLayerInfo = (props: IProps) => {
     // Handle Save Layer Info
     const handleAddLayerInfo = () => {
         mapApi
-            .get(MapAPIs.DCH_ADD_URL_LAYER_INFO, {
+            .post(MapAPIs.DCH_ADD_URL_LAYER_INFO, {
                 layer_title: layerTitle,
                 layer_category_id: layerCategoryID?.pk,
                 layer_url: layerURL,

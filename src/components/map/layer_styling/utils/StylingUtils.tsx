@@ -14,6 +14,7 @@ import MapVM from "@/components/map/models/MapVM";
 import {ColorUtils} from "@/damap";
 
 
+
 class StylingUtils {
     static createOLStyle(
         geomType: string,

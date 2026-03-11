@@ -19,7 +19,7 @@ export default function MapAdmin() {
             { name: "Customize Attributes Table", href: "/CustomizeAttributeTable" },
             { name: "Test IDW Layer", href: "/TestIDWLayer" },
             { name: "GIS Viewer", href: "/GISViewer" },
-            {name: "Geoserver Test", href: "/GeoserverTest" }
+            { name: "Geoserver Test", href: "/GeoserverTest" }
         ],
     };
 

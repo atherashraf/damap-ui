@@ -4,6 +4,7 @@ import {useEffect} from "react";
 import {MapToolbarHandle} from "@/components/map/toolbar/MapToolbarContainer";
 import DrawPointTool from "@/components/gis_viewer/buttons/DrawPointTool";
 import AddRasterLayerTool from "@/components/gis_viewer/buttons/AddRasterLayerTool";
+import AddLayerTool from "@/components/gis_viewer/buttons/AddLayerTool";
 
 // import {getMapVM} from "@/damap";
 // import GISViewerToolbar from "@/components/gis_viewer/GISViewerToolbar";
@@ -22,6 +23,7 @@ const GISViewer = () => {
             const toolbar = e.detail;
             toolbar.addButton(<DrawPointTool/>);
             toolbar.addButton(<AddRasterLayerTool />)
+            toolbar.addButton(<AddLayerTool />)
         };
 
         window.addEventListener("mapToolbarContainerReady", handleToolbarReady);

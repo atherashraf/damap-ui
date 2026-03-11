@@ -69,7 +69,6 @@ import MapApi, { MapAPIs } from "@/api/MapApi";
 import AddRasterLayerInfo from "@/components/admin/forms/AddRasterLayerInfo";
 import AddVectorLayerInfo from "@/components/admin/forms/AddVectorLayerInfo";
 import AddURLLayerInfo from "@/components/admin/forms/AddURLLayerInfo";
-import {useEffect} from "react";
 
 const LayerInfoAdmin = () => {
     const changeListRef = React.useRef<ChangeListHandle>(null);
@@ -99,9 +98,9 @@ const LayerInfoAdmin = () => {
         });
     }, [api]);
 
-    useEffect(() => {
-        console.log("Layer Info data", data);
-    }, [data]);
+    // useEffect(() => {
+    //     console.log("Layer Info data", data);
+    // }, [data]);
 
     // Get selected row
     const getSelectedRowData = React.useCallback(() => {
@@ -198,7 +197,7 @@ const LayerInfoAdmin = () => {
                 action: async () => {
                     const uuid = getSelectedUUID();
                     if (uuid) {
-                        const payload = await api.get(MapAPIs.DCH_DELETE_LAYER_INFO, { uuid });
+                        const payload = await api.delete(MapAPIs.DCH_DELETE_LAYER_INFO, { uuid:  uuid });
                         if (payload) {
                             snackbarRef.current?.show("Layer info deleted successfully", "success");
                             getTableData(); // refresh, avoids a full reload

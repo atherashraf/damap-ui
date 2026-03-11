@@ -1,9 +1,21 @@
-import {RefObject} from "react";
-import {DASnackbarHandle} from "@/components/base/DASnackbar";
-import {AuthServices} from "@/damap";
-import pako from "pako";
-import {getDamapConfig} from "@/config"
+/***
+ await api.get(MapAPIs.DCH_LAYER_INFO, { uuid });
 
+ await api.post(MapAPIs.DCH_SAVE_MAP, mapData);
+
+ await api.put(MapAPIs.DCH_UPDATE_MAP, mapData, { uuid: mapUUID });
+
+ await api.patch(MapAPIs.DCH_EDIT_MODEL_ROW, partialData, { modelName: "LayerInfo" });
+
+ await api.delete(MapAPIs.DCH_DELETE_LAYER_INFO, null, { uuid });
+
+ await api.postFormData(MapAPIs.DCH_UPLOAD_SHP_FILE, formData);
+ ***/
+import { RefObject } from "react";
+import { DASnackbarHandle } from "@/components/base/DASnackbar";
+import { AuthServices } from "@/damap";
+import pako from "pako";
+import { getDamapConfig } from "@/config";
 
 // API endpoint constants
 export const MapAPIs = Object.freeze({
@@ -44,7 +56,6 @@ export const MapAPIs = Object.freeze({
     DCH_DATA_MODEL_TYPES: "api/dch/raster_data_model_types/",
     DCH_GET_FEATURE_GEOMETRY: "api/dch/get_feature_geometry/{uuid}/{pk_values}/",
 
-
     DCH_DELETE_MODEL_ROW: "api/dch/delete_model_row/",
     DCH_EDIT_MODEL_ROW: "api/dch/edit_model_row/{modelName}/",
     DCH_DELETE_LAYER_INFO: "api/dch/delete_layerinfo_row/{uuid}/",
@@ -55,7 +66,7 @@ export const MapAPIs = Object.freeze({
     DCH_PREVIEW_APPEND_SHP: "api/dch/admin/preview_append_shp/",
     DCH_COMMIT_APPEND_SHP: "api/dch/admin/commit_append_shp/",
     DCH_SAVE_DB_LAYER_INFO: "api/dch/admin/save_db_layer_info/{db_id}/{table_name}/{layer_category_id}/",
-    DCH_COLUMN_VALUE: "api/dch/column_value/{uuid}/{pk_val} /{col_name}/",
+    DCH_COLUMN_VALUE: "api/dch/column_value/{uuid}/{pk_val}/{col_name}/",
     DCH_NAVIGATION_LIST: "api/dch/navigation_list/{map_uuid}/",
     DCH_NAVIGATION_GEOMETRY: "api/dch/navigation_geometry/{map_uuid}/{selected_key}/{node_id}/",
 
@@ -71,6 +82,7 @@ export const MapAPIs = Object.freeze({
     DCH_TEST_DB_CONNECTION:"api/dch/admin/test-db-connection/",
     DCH_SAVE_MODEL_DATA: "api/dch/admin/save_model_data/",
     DCH_SAVE_LAYER_INFO: "api/dch/admin/save_layer_info/",
+
     // WATER_QUALITY_DATA: "api/lbdc/water_quality_data/",
     /** test apis **/
     // LBDC_AOI: "api/lbdc/lbdc_aoi/",
@@ -82,8 +94,13 @@ export const MapAPIs = Object.freeze({
     // PDMA_DCH_RASTER_TMS: "api/layers/raster_tms/{uuid}",
 });
 
+type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
-// MapApi class for handling backend API communication
+type RequestOptions = {
+    isJSON?: boolean;
+    isGzip?: boolean;
+};
+
 export default class MapApi {
     public snackbarRef: RefObject<DASnackbarHandle | null>;
 
@@ -91,19 +108,16 @@ export default class MapApi {
         this.snackbarRef = snackbarRef;
     }
 
-    // Constructs the API URL using env vars with fallback to hostname + port
     static getURL(api: string, params: Record<string, unknown> = {}): string {
-        // const {mapUrl, } = getDamapConfig();
         const { mapUrl, mapPort } = getDamapConfig();
 
-        let API_URL = mapUrl || import.meta.env.VITE_MAP_URL ;
+        let API_URL = mapUrl || import.meta.env.VITE_MAP_URL;
         const API_PORT = mapPort || import.meta.env.VITE_MAP_PORT;
-        // let API_ENDPOINT = import.meta.env.VITE_MAP_ENDPOINT || "";
-        const API_ENDPOINT = ""
-        const hostname = window.location.hostname;
-        const isDNS = !/^[0-9.]+$/.test(hostname); // Checks if hostname is not an IP
+        const API_ENDPOINT = "";
 
-        // If no full MAP_URL provided, build it from hostname and port
+        const hostname = window.location.hostname;
+        const isDNS = !/^[0-9.]+$/.test(hostname);
+
         if (!API_URL) {
             API_URL = `${window.location.protocol}//${hostname}`;
             if ((!isDNS || hostname === "localhost") && API_PORT) {
@@ -111,24 +125,28 @@ export default class MapApi {
             }
         }
 
-        // Normalize URL parts
         API_URL = API_URL.endsWith("/") ? API_URL.slice(0, -1) : API_URL;
-        // API_ENDPOINT = API_ENDPOINT.startsWith("/") ? API_ENDPOINT : `/${API_ENDPOINT}`;
-        // API_ENDPOINT = API_ENDPOINT.endsWith("/") ? API_ENDPOINT.slice(0, -1) : API_ENDPOINT;
         api = api.startsWith("/") ? api.slice(1) : api;
 
         let url = `${API_URL}${API_ENDPOINT}/${api}`;
 
-        // Replace route placeholders and append query params
         if (params && Object.keys(params).length > 0) {
             const queryParams: string[] = [];
+
             for (const key in params) {
+                const value = params[key];
+
+                if (value === undefined || value === null) continue;
+
                 if (url.includes(`{${key}}`)) {
-                    url = url.replace(`{${key}}`, encodeURIComponent(params[key] as string));
+                    url = url.replace(`{${key}}`, encodeURIComponent(String(value)));
                 } else {
-                    queryParams.push(`${encodeURIComponent(key)}=${encodeURIComponent(params[key] as string)}`);
+                    queryParams.push(
+                        `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`
+                    );
                 }
             }
+
             if (queryParams.length > 0) {
                 url += `?${queryParams.join("&")}`;
             }
@@ -137,119 +155,229 @@ export default class MapApi {
         return url;
     }
 
-
-    async getHeaders(isJson = true): Promise<Headers> {
+    private async getHeaders(isJson = true): Promise<Headers> {
         const token = AuthServices.getAccessToken();
         const headers = new Headers();
 
-        if (isJson) headers.append("Content-Type", "application/json");
-        if (token) headers.append("Authorization", `Bearer ${token}`);
+        if (isJson) {
+            headers.append("Content-Type", "application/json");
+        }
+
+        if (token) {
+            headers.append("Authorization", `Bearer ${token}`);
+        }
 
         return headers;
     }
 
-    async get(api: string, params: any = {}, options: { isJSON?: boolean; isGzip?: boolean } = {}) {
-        const { isJSON = true, isGzip = false } = options;
-        return await this.request("GET", api, null, params, isJSON, true, isGzip);
+    private buildRequestBody(method: HttpMethod, data: unknown): BodyInit | undefined {
+        if (method === "GET" || data === null || data === undefined) {
+            return undefined;
+        }
+
+        if (data instanceof FormData) {
+            return data;
+        }
+
+        if (
+            typeof data === "string" ||
+            data instanceof Blob ||
+            data instanceof ArrayBuffer ||
+            data instanceof URLSearchParams
+        ) {
+            return data as BodyInit;
+        }
+
+        return JSON.stringify(data);
     }
 
-    async post(api: string, data: any, params: any = {}, options: { isJSON?: boolean; isGzip?: boolean } = {}) {
-        const { isJSON = true, isGzip = false } = options;
-        return await this.request("POST", api, data, params, isJSON, true, isGzip);
-    }
-
-    async postFormData(api: string, formData: FormData, params: any = {}, options: { isJSON?: boolean; isGzip?: boolean } = {}) {
-        const { isJSON = true, isGzip = false } = options;
-        return await this.request("POST", api, formData, params, isJSON, false, isGzip);
-    }
-
-
-    private async request(
-        method: "GET" | "POST",
-        api: string,
-        data: any = null,
-        params: any = {},
-        isJSON = true,
-        useJsonHeader = true,
-        isGzip = false // ✅ NEW FLAG
-    ): Promise<any> {
-        const url = MapApi.getURL(api, params);
-        let headers = await this.getHeaders(useJsonHeader);
-
-        let response = await fetch(url, {
+    private async doFetch(
+        url: string,
+        method: HttpMethod,
+        headers: Headers,
+        data: unknown
+    ): Promise<Response> {
+        return await fetch(url, {
             method,
             headers,
             credentials: "same-origin",
-            body: method === "POST" && data && !(data instanceof FormData)
-                ? JSON.stringify(data)
-                : data,
+            body: this.buildRequestBody(method, data),
         });
+    }
 
-        // Token refresh logic
+    async get<T = any>(
+        api: string,
+        params: Record<string, unknown> = {},
+        options: RequestOptions = {}
+    ): Promise<T | null> {
+        const { isJSON = true, isGzip = false } = options;
+        return await this.request<T>("GET", api, null, params, isJSON, true, isGzip);
+    }
+
+    async post<T = any>(
+        api: string,
+        data: unknown,
+        params: Record<string, unknown> = {},
+        options: RequestOptions = {}
+    ): Promise<T | null> {
+        const { isJSON = true, isGzip = false } = options;
+        return await this.request<T>("POST", api, data, params, isJSON, true, isGzip);
+    }
+
+    async postFormData<T = any>(
+        api: string,
+        formData: FormData,
+        params: Record<string, unknown> = {},
+        options: RequestOptions = {}
+    ): Promise<T | null> {
+        const { isJSON = true, isGzip = false } = options;
+        return await this.request<T>("POST", api, formData, params, isJSON, false, isGzip);
+    }
+
+    async put<T = any>(
+        api: string,
+        data: unknown,
+        params: Record<string, unknown> = {},
+        options: RequestOptions = {}
+    ): Promise<T | null> {
+        const { isJSON = true, isGzip = false } = options;
+        return await this.request<T>("PUT", api, data, params, isJSON, true, isGzip);
+    }
+
+    async patch<T = any>(
+        api: string,
+        data: unknown,
+        params: Record<string, unknown> = {},
+        options: RequestOptions = {}
+    ): Promise<T | null> {
+        const { isJSON = true, isGzip = false } = options;
+        return await this.request<T>("PATCH", api, data, params, isJSON, true, isGzip);
+    }
+
+    async delete<T = any>(
+        api: string,
+        params: Record<string, unknown> = {},
+        options: RequestOptions = {}
+    ): Promise<T | null> {
+        const { isJSON = true, isGzip = false } = options;
+        return await this.request<T>("DELETE", api, null, params, isJSON, true, isGzip);
+    }
+
+    async deleteWithBody<T = any>(
+        api: string,
+        data: unknown = null,
+        params: Record<string, unknown> = {},
+        options: RequestOptions = {}
+    ): Promise<T | null> {
+        const { isJSON = true, isGzip = false } = options;
+        return await this.request<T>("DELETE", api, data, params, isJSON, true, isGzip);
+    }
+
+    private async request<T = any>(
+        method: HttpMethod,
+        api: string,
+        data: unknown = null,
+        params: Record<string, unknown> = {},
+        isJSON = true,
+        useJsonHeader = true,
+        isGzip = false
+    ): Promise<T | null> {
+        const url = MapApi.getURL(api, params);
+        let headers = await this.getHeaders(useJsonHeader);
+
+        let response = await this.doFetch(url, method, headers, data);
+
         if (response.status === 401) {
             const newToken = await AuthServices.refreshAccessToken();
+
             if (newToken) {
                 headers = await this.getHeaders(useJsonHeader);
-                response = await fetch(url, {
-                    method,
-                    headers,
-                    credentials: "same-origin",
-                    body: method === "POST" && data && !(data instanceof FormData)
-                        ? JSON.stringify(data)
-                        : data,
-                });
+                response = await this.doFetch(url, method, headers, data);
             }
         }
 
         if (!response.ok) {
-            this.handleError(response);
+            await this.handleError(response);
             return null;
         }
 
-        // No content
-        const contentType = response.headers.get("content-type");
-        if (!contentType || response.status === 204) return null;
+        if (response.status === 204) {
+            return null;
+        }
 
-        // ✅ GZIP case
+        const contentType = response.headers.get("content-type") || "";
+
+        if (!contentType) {
+            return null;
+        }
+
         if (isGzip || contentType.includes("application/gzip")) {
             const buffer = await response.arrayBuffer();
+
             try {
                 const decompressed = pako.ungzip(new Uint8Array(buffer), { to: "string" });
                 const parsed = JSON.parse(decompressed);
-                return isJSON ? parsed?.payload || parsed : parsed;
+                return (isJSON ? parsed?.payload ?? parsed : parsed) as T;
             } catch (err) {
                 console.error("Failed to decompress or parse GZIP response:", err);
+                this.snackbarRef.current?.show("Failed to parse compressed server response.", "error");
                 return null;
             }
         }
 
-        // ✅ Standard JSON or text
-        const res = isJSON && contentType.includes("application/json")
-            ? await response.json()
-            : await response.text();
+        if (isJSON && contentType.includes("application/json")) {
+            const res = await response.json();
+            return (res?.payload ?? res) as T;
+        }
 
-        return isJSON ? res?.payload || res : res;
+        const text = await response.text();
+        return text as T;
     }
 
-
-    private handleError(response: Response) {
+    private async handleError(response: Response): Promise<void> {
         const ref = this.snackbarRef.current;
-        // console.log("response:", response);
+        let message = "";
+
+        try {
+            const contentType = response.headers.get("content-type") || "";
+
+            if (contentType.includes("application/json")) {
+                const errorData = await response.json();
+                message =
+                    errorData?.message ||
+                    errorData?.detail ||
+                    errorData?.error ||
+                    errorData?.payload?.message ||
+                    "";
+            } else {
+                message = await response.text();
+            }
+        } catch {
+            message = "";
+        }
+
         switch (response.status) {
             case 400:
-                ref?.show("Bad Request. Please check your input.", "error");
+                ref?.show(message || "Bad Request. Please check your input.", "error");
                 break;
             case 401:
-                ref?.show("Unauthorized. Please login again.", "error");
+                ref?.show(message || "Unauthorized. Please login again.", "error");
                 break;
             case 403:
-                ref?.show("Forbidden. You don’t have permission.", "error");
+                ref?.show(message || "Forbidden. You do not have permission.", "error");
+                break;
+            case 404:
+                ref?.show(message || "Requested resource not found.", "error");
+                break;
+            case 405:
+                ref?.show(message || "Method not allowed for this endpoint.", "error");
                 break;
             case 500:
-                ref?.show("Server error. Please contact admin.", "error");
+                ref?.show(message || "Server error. Please contact admin.", "error");
                 break;
             default:
-                ref?.show(`Unexpected error: ${response.status}`);
+                ref?.show(message || `Unexpected error: ${response.status}`, "error");
+                break;
         }
     }
 }

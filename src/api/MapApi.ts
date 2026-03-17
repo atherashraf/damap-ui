@@ -90,8 +90,8 @@ export const MapAPIs = Object.freeze({
 
     // LBDC_DISCHARGE:"https://irrigation.punjab.gov.pk/admin/api/fetch_LBDC_Discharge.php?"
 
-    // PDMA_DCH_UPLOAD_RASTER:"api/layers/rasters/upload_raster/",
-    // PDMA_DCH_RASTER_TMS: "api/layers/raster_tms/{uuid}",
+    PDMA_DCH_UPLOAD_RASTER:"api/layers/rasters/upload_raster/",
+    PDMA_DCH_RASTER_TMS: "api/layers/raster_tms/{uuid}",
 });
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";

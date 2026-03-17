@@ -30,5 +30,13 @@ export const AuthGuard = ({ children }: { children: JSX.Element }) => {
     const token = AuthServices.getAccessToken();
     const location = useLocation();
 
-    return token ? children : <Navigate to="/login" state={{ from: location }} replace />;
+    // Check for actual null, undefined, or the literal strings "null"/"undefined"
+    const isAuthenticated = token && token !== "null" && token !== "undefined";
+
+    if (!isAuthenticated) {
+        console.log("Redirecting to login from:", location.pathname);
+        return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    return children;
 };

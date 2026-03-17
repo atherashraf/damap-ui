@@ -20,7 +20,7 @@ class AbstractDALayer {
     style: IFeatureStyle;
     mapVM: MapVM;
     uuid: string;
-    extent?: number[];
+    extent?: number[] | null;
     //@ts-ignore
     features: any[];
     urlParams: string = "";
@@ -147,7 +147,7 @@ class AbstractDALayer {
 
     async getExtent(): Promise<number[]> {
         if (!this.extent) {
-            this.extent = await this.mapVM
+            this.extent  = await this.mapVM
                 .getApi()
                 .get(MapAPIs.DCH_LAYER_EXTENT, {uuid: this.getLayerId()});
         }

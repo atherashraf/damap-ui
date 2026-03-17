@@ -559,7 +559,7 @@ class MapVM {
         if (!(uuid in this.daLayers)) {
             this.getMapLoadingRef()?.current?.openIsLoading();
             try {
-                const payload: ILayerInfo = await this.api.get(MapAPIs.DCH_LAYER_INFO, {
+                const payload: ILayerInfo | null = await this.api.get(MapAPIs.DCH_LAYER_INFO, {
                     uuid: uuid,
                 });
                 if (payload) {

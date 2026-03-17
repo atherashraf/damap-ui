@@ -12,7 +12,7 @@ const GISViewerToolbar = () => {
             console.log("Toolbar ready:", e.detail);
 
             const toolbar = e.detail;
-            toolbar.addButton(<DrawPointTool mapVM={mapVM} />);
+            toolbar.addButton(<DrawPointTool />);
         };
 
         window.addEventListener("mapToolbarContainerReady", handleToolbarReady);

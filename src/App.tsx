@@ -1,6 +1,7 @@
 
-import MapRoutes from "@/routes/MapRoutes";
-import './damap.css';
+
+import '@/damap.css';
+import MapRoutes from "@demo/routes/MapRoutes";
 
 const App = () => (
 

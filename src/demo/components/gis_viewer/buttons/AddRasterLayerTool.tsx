@@ -1,7 +1,7 @@
 import {IconButton} from "@mui/material";
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import {getMapVM} from "@/damap";
-import GeoTiffUploadForm from "@/components/gis_viewer/form/GeoTiffUploadForm";
+import GeoTiffUploadForm from "@demo/components/gis_viewer/form/GeoTiffUploadForm";
 
 
 const AddRasterLayerTool = () => {

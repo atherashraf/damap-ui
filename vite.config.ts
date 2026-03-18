@@ -29,13 +29,17 @@ export default defineConfig(({ command, mode }) => {
         plugins: [
             react(),
             viteStaticCopy({
-                targets: [{ src: 'src/assets', dest: '.' }], // -> dist/assets
+                targets: [
+                    { src: 'src/lib/assets/**/*', dest: 'assets' },
+                ],
             }),
         ],
 
         resolve: {
-            alias: { '@': resolve(__dirname, './src') },
-            // Always dedupe React/Emotion to avoid duplicates when linked
+            alias: {
+                '@': resolve(__dirname, './src/lib'),
+                '@demo': resolve(__dirname, './src/demo'),
+            },
             dedupe: ['react', 'react-dom', '@emotion/react', '@emotion/styled'],
         },
 
@@ -43,25 +47,23 @@ export default defineConfig(({ command, mode }) => {
             port: parseInt(env.VITE_DEV_PORT || '5173', 10),
         },
 
-        // Library build only
         build: isBuild
             ? {
                 outDir: 'dist',
-                emptyOutDir: false, // set true if you don't rely on pre-existing files in dist
+                emptyOutDir: false,
                 sourcemap: true,
                 lib: {
-                    entry: resolve(__dirname, 'src/damap.ts'),
+                    entry: resolve(__dirname, 'src/lib/damap.ts'),
                     name: 'damap',
                     fileName: (format) => `damap.${format}.js`,
                     formats: ['es', 'cjs'],
                 },
                 rollupOptions: {
-                    external: peers, // externalize all peer deps
+                    external: peers,
                 },
             }
             : undefined,
 
-        // On build: don't prebundle peers; on dev: let Vite prebundle react/react-dom normally
         optimizeDeps: isBuild ? { exclude: peers } : {},
 
         assetsInclude: ['**/*.geojson'],

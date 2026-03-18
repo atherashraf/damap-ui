@@ -2,9 +2,9 @@ import MapView from "@/components/map/MapView";
 import {AppBar, Paper} from "@mui/material";
 import {useEffect} from "react";
 import {MapToolbarHandle} from "@/components/map/toolbar/MapToolbarContainer";
-import DrawPointTool from "@/components/gis_viewer/buttons/DrawPointTool";
-import AddRasterLayerTool from "@/components/gis_viewer/buttons/AddRasterLayerTool";
-import AddLayerTool from "@/components/gis_viewer/buttons/AddLayerTool";
+import DrawPointTool from "@demo/components/gis_viewer/buttons/DrawPointTool";
+import AddRasterLayerTool from "@demo/components/gis_viewer/buttons/AddRasterLayerTool";
+import AddLayerTool from "@demo/components/gis_viewer/buttons/AddLayerTool";
 
 // import {getMapVM} from "@/damap";
 // import GISViewerToolbar from "@/components/gis_viewer/GISViewerToolbar";

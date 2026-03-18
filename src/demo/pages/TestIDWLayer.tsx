@@ -1,6 +1,6 @@
 import {AppBar, Paper} from "@mui/material";
 import MapView from "@/components/map/MapView";
-import GroundWaterToolbar from "@/components/test/GroundWaterToolbar";
+import GroundWaterToolbar from "@demo/components/test/GroundWaterToolbar";
 
 
 

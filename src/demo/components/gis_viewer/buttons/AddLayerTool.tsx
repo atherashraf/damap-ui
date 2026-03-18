@@ -13,9 +13,9 @@ import {
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 
 // Importing your forms
-import AddWFSForm, { AddWFSFormHandle } from '@/components/gis_viewer/form/AddWFSForm';
-import AddWMSForm, { AddWMSFormHandle } from '@/components/gis_viewer/form/AddWMSForm';
-import AddRasterForm from "@/components/gis_viewer/form/AddRasterForm";
+import AddWFSForm, { AddWFSFormHandle } from '@demo/components/gis_viewer/form/AddWFSForm';
+import AddWMSForm, { AddWMSFormHandle } from '@demo/components/gis_viewer/form/AddWMSForm';
+import AddRasterForm from "@demo/components/gis_viewer/form/AddRasterForm";
 
 export default function AddLayerTool() {
     // 1. Define Refs for both WMS and WFS

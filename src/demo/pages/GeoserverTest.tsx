@@ -8,8 +8,8 @@ import { useMapVM } from "@/hooks/MapVMContext";
 import WFSLayer from "@/components/map/layers/overlay_layers/WFSLayer";
 
 import { MapToolbarHandle } from "@/components/map/toolbar/MapToolbarContainer";
-import DrawPointTool from "@/components/gis_viewer/buttons/DrawPointTool";
-import AddRasterLayerTool from "@/components/gis_viewer/buttons/AddRasterLayerTool";
+import DrawPointTool from "@demo/components/gis_viewer/buttons/DrawPointTool";
+import AddRasterLayerTool from "@demo/components/gis_viewer/buttons/AddRasterLayerTool";
 
 function GesServerToolbar() {
     const mapVM = useMapVM();

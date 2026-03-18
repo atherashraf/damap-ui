@@ -1,5 +1,5 @@
 import {AppBar, Paper, } from "@mui/material";
-import CropToolbar from "@/components/test/CropToolbar";
+import CropToolbar from "@demo/components/test/CropToolbar";
 import MapView from "@/components/map/MapView";
 
 

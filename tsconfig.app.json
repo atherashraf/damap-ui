@@ -8,7 +8,8 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/lib/*"],
+      "@demo/*": ["src/demo/*"]
     },
     /* Bundler mode */
     "moduleResolution": "bundler",

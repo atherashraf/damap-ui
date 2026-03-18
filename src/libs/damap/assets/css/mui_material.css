@@ -1,0 +1,22 @@
+/* Hide scrollbar but keep scrolling enabled */
+/*.typeahead-dropdown {*/
+/*    scrollbar-width: none !important; !* Firefox *!*/
+/*    -ms-overflow-style: none !important; !* IE and Edge *!*/
+/*}*/
+
+/*.typeahead-dropdown::-webkit-scrollbar {*/
+/*    display: none !important; !* Chrome, Safari *!*/
+/*}*/
+
+.css-112qy7q-MuiAutocomplete-root {
+    width: 85%;
+    margin: 8px;
+    overflow: auto; /* or scroll if needed */
+    scrollbar-width: none;          /* Firefox */
+    -ms-overflow-style: none;       /* IE and Edge */
+}
+
+.css-112qy7q-MuiAutocomplete-root::-webkit-scrollbar {
+    display: none;                 /* Chrome, Safari, Opera */
+}
+

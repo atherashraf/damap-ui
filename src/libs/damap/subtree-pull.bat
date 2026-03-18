@@ -3,7 +3,7 @@ setlocal
 
 set REMOTE=damap-lib
 set BRANCH=main
-set PREFIX=src/libs/damap
+set PREFIX=src/libs/damap/
 
 echo Fetching %REMOTE%...
 git fetch %REMOTE%

@@ -1,0 +1,22 @@
+{
+  "name": "damap",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+
+  "main": "./damap.ts",
+  "module": "./damap.ts",
+  "types": "./damap.ts",
+
+  "exports": {
+    ".": {
+      "import": "./damap.ts",
+      "default": "./damap.ts"
+    },
+    "./damap.css": "./damap.css"
+  },
+
+  "sideEffects": [
+    "*.css"
+  ]
+}

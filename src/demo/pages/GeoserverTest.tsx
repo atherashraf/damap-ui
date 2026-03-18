@@ -2,12 +2,12 @@ import { AppBar, Box, Button, Paper, Toolbar } from "@mui/material";
 import { useCallback, useEffect } from "react";
 import { transformExtent } from "ol/proj";
 
-import MapView from "@/components/map/MapView";
-import { useMapVM } from "@/hooks/MapVMContext";
+import MapView from "@damap/components/map/MapView";
+import { useMapVM } from "@damap/hooks/MapVMContext";
 
-import WFSLayer from "@/components/map/layers/overlay_layers/WFSLayer";
+import WFSLayer from "@damap/components/map/layers/overlay_layers/WFSLayer";
 
-import { MapToolbarHandle } from "@/components/map/toolbar/MapToolbarContainer";
+import { MapToolbarHandle } from "@damap/components/map/toolbar/MapToolbarContainer";
 import DrawPointTool from "@demo/components/gis_viewer/buttons/DrawPointTool";
 import AddRasterLayerTool from "@demo/components/gis_viewer/buttons/AddRasterLayerTool";
 

@@ -1,6 +1,6 @@
 import { IconButton } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
-import {getMapVM, MapVM} from "@/damap";
+import {getMapVM, MapVM} from "@damap/damap";
 
 /**
  * Draw Point tool using an IconButton with Location icon

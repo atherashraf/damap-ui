@@ -12,7 +12,7 @@ import {
     InputAdornment,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import { getMapVM, MapVM } from "@/damap";
+import { getMapVM, MapVM } from "@damap/damap";
 
 // Types
 interface WMSLayer {

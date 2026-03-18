@@ -8,10 +8,11 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/lib/*"],
+      "@/*": ["src/*"],
+      "@damap/*": ["src/libs/damap/*"],
       "@demo/*": ["src/demo/*"]
     },
-    /* Bundler mode */
+
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
@@ -19,7 +20,6 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,

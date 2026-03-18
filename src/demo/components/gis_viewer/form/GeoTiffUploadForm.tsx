@@ -10,7 +10,7 @@ import {
     TextField,
     Typography,
 } from "@mui/material";
-import {getMapVM, MapApi, MapAPIs} from "@/damap";
+import {getMapVM, MapApi, MapAPIs} from "@damap/damap";
 // import RasterTileLayer from "@/components/map/layers/da_layers/RasterTileLayer";
 
 // import { DASnackbarHandle } from "@/components/base/DASnackbar";

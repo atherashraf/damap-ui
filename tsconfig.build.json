@@ -2,11 +2,11 @@
   "compilerOptions": {
     "target": "ES6",
     "module": "ESNext",
-    "moduleResolution": "node",         // ✅ Use Node-style for better .d.ts path resolution
+    "moduleResolution": "node",
     "lib": ["DOM", "ESNext"],
     "declaration": true,
     "emitDeclarationOnly": true,
-    "declarationMap": true,            // ❌ Optional, but typically skipped in library dist
+    "declarationMap": true,
     "outDir": "./dist",
     "rootDir": "./src",
 
@@ -20,7 +20,7 @@
     "resolveJsonModule": true,
     "importHelpers": true,
 
-    "strict": true,                     // ✅ Recommended for clean typings
+    "strict": true,
     "noImplicitAny": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
@@ -32,12 +32,13 @@
     "allowImportingTsExtensions": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/lib/*"],
+      "@/*": ["src/*"],
+      "@damap/*": ["src/libs/damap/*"],
       "@demo/*": ["src/demo/*"]
     },
 
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-    "moduleDetection": "force",
+    "moduleDetection": "force"
   },
   "include": ["src"]
 }

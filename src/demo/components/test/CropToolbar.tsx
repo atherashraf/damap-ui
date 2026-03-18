@@ -4,10 +4,10 @@ import FunctionsIcon from '@mui/icons-material/Functions';
 // import AttributeGrid from "damap/lib/widgets/grid/AttributeGrid";
 import Typography from "@mui/material/Typography";
 import {type RefObject, useEffect, useState} from "react";
-import {BottomDrawerHandle} from "@/components/map/drawers/BottomDrawer";
-import MapVM from "@/components/map/models/MapVM";
-import {useMapVM} from "@/hooks/MapVMContext";
-import AttributeTable from "@/components/map/table/AttributeTable";
+import {BottomDrawerHandle} from "@damap/components/map/drawers/BottomDrawer";
+import MapVM from "@damap/components/map/models/MapVM";
+import {useMapVM} from "@damap/hooks/MapVMContext";
+import AttributeTable from "@damap/components/map/table/AttributeTable";
 
 
 interface ISurfaceName {

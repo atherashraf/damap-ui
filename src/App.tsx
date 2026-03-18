@@ -1,6 +1,6 @@
 
 
-import '@/damap.css';
+import '@damap/damap.css';
 import MapRoutes from "@demo/routes/MapRoutes";
 
 const App = () => (

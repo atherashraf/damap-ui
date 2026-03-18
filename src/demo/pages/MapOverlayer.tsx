@@ -1,11 +1,11 @@
 import {RefObject, useEffect} from 'react';
 import {AppBar, Box, IconButton, Paper, Toolbar, useTheme} from "@mui/material";
-import {ContextMenuHandle, getMapVM, IFeatureStyle, MapToolbarHandle, MapView, MapVM, useMapVM} from "@/damap";
-import CustomFeatureViewer from "@/components/map/test/CustomFeatureViewer";
+import {ContextMenuHandle, getMapVM, IFeatureStyle, MapToolbarHandle, MapView, MapVM, useMapVM} from "@damap/damap";
+import CustomFeatureViewer from "@damap/components/map/test/CustomFeatureViewer";
 
-import OverlayVectorLayer from "@/components/map/layers/overlay_layers/OverlayVectorLayer";
-import {ITextStyle} from "@/types/typeDeclarations";
-import AddTextStyle from "@/components/map/toolbar/controls/external/AddTextStyle";
+import OverlayVectorLayer from "@damap/components/map/layers/overlay_layers/OverlayVectorLayer";
+import {ITextStyle} from "@damap/types/typeDeclarations";
+import AddTextStyle from "@damap/components/map/toolbar/controls/external/AddTextStyle";
 import AddIcon from "@mui/icons-material/Add";
 
 const CustomAppBar = () =>{

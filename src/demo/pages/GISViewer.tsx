@@ -1,7 +1,7 @@
-import MapView from "@/components/map/MapView";
+import MapView from "@damap/components/map/MapView";
 import {AppBar, Paper} from "@mui/material";
 import {useEffect} from "react";
-import {MapToolbarHandle} from "@/components/map/toolbar/MapToolbarContainer";
+import {MapToolbarHandle} from "@damap/components/map/toolbar/MapToolbarContainer";
 import DrawPointTool from "@demo/components/gis_viewer/buttons/DrawPointTool";
 import AddRasterLayerTool from "@demo/components/gis_viewer/buttons/AddRasterLayerTool";
 import AddLayerTool from "@demo/components/gis_viewer/buttons/AddLayerTool";

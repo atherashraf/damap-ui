@@ -19,7 +19,8 @@
     "experimentalDecorators": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/lib/*"],
+      "@/*": ["src/*"],
+      "@damap/*": ["src/libs/damap/*"],
       "@demo/*": ["src/demo/*"]
     },
     "importHelpers": true,

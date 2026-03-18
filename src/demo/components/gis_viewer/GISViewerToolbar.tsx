@@ -1,5 +1,5 @@
 import  { useEffect } from "react";
-import { MapToolbarHandle, useMapVM } from "@/damap";
+import { MapToolbarHandle, useMapVM } from "@damap/damap";
 import DrawPointTool from "@demo/components/gis_viewer/buttons/DrawPointTool";
 import { Toolbar } from "@mui/material";
 

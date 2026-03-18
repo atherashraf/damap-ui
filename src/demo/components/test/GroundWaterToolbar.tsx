@@ -2,8 +2,8 @@ import Toolbar from "@mui/material/Toolbar";
 import {IconButton} from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import {type ChangeEvent, useEffect, useState} from "react";
-import {useMapVM} from "@/hooks/MapVMContext";
-import MapVM from "@/components/map/models/MapVM";
+import {useMapVM} from "@damap/hooks/MapVMContext";
+import MapVM from "@damap/components/map/models/MapVM";
 
 
 

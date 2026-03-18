@@ -1,7 +1,7 @@
 import {Routes, Route} from "react-router-dom";
 import React, {Suspense} from "react";
-import { AuthGuard } from "@/components/auth/AuthGuard";
-import MapInfoAdmin from "@/pages/admin/MapInfoAdmin";
+import { AuthGuard } from "@damap/components/auth/AuthGuard";
+import MapInfoAdmin from "@damap/pages/admin/MapInfoAdmin";
 import MapOverlayer from "@demo/pages/MapOverlayer";
 import CustomizeAttributeTable from "@demo/pages/CustomizeAttributeTable";
 import TestIDWLayer from "@demo/pages/TestIDWLayer";
@@ -12,11 +12,11 @@ import GeoServerTest from "@demo/pages/GeoserverTest";
 
 const DashboardLayout = React.lazy(() => import("@demo//layouts/DashboardLayout"));
 const MapAdmin = React.lazy(() => import("@demo/pages/MapAdmin"));
-const MapEditor = React.lazy(() => import("@/pages/admin/MapEditor"));
-const LayerDesigner = React.lazy(() => import("@/pages/LayerDesigner"));
-const LayerInfoAdmin = React.lazy(() => import("@/pages/admin/LayerInfoAdmin"));
-const DAMap = React.lazy(() => import("@/pages/DAMap"));
-const LoginForm = React.lazy(() => import("@/components/auth/LoginForm"));
+const MapEditor = React.lazy(() => import("@damap/pages/admin/MapEditor"));
+const LayerDesigner = React.lazy(() => import("@damap/pages/LayerDesigner"));
+const LayerInfoAdmin = React.lazy(() => import("@damap/pages/admin/LayerInfoAdmin"));
+const DAMap = React.lazy(() => import("@damap/pages/DAMap"));
+const LoginForm = React.lazy(() => import("@damap/components/auth/LoginForm"));
 // const GISViewer = React.lazy(() => import("@/pages/GISViewer"));
 
 

@@ -1,7 +1,7 @@
 import {Outlet} from "react-router-dom";
-import DAAppBar from "@/components/base/DAAppbar";
-import DASnackbar from "@/components/base/DASnackbar";
-import {snackbarRef} from "@/utils/snackbarRef";
+import DAAppBar from "@damap/components/base/DAAppbar";
+import DASnackbar from "@damap/components/base/DASnackbar";
+import {snackbarRef} from "@damap/utils/snackbarRef";
 
 const DashboardLayout = () => {
     return (

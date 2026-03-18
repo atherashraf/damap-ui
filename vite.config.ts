@@ -30,14 +30,15 @@ export default defineConfig(({ command, mode }) => {
             react(),
             viteStaticCopy({
                 targets: [
-                    { src: 'src/lib/assets/**/*', dest: 'assets' },
+                    { src: 'src/libs/damap/assets/**/*', dest: 'assets' },
                 ],
             }),
         ],
 
         resolve: {
             alias: {
-                '@': resolve(__dirname, './src/lib'),
+                '@': resolve(__dirname, './src'),
+                '@damap': resolve(__dirname, './src/libs/damap'),
                 '@demo': resolve(__dirname, './src/demo'),
             },
             dedupe: ['react', 'react-dom', '@emotion/react', '@emotion/styled'],
@@ -53,7 +54,7 @@ export default defineConfig(({ command, mode }) => {
                 emptyOutDir: false,
                 sourcemap: true,
                 lib: {
-                    entry: resolve(__dirname, 'src/lib/damap.ts'),
+                    entry: resolve(__dirname, 'src/libs/damap/damap.ts'),
                     name: 'damap',
                     fileName: (format) => `damap.${format}.js`,
                     formats: ['es', 'cjs'],

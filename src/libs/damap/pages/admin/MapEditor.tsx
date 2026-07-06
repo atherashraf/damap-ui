@@ -4,9 +4,8 @@ import {useParams} from "react-router-dom";
 import {useRef, useEffect} from "react";
 import {AppBar,  Toolbar, Tooltip, Typography, useTheme} from "@mui/material";
 import {getMapVM} from "@damap/hooks/MapVMContext";
-// import SymbologyControl from "@damap/components/map/toolbar/controls/SymbologyControl";
-// import AddIcon from "@mui/icons-material/Add";
-import SaveMap from "@damap/components/map/toolbar/controls/SaveMap"; // any icon you prefer
+import SaveMap from "@damap/components/map/toolbar/controls/SaveMap";
+
 
 
 // const timeSliderRef: RefObject<TimeSliderHandle | null> = React.createRef<TimeSliderHandle | null>();
@@ -16,25 +15,35 @@ const MapEditor = () => {
     const {mapId = ''} = useParams();
 
     const buttonAdded = useRef(false);
+
+
     useEffect(() => {
         const mapVM = getMapVM();
+        mapVM.setIsDesigner(false);
+        mapVM.isMapEditor = true;
+        // if(!mapVM || !mapVM.getMapInfo()) return;
 
         if (!buttonAdded.current && mapVM?.getMapToolbar) {
             mapVM.getMapToolbar().addButton(// <SymbologyControl/>
                 <Tooltip title="save map">
                     <span><SaveMap/></span>
                 </Tooltip>);
+
+
             // mapVM.getMapToolbar().addButton(
             //     <Tooltip title={"test"}><IconButton onClick={() => alert("working..")}><AddIcon/></IconButton></Tooltip>
             // )
-            mapVM.setIsDesigner(false);
+
             buttonAdded.current = true;
         }
     }, []);
 
+
+
+
     const theme = useTheme();
     return (<React.Fragment>
-            <MapView uuid={mapId || ''} isMap={true} theme={theme}>
+            <MapView uuid={mapId || ''} isMap={true} theme={theme} layerSwitcherType={"MUI"}>
                 <AppBar position="static" color="secondary" elevation={2}>
                     <Toolbar variant="dense">
                         <Typography variant="h6" sx={{flexGrow: 1}}>

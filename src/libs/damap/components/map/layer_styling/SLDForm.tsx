@@ -14,13 +14,18 @@ const SLDForm = (props: IProps) => {
 
   const uploadFile = (file: any) => {
     // Create a form and post it to server
-    let formData = new FormData();
+    const formData = new FormData();
     // fileToUpload.forEach((file) => formData.append("files", file))
     formData.append("file", file);
     const layerId = props.mapVM.getLayerOfInterest();
+    if (!layerId) {
+      props.mapVM.showSnackbar("Please select a layer first");
+      return;
+    }
+    const mapUUID = props.mapVM.isMapEditor ? (props.mapVM.getMapUUID() ?? "-1") : "-1";
     props.mapVM
       .getApi()
-      .postFormData(MapAPIs.DCH_SAVE_SLD, formData, { uuid: layerId })
+      .postFormData(MapAPIs.DCH_SAVE_SLD, formData, { uuid: layerId , map_uuid: mapUUID })
       .then((payload) => {
         if (payload) {
           props.mapVM.showSnackbar("SLD uploaded successfully");

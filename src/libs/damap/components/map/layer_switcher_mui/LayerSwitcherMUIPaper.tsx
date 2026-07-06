@@ -1,9 +1,6 @@
 import * as React from "react";
-import {
-  Box,
-  Paper,
-  Stack,
-} from "@mui/material";
+import { Box, Paper, Stack } from "@mui/material";
+import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import PublicIcon from "@mui/icons-material/Public";
 import PolylineIcon from "@mui/icons-material/Polyline";
 import LayersIcon from "@mui/icons-material/Layers";
@@ -11,401 +8,378 @@ import GroupLayer from "ol/layer/Group";
 import BaseLayer from "ol/layer/Base";
 import { unByKey } from "ol/Observable";
 import { EventsKey } from "ol/events";
+
 import MapVM from "@damap/components/map/models/MapVM";
-import LayerSwitcherLayerCard from "@damap/components/map/layer_switcher_mui/LayerSwitcherLayerCard";
 import LayerSwitcherLayerMenu from "@damap/components/map/layer_switcher_mui/LayerSwitcherLayerMenu";
-import { LayerItem, LayerMenuState } from "@damap/components/map/layer_switcher_mui/types";
 import LayerSwitcherBaseLayerCard from "@damap/components/map/layer_switcher_mui/LayerSwitcherBaseLayerCard";
-import WMSLayer from "@damap/components/map/layers/overlay_layers/WMSLayer";
+import LayerSwitcherGroupCard from "@damap/components/map/layer_switcher_mui/LayerSwitcherGroupCard";
+import { LayerItem, LayerMenuState } from "@damap/components/map/layer_switcher_mui/types";
+import type { ILayerRecord, ILayerTreeGroup } from "@damap/components/map/manager/LayerManager";
 
 interface LayerSwitcherMuiProps {
-  mapVM: MapVM;
+    mapVM: MapVM;
 }
 
-const isVisibleInSwitcher = (layer: BaseLayer, parentTitle?: string): boolean => {
-  if (layer.get("displayInLayerSwitcher") === false) return false;
-  if (parentTitle === "Base Layers") return true;
-  return true;
-};
-
 const getLayerTitle = (layer: BaseLayer): string => {
-  return layer.get("title") || layer.get("name") || "Untitled Layer";
+    return layer.get("title") || layer.get("name") || "Untitled Layer";
 };
 
 const getLayerIcon = (layer: BaseLayer, isBaseLayer: boolean): React.ReactNode => {
-  if (isBaseLayer) return <PublicIcon fontSize="small" />;
-  const source = (layer as any).getSource?.();
-  if (source?.getFeatures) return <PolylineIcon fontSize="small" />;
-  return <LayersIcon fontSize="small" />;
+    if (isBaseLayer) return <PublicIcon fontSize="small" />;
+
+    const source = (layer as any).getSource?.();
+    if (source?.getFeatures) return <PolylineIcon fontSize="small" />;
+
+    return <LayersIcon fontSize="small" />;
 };
 
-const collectVisibleLayers = (mapVM: MapVM): LayerItem[] => {
-  const map = mapVM.getMap();
-  if (!map) return [];
+const collectBaseLayers = (mapVM: MapVM): LayerItem[] => {
+    const map = mapVM.getMap();
+    if (!map) return [];
 
-  const layers = map.getLayers().getArray();
-  const items: LayerItem[] = [];
+    const items: LayerItem[] = [];
 
-  layers.forEach((layer, idx) => {
-    if (layer instanceof GroupLayer) {
-      const groupTitle = layer.get("title");
-      const children = layer.getLayers().getArray();
-      children.forEach((child, childIdx) => {
-        if (!isVisibleInSwitcher(child, groupTitle)) return;
-        const isBaseLayer = child.get("baseLayer") === true || groupTitle === "Base Layers";
-        items.push({
-          id: `group-${idx}-${childIdx}-${getLayerTitle(child)}`,
-          layer: child,
-          title: getLayerTitle(child),
-          isBaseLayer,
-          icon: getLayerIcon(child, isBaseLayer),
+    map.getLayers().forEach((layer: any, groupIndex: number) => {
+        if (!(layer instanceof GroupLayer)) return;
+        if (layer.get("title") !== "Base Layers") return;
+
+        layer.getLayers().forEach((baseLayer: BaseLayer, index: number) => {
+            items.push({
+                id: `base-${groupIndex}-${index}-${getLayerTitle(baseLayer)}`,
+                layer: baseLayer,
+                title: getLayerTitle(baseLayer),
+                isBaseLayer: true,
+                icon: getLayerIcon(baseLayer, true),
+            });
         });
-      });
-      return;
-    }
-
-    if (!isVisibleInSwitcher(layer)) return;
-    const isBaseLayer = layer.get("baseLayer") === true;
-    items.push({
-      id: `layer-${idx}-${getLayerTitle(layer)}`,
-      layer,
-      title: getLayerTitle(layer),
-      isBaseLayer,
-      icon: getLayerIcon(layer, isBaseLayer),
     });
-  });
 
-  return items;
+    return items;
 };
 
 const LayerSwitcherMUIPaper = ({ mapVM }: LayerSwitcherMuiProps): React.ReactElement => {
-  const [items, setItems] = React.useState<LayerItem[]>([]);
-  const [menuState, setMenuState] = React.useState<LayerMenuState | null>(null);
-  const menuRef = React.useRef<HTMLDivElement | null>(null);
+    const [layerGroups, setLayerGroups] = React.useState<ILayerTreeGroup[]>([]);
+    const [baseLayers, setBaseLayers] = React.useState<LayerItem[]>([]);
+    const [menuState, setMenuState] = React.useState<LayerMenuState | null>(null);
+    const [isInteracting, setIsInteracting] = React.useState(false);
 
-  React.useEffect(() => {
-    const map = mapVM.getMap();
-    if (!map) return;
+    const [, forceUpdate] = React.useState({});
+    const triggerRefresh = React.useCallback(() => forceUpdate({}), []);
 
-    const collection = map.getLayers();
-    let propertyKeys: EventsKey[] = [];
+    const menuRef = React.useRef<HTMLDivElement | null>(null);
+    const suppressRefreshRef = React.useRef(false);
 
-    const bindLayerPropertyListeners = () => {
-      unByKey(propertyKeys);
-      propertyKeys = [];
+    const refreshLayerTree = React.useCallback(() => {
+        setLayerGroups(mapVM.getLayerManager().getLayerTree());
+        setBaseLayers(collectBaseLayers(mapVM));
+    }, [mapVM]);
 
-      const currentItems = collectVisibleLayers(mapVM);
-      currentItems.forEach((item) => {
-        propertyKeys.push(item.layer.on("change:visible", refreshItems));
-        propertyKeys.push(item.layer.on("change:opacity", refreshItems));
-      });
+    // Completely revamped synchronization lifecycle block
+    React.useEffect(() => {
+        const map = mapVM.getMap();
+        if (!map) return;
+
+        const collection = map.getLayers();
+        let propertyKeys: EventsKey[] = [];
+
+        const handleUpdate = () => {
+            if (suppressRefreshRef.current) return;
+
+            // Push execution to the end of the macro task queue.
+            // This allows OpenLayers collections to complete re-parenting changes.
+            setTimeout(() => {
+                refreshLayerTree();
+                bindListeners();
+                triggerRefresh();
+            }, 0);
+        };
+
+        const bindListeners = () => {
+            unByKey(propertyKeys);
+            propertyKeys = [];
+
+            const manager = mapVM.getLayerManager();
+
+            // 1. Listen to discrete property changes on all discrete records
+            manager.getAllLayerRecords().forEach((record) => {
+                if (!record.olLayer) return;
+                propertyKeys.push(record.olLayer.on("change:visible", handleUpdate));
+                propertyKeys.push(record.olLayer.on("change:opacity", handleUpdate));
+                propertyKeys.push(record.olLayer.on("change:zIndex", handleUpdate));
+            });
+
+            // 2. Listen to collection changes on sub-groups (e.g. layers jumping between groups)
+            manager.getLayerGroups().forEach((group) => {
+                const innerCollection = group.getLayers();
+                propertyKeys.push(innerCollection.on("add", handleUpdate));
+                propertyKeys.push(innerCollection.on("remove", handleUpdate));
+            });
+        };
+
+        // Root level changes
+        const addKey = collection.on("add", handleUpdate);
+        const removeKey = collection.on("remove", handleUpdate);
+
+        // Explicit structural broadcast bridge from custom manager actions
+        window.addEventListener("LayerTreeChanged", handleUpdate);
+
+        // Initial setup
+        refreshLayerTree();
+        bindListeners();
+
+        return () => {
+            unByKey([addKey, removeKey, ...propertyKeys]);
+            window.removeEventListener("LayerTreeChanged", handleUpdate);
+        };
+    }, [mapVM, refreshLayerTree, triggerRefresh]);
+
+    React.useEffect(() => {
+        mapVM.layerSwitcherManager.registerContextMenuHandlers({
+            setMenuState,
+        });
+    }, [mapVM]);
+
+    React.useEffect(() => {
+        if (!menuState) return;
+
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as Node | null;
+
+            if (menuRef.current && target && !menuRef.current.contains(target)) {
+                setMenuState(null);
+            }
+        };
+
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setMenuState(null);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener("keydown", handleEscape);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("keydown", handleEscape);
+        };
+    }, [menuState]);
+
+    const selectedBaseLayer = React.useMemo(
+        () => baseLayers.find((i) => i.layer.getVisible()) || baseLayers[0],
+        [baseLayers]
+    );
+
+    const setBaseLayerVisibility = (targetLayer: BaseLayer, visible: boolean) => {
+        const mapLayers = mapVM.getMap().getLayers().getArray();
+
+        const baseGroup = mapLayers.find(
+            (l) => l instanceof GroupLayer && l.get("title") === "Base Layers"
+        ) as GroupLayer | undefined;
+
+        if (!baseGroup) {
+            targetLayer.setVisible(visible);
+            refreshLayerTree();
+            return;
+        }
+
+        if (!visible) {
+            targetLayer.setVisible(false);
+        } else {
+            baseGroup.getLayers().forEach((l) => l.setVisible(l === targetLayer));
+            baseGroup.setVisible(true);
+        }
+
+        mapVM.getMap().render();
+        refreshLayerTree();
     };
 
-    const refreshItems = () => {
-      setItems(collectVisibleLayers(mapVM));
-      bindLayerPropertyListeners();
+    const handleToggleVisibility = (item: LayerItem) => {
+        if (item.isBaseLayer) {
+            setBaseLayerVisibility(item.layer, !item.layer.getVisible());
+            return;
+        }
+
+        item.layer.setVisible(!item.layer.getVisible());
+        item.layer.changed();
+        mapVM.getMap().render();
+        refreshLayerTree();
     };
 
-    const addKey = collection.on("add", refreshItems);
-    const removeKey = collection.on("remove", refreshItems);
-    window.addEventListener("DALayerAdded", refreshItems as EventListener);
-
-    refreshItems();
-
-    return () => {
-      unByKey([addKey, removeKey]);
-      unByKey(propertyKeys);
-      window.removeEventListener("DALayerAdded", refreshItems as EventListener);
-    };
-  }, [mapVM]);
-
-  const setBaseLayerVisibility = React.useCallback(
-    (targetLayer: BaseLayer, visible: boolean) => {
-      const map = mapVM.getMap();
-      const mapLayers = map.getLayers().getArray();
-      const baseGroup = mapLayers.find(
-        (layer) => layer instanceof GroupLayer && layer.get("title") === "Base Layers"
-      ) as GroupLayer | undefined;
-
-      if (!baseGroup) {
-        targetLayer.setVisible(visible);
-        return;
-      }
-
-      if (!visible) {
-        targetLayer.setVisible(false);
-        return;
-      }
-
-      baseGroup.getLayers().forEach((layer) => {
-        layer.setVisible(layer === targetLayer);
-      });
-      baseGroup.setVisible(true);
-    },
-    [mapVM]
-  );
-
-  const handleToggleVisibility = (item: LayerItem) => {
-    const nextVisible = !item.layer.getVisible();
-    if (item.isBaseLayer) {
-      setBaseLayerVisibility(item.layer, nextVisible);
-      return;
-    }
-    item.layer.setVisible(nextVisible);
-    setItems((prev) => [...prev]);
-  };
-
-  const handleOpacityChange = (item: LayerItem, value: number | number[]) => {
-    const opacity = Number(Array.isArray(value) ? value[0] : value);
-    item.layer.setOpacity(opacity);
-    setItems((prev) => [...prev]);
-  };
-
-  const baseLayers = React.useMemo(
-    () => items.filter((item) => item.isBaseLayer),
-    [items]
-  );
-  const nonBaseLayers = React.useMemo(
-    () => items.filter((item) => !item.isBaseLayer),
-    [items]
-  );
-  const selectedBaseLayer = React.useMemo(() => {
-    if (baseLayers.length === 0) return null;
-    return baseLayers.find((item) => item.layer.getVisible()) || baseLayers[0];
-  }, [baseLayers]);
-
-  const handleSelectBaseLayer = (layerId: string) => {
-    const target = baseLayers.find((layer) => layer.id === layerId);
-    if (!target) return;
-    setBaseLayerVisibility(target.layer, true);
-    setItems((prev) => [...prev]);
-  };
-
-  const openMenu = (event: React.MouseEvent<HTMLElement>, item: LayerItem) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const rect = event.currentTarget.getBoundingClientRect();
-    const menuWidth = 220;
-    const top = rect.bottom + 6;
-    const left = Math.max(8, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 8));
-    setMenuState({ item, top, left });
-  };
-
-  const closeMenu = () => {
-    setMenuState(null);
-  };
-
-  React.useEffect(() => {
-    if (!menuState) return;
-
-    const onMouseDown = (event: MouseEvent) => {
-      const target = event.target as Node | null;
-      if (menuRef.current && target && !menuRef.current.contains(target)) {
-        closeMenu();
-      }
+    const handleOpacityChange = (item: LayerItem, value: number | number[]) => {
+        item.layer.setOpacity(Number(Array.isArray(value) ? value[0] : value));
+        item.layer.changed();
+        mapVM.getMap().render();
+        refreshLayerTree();
     };
 
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") closeMenu();
+    const onOpenMenu = (e: React.MouseEvent<HTMLElement>, item: LayerItem) => {
+        e.stopPropagation();
+
+        const rect = e.currentTarget.getBoundingClientRect();
+        const menuWidth = 220;
+        const estimatedMenuHeight = 260;
+        const gap = 6;
+        const padding = 8;
+
+        let top = rect.bottom + gap;
+        let left = rect.right - menuWidth;
+
+        if (top + estimatedMenuHeight > window.innerHeight - padding) {
+            top = rect.top - estimatedMenuHeight - gap;
+        }
+
+        if (top < padding) top = padding;
+        if (left < padding) left = padding;
+        if (left + menuWidth > window.innerWidth - padding) {
+            left = window.innerWidth - menuWidth - padding;
+        }
+
+        setMenuState({
+            item,
+            top,
+            left,
+        });
     };
 
-    document.addEventListener("mousedown", onMouseDown);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", onMouseDown);
-      document.removeEventListener("keydown", onKeyDown);
+    const onDragEnd = (result: DropResult) => {
+        const { source, destination, type } = result;
+        if (!destination) return;
+
+        suppressRefreshRef.current = true;
+
+        try {
+            if (type === "GROUP") {
+                const reordered = Array.from(layerGroups);
+                const [moved] = reordered.splice(source.index, 1);
+                reordered.splice(destination.index, 0, moved);
+
+                mapVM.getLayerManager().reorderRootGroups(
+                    reordered.map((g) => g.id)
+                );
+            }
+
+            if (type === "LAYER") {
+                const sourceGroup = layerGroups.find((g) => g.id === source.droppableId);
+                const destGroup = layerGroups.find((g) => g.id === destination.droppableId);
+
+                if (!sourceGroup || !destGroup) return;
+
+                const sourceLayers: ILayerRecord[] = [...sourceGroup.layers];
+                const [moved] = sourceLayers.splice(source.index, 1);
+                if (!moved) return;
+
+                if (source.droppableId === destination.droppableId) {
+                    sourceLayers.splice(destination.index, 0, moved);
+
+                    mapVM.getLayerManager().reorderLayersInGroup(
+                        sourceGroup.id,
+                        sourceLayers.map((r) => r.id)
+                    );
+                } else {
+                    mapVM.getLayerManager().moveLayerToGroup(moved.id, {
+                        key: destGroup.id,
+                        title: destGroup.title,
+                        collapsed: false,
+                    });
+
+                    const destLayers: ILayerRecord[] = [...destGroup.layers];
+                    destLayers.splice(destination.index, 0, moved);
+
+                    mapVM.getLayerManager().reorderLayersInGroup(
+                        destGroup.id,
+                        destLayers.map((r) => r.id)
+                    );
+                }
+            }
+        } finally {
+            suppressRefreshRef.current = false;
+            mapVM.getMap().renderSync?.();
+            mapVM.getMap().render();
+            refreshLayerTree();
+        }
     };
-  }, [menuState]);
 
-  const handleAboutLayer = (_item: LayerItem) => {
-    const olLayer = _item.layer as any;
+    return (
+        <Paper
+            elevation={2}
+            sx={{
+                height: "100%",
+                width: "100%",
+                p: 1.5,
+                overflowY: "auto",
+            }}
+        >
+            <DragDropContext onDragEnd={onDragEnd}>
+                <Droppable droppableId="groups" type="GROUP">
+                    {(provided) => (
+                        <Stack
+                            spacing={1.25}
+                            {...provided.droppableProps}
+                            ref={provided.innerRef}
+                        >
+                            {layerGroups.map((group, index) => (
+                                <Draggable
+                                    key={group.id}
+                                    draggableId={`group-${group.id}`}
+                                    index={index}
+                                    isDragDisabled={!!menuState || isInteracting}
+                                >
+                                    {(provided) => (
+                                        <Box
+                                            ref={provided.innerRef}
+                                            {...provided.draggableProps}
+                                        >
+                                            <LayerSwitcherGroupCard
+                                                groupId={group.id}
+                                                group={group.group}
+                                                title={group.title}
+                                                childrenItems={group.layers.map((record: ILayerRecord) => ({
+                                                    id: record.id,
+                                                    layer: record.olLayer as BaseLayer,
+                                                    title: record.title,
+                                                    isBaseLayer: false,
+                                                    icon: getLayerIcon(record.olLayer as BaseLayer, false),
+                                                }))}
+                                                dragHandleProps={provided.dragHandleProps}
+                                                onToggleVisibility={handleToggleVisibility}
+                                                onOpacityChange={handleOpacityChange}
+                                                onOpenMenu={onOpenMenu}
+                                                onOpenLegend={() => {}}
+                                                onInteractionStart={() => setIsInteracting(true)}
+                                                onInteractionEnd={() => setIsInteracting(false)}
+                                            />
+                                        </Box>
+                                    )}
+                                </Draggable>
+                            ))}
 
-    const title = olLayer.get("title") ?? "Untitled Layer";
-    const uuid = olLayer.get("name") ?? "unknown";
+                            {provided.placeholder}
 
-    const visible = olLayer.getVisible?.() ?? false;
-    const opacity = olLayer.getOpacity?.() ?? 1;
+                            {selectedBaseLayer && (
+                                <LayerSwitcherBaseLayerCard
+                                    baseLayers={baseLayers}
+                                    selectedBaseLayer={selectedBaseLayer}
+                                    onSelectBaseLayer={(id) => {
+                                        const target = baseLayers.find((l) => l.id === id);
+                                        if (target) setBaseLayerVisibility(target.layer, true);
+                                    }}
+                                    onToggleVisibility={handleToggleVisibility}
+                                    onOpacityChange={handleOpacityChange}
+                                    onOpenMenu={() => {}}
+                                />
+                            )}
+                        </Stack>
+                    )}
+                </Droppable>
+            </DragDropContext>
 
-    const source = olLayer.getSource?.();
-    const params = source?.getParams?.() ?? {};
-
-    const sourceUrl =
-        source?.getUrl?.() ??
-        source?.getUrls?.()?.[0] ??
-        "N/A";
-
-    const layerType =
-        source?.getFeatureInfoUrl
-            ? "WMS"
-            : source?.getFeatures
-                ? "Vector"
-                : "Raster / Tile";
-
-    mapVM.getDialogBoxRef().current?.openDialog({
-      title: `Layer Information`,
-      content: (
-          <Box sx={{ p: 2, minWidth: 320 }}>
-            <Stack spacing={1}>
-
-              <Box><b>Title:</b> {title}</Box>
-              <Box><b>UUID:</b> {uuid}</Box>
-              <Box><b>Type:</b> {layerType}</Box>
-              <Box><b>Visible:</b> {String(visible)}</Box>
-              <Box><b>Opacity:</b> {opacity}</Box>
-
-              <Box sx={{ mt: 1 }}>
-                <b>Source URL</b>
-              </Box>
-
-              <Box
-                  sx={{
-                    fontSize: 12,
-                    wordBreak: "break-all",
-                    bgcolor: "grey.100",
-                    p: 1,
-                    borderRadius: 1,
-                  }}
-              >
-                {sourceUrl}
-              </Box>
-
-              {params && Object.keys(params).length > 0 && (
-                  <>
-                    <Box sx={{ mt: 1 }}>
-                      <b>WMS Parameters</b>
-                    </Box>
-
-                    <Box
-                        sx={{
-                          fontSize: 12,
-                          bgcolor: "grey.100",
-                          p: 1,
-                          borderRadius: 1,
-                        }}
-                    >
-                <pre style={{ margin: 0 }}>
-                  {JSON.stringify(params, null, 2)}
-                </pre>
-                    </Box>
-                  </>
-              )}
-
-            </Stack>
-          </Box>
-      ),
-    });
-  };
-  const handleAttributeTable = (_item: LayerItem) => {
-    const olLayer = _item.layer as any;
-    const uuid = olLayer.get("name");
-    try {
-      mapVM.setLayerOfInterest(uuid);
-      setTimeout(() => mapVM?.openAttributeTable?.(), 1000);
-    } catch {
-      mapVM.showSnackbar("Attribute table is not available");
-    }
-
-  };
-
-  const handleZoomToLayer = async (item: LayerItem) => {
-    const olLayer = item.layer as any;
-    let extent =
-        olLayer.get("dataExtent") ??
-        olLayer.getExtent?.() ??
-        olLayer.getSource?.()?.getExtent?.();
-    // console.log("extent", extent, olLayer.get("dataExtent"));
-    // If this is your custom WMSLayer wrapper, optionally trigger loading here too
-    if (!extent) {
-      const overlay = mapVM.getOverlayLayer(olLayer.get("name"));
-      if (overlay instanceof  WMSLayer && overlay?.loadExtentFromCapabilities) {
-        extent = await overlay.loadExtentFromCapabilities();
-      }
-    }
-
-    if (extent && extent.length === 4) {
-      mapVM.zoomToExtent(extent);
-    } else {
-      mapVM.showSnackbar("Layer extent is not available");
-    }
-  };
-
-  const handleDeleteLayer = (_item: LayerItem) => {};
-
-  const handleOpenLegend = (item: LayerItem) => {
-    const legend = (item.layer as any)?.legend;
-    if (!legend) return;
-
-    let src: string | null = null;
-    if (legend?.sType === "src" && typeof legend?.graphic === "string") {
-      src = legend.graphic;
-    } else if (legend?.sType === "canvas" && legend?.graphic?.toDataURL) {
-      src = legend.graphic.toDataURL();
-    } else if (legend?.sType === "sld" && legend?.graphic?.renderAsImage) {
-      legend.graphic
-        .renderAsImage("svg")
-        .then((svgEl: Element) => {
-          const svgString = svgEl.outerHTML;
-          const svgSrc =
-            "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgString)));
-          mapVM.getDialogBoxRef().current?.openDialog({
-            title: `${item.title} Legend`,
-            content: (
-              <Box sx={{ p: 1 }}>
-                <img src={svgSrc} alt={`${item.title} legend`} style={{ maxWidth: "100%" }} />
-              </Box>
-            ),
-          });
-        })
-        .catch(() => {});
-      return;
-    }
-
-    if (!src) return;
-
-    mapVM.getDialogBoxRef().current?.openDialog({
-      title: `${item.title} Legend`,
-      content: (
-        <Box sx={{ p: 1 }}>
-          <img src={src} alt={`${item.title} legend`} style={{ maxWidth: "100%" }} />
-        </Box>
-      ),
-    });
-  };
-
-  return (
-    <Paper elevation={2} sx={{ height: "100%", width: "100%", p: 1.5, overflowY: "auto" }}>
-      <Stack spacing={1.25}>
-        {selectedBaseLayer && (
-          <LayerSwitcherBaseLayerCard
-            baseLayers={baseLayers}
-            selectedBaseLayer={selectedBaseLayer}
-            onSelectBaseLayer={handleSelectBaseLayer}
-            onToggleVisibility={handleToggleVisibility}
-            onOpacityChange={handleOpacityChange}
-            onOpenMenu={openMenu}
-          />
-        )}
-        {nonBaseLayers.map((item) => (
-          <LayerSwitcherLayerCard
-            key={item.id}
-            item={item}
-            onToggleVisibility={handleToggleVisibility}
-            onOpacityChange={handleOpacityChange}
-            onOpenMenu={openMenu}
-            onOpenLegend={handleOpenLegend}
-          />
-        ))}
-      </Stack>
-      <LayerSwitcherLayerMenu
-        menuRef={menuRef}
-        menuState={menuState}
-        onAboutLayer={handleAboutLayer}
-        onAttributeTable={handleAttributeTable}
-        onZoomToLayer={handleZoomToLayer}
-        onDeleteLayer={handleDeleteLayer}
-      />
-    </Paper>
-  );
+            <LayerSwitcherLayerMenu
+                menuRef={menuRef}
+                menuState={menuState}
+            />
+        </Paper>
+    );
 };
 
 export default LayerSwitcherMUIPaper;

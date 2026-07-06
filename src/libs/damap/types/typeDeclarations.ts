@@ -15,7 +15,7 @@ import IDWLayer from "@damap/components/map/layers/overlay_layers/IDWLayer";
 import SelectionLayer from "@damap/components/map/layers/overlay_layers/SelectionLayer";
 import XYZLayer from "@damap/components/map/layers/overlay_layers/XYZLayer";
 import {IdentifyResultHandle} from "@damap/components/map/widgets/IdentifyResult";
-import {ContextMenuHandle} from "@damap/components/map/layer_switcher/ContextMenu";
+import {ContextMenuHandle} from "@damap/components/map/layer_switcher_mui/LayerSwitcherLayerMenu";
 import {AttributeTableToolbarHandle} from "@damap/components/map/table/AttributeTableToolbar";
 
 
@@ -38,7 +38,7 @@ export interface IDomRef {
     loadingRef: RefObject<DAMapLoadingHandle | null>;
     timeSliderRef?: RefObject<TimeSliderHandle | null>;
     identifyResultRef: RefObject<IdentifyResultHandle | null>;
-    contextMenuRef: RefObject<ContextMenuHandle | null>;
+    contextMenuRef?: RefObject<ContextMenuHandle | null>;
     attributeTableToolbarRef: RefObject<AttributeTableToolbarHandle | null>;
 }
 
@@ -60,39 +60,126 @@ export interface ILayerSources {
     [key: string]: ILayerSourcesInfo;
 }
 
+
+
 export interface ILayerInfo {
-    title?: string;
+    name:string  // this contain uuid
+    title: string;
     uuid: string;
     style?: IFeatureStyle;
-    zoomRange?: number[]
-    geomType?: string[]
-    dataModel?: string // "V" or "R"
-    category?: string
-    dataURL?: string
-    extent3857?: []
-    layerSetting?: any
-    format?: string
-    zIndex?: number
-    declutter?: boolean
-    dateRangeURL?: string
+    zoomRange?: number[];
+    geomType?: string[];
+    dataModel?: string;
+    category?: string;
+    dataURL?: string;
+    extent3857?: [];
+    layerSetting?: any;
+    format?: string;
+    zIndex?: number;
+    declutter?: boolean;
+    dateRangeURL?: string;
+}
+
+export interface IWMSLayerParams {
+    uuid?: string;
+    title?: string;
+    url: string;
+    layers: string;
+    tiled?: boolean;
+    format?: string;
+    transparent?: boolean;
+    version?: string;
+    visible?: boolean;
+    opacity?: number;
+    zIndex?: number;
+}
+export interface IMapGroupInfo {
+    key: string;
+    title: string;
+    order?: number;
+    collapsed?: boolean;
+}
+export interface IMapLayerInfo {
+    uuid: string;
+    name?: string;
+    title?: string;
+
+    style?: IFeatureStyle;
+    type?: string;
+
+    visible?: boolean;
+    opacity?: number;
+    isBase?: boolean;
+    key?: string;
+    zIndex?: number;
+
+    params?: IWMSLayerParams | Record<string, any>;
+
+    // old support
+    groupName?: string;
+
+    // new group support
+    groupKey?: string | null;
+    groupTitle?: string | null;
+
+    zoomRange?: [number, number];
 }
 
 export interface IMapInfo {
     uuid: string;
     title?: string;
-    layers: {
-        uuid: string;
-        style?: IFeatureStyle;
-        visible?: boolean;
-        isBase?: boolean;
-        key?: string;
-    }[];
+
+    groups?: IMapGroupInfo[];
+    layers: IMapLayerInfo[];
+
     extent?: number[];
     srid?: number;
     units?: string;
     description?: string;
     isEditor?: boolean;
 }
+
+export interface ILabelLayerInfo {
+    showLabel?: boolean;
+    labelProperty?: string;
+    textStyle?: ITextStyle;
+    minLabelZoom?: number;
+    maxLabelZoom?: number;
+}
+
+
+export interface ILabelableLayer {
+    layerInfo: ILabelLayerInfo;
+    setShowLabel(showLabel: boolean): void;
+    getShowLabel(): boolean | undefined;
+    setLabelProperty(labelProperty: string): void;
+    getLabelProperty(): string | undefined;
+    setTextStyle(textStyle: ITextStyle): void;
+    getTextStyle(): ITextStyle | undefined;
+    updateLabelOptions(
+        labelProperty: string,
+        textStyle?: ITextStyle,
+        showLabel?: boolean,
+        minLabelZoom?: number,
+        maxLabelZoom?: number
+    ): void;
+    getAttributeList(): string[] | Promise<string[]>;
+}
+
+export const isLabelableLayer = (layer: unknown): layer is ILabelableLayer => {
+    const obj = layer as Partial<ILabelableLayer> | null;
+
+    return !!obj &&
+        typeof obj.setShowLabel === "function" &&
+        typeof obj.getShowLabel === "function" &&
+        typeof obj.setLabelProperty === "function" &&
+        typeof obj.getLabelProperty === "function" &&
+        typeof obj.setTextStyle === "function" &&
+        typeof obj.getTextStyle === "function" &&
+        typeof obj.updateLabelOptions === "function" &&
+        typeof obj.getAttributeList === "function";
+};
+
 export interface ITextStyle {
     font?: string;            //"bold 14px Arial"
     fillColor?: string;
@@ -103,24 +190,53 @@ export interface ITextStyle {
     placement?: "point" | "line";
 }
 
+export interface IFeatureTextConfig {
+    labelField?: string;
+    style?: ITextStyle;
+    showLabel?: boolean;
+    minLabelZoom?: number;
+    maxLabelZoom?: number;
+}
+
 export interface IFeatureStyle {
     type: "single" | "multiple" | "density" | "sld";
     style: {
         default?: IGeomStyle;
         rules?: IRule[];
     };
+    text?: IFeatureTextConfig;
 }
 
 export interface IGeomStyle {
+    // Point
     pointShape?: (typeof pointShapeTypes)[number];
     pointSize?: number;
+    pointRotation?: number;
+
+    pointIconSrc?: string;
+    pointIconScale?: number;
+    pointIconOpacity?: number;
+    pointIconAnchor?: [number, number];
+
+    // Stroke
     strokeColor?: string;
     strokeWidth?: number;
-    fillColor?: string;
-    pointIconSrc?: string;
+    strokeOpacity?: number;
 
-    lineDash?: number[];       // e.g. [8, 6]
-    lineDashOffset?: number;   // optional
+    lineDash?: number[];
+    lineDashOffset?: number;
+    lineCap?: CanvasLineCap;
+    lineJoin?: CanvasLineJoin;
+    lineOffset?: number;
+
+    // Fill
+    fillColor?: string;
+    fillOpacity?: number;
+
+    fillPattern?: "none" | "solid" | "diagonal" | "cross" | "dot" | "horizontal" | "vertical";
+
+    // Rendering
+    zIndex?: number;
 }
 
 export interface IFilter {
@@ -136,6 +252,30 @@ export interface IRule {
     style: IGeomStyle;
 }
 
+
+export const isGeoJSON = (
+    data: unknown
+): data is IGeoJSON | IGeoJSONFeature => {
+    if (typeof data !== "object" || data === null) return false;
+
+    const obj = data as any;
+
+    // Case 1: FeatureCollection (IGeoJSON)
+    if (
+        obj.type === "FeatureCollection" &&
+        "features" in obj &&
+        Array.isArray(obj.features)
+    ) {
+        return true;
+    }
+
+    // Case 2: Single Feature (IGeoJSONFeature)
+    return obj.type === "Feature" &&
+        "geometry" in obj &&
+        "properties" in obj;
+
+
+};
 export interface IGeoJSON {
     type: string;
     features: IGeoJSONFeature[];
@@ -161,6 +301,7 @@ export interface AttributeTableRequest {
     pkCols: string[];
     pivotTableSrc?: string;
     tableHeight?: number;
+    // isEditable :boolean;
 }
 
 

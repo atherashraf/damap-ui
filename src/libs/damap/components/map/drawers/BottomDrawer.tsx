@@ -43,6 +43,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
 import { AttributeTableRequest } from "@damap/types/typeDeclarations";
 import AttributeTable from "@damap/components/map/table/AttributeTable";
+import {getMapVM} from "@/libs/damap";
 
 const LOCAL_STORAGE_KEY = "bottomDrawerHeight";
 
@@ -158,6 +159,14 @@ class BottomDrawer extends React.PureComponent<BottomDrawerProps, BottomDrawerSt
 
     closeDrawer = () => {
         this.clearUnhideTimer();
+
+        try {
+            const mapVM = getMapVM();
+            mapVM?.attributeTableManager?.clearTableContext();
+        } catch (e) {
+            console.warn("Failed to clear attribute table context", e);
+        }
+
         this.setState({
             open: false,
             isHidden: false,
@@ -278,17 +287,18 @@ class BottomDrawer extends React.PureComponent<BottomDrawerProps, BottomDrawerSt
     }
 
     // ---------- domain helper ----------
-    requestAttributeTable = (request: AttributeTableRequest) => {
-        const { columns, rows, pkCols } = request;
-        const tableHeight = request.tableHeight || 200;
-        const toolbarHeight = 60;
+    setAttributeTable = (request: AttributeTableRequest,toolbarHeight: number, defaultTableHeight: number = 200) => {
+
+        const tableHeight = request.tableHeight || defaultTableHeight;
+        // const toolbarHeight = defaultToolbarHeight;
         const drawerHeight = toolbarHeight + tableHeight;
 
-        const attributeGrid = <AttributeTable columns={columns} data={rows} pkCols={pkCols} />;
+        const attributeGrid = <AttributeTable  />;
 
         this.setContent(attributeGrid);
         this.openDrawer(drawerHeight);
     };
+
 
     render() {
         const { open, height, content, isLoading, isHidden } = this.state;
@@ -301,11 +311,11 @@ class BottomDrawer extends React.PureComponent<BottomDrawerProps, BottomDrawerSt
                         sx={{
                             position: "fixed",
                             bottom: 0,
-                            left: 0,
-                            right: 0,
+                            left: "var(--left-drawer-width, 0px)",
+                            right: "var(--right-drawer-width, 0px)",
                             height: `${height}px`,
                             bgcolor: "background.paper",
-                            zIndex: 1400,
+                            zIndex: 1200,
                             boxShadow: "0px -2px 10px rgba(0,0,0,0.2)",
                             borderTopLeftRadius: 8,
                             borderTopRightRadius: 8,
@@ -366,8 +376,8 @@ class BottomDrawer extends React.PureComponent<BottomDrawerProps, BottomDrawerSt
                         sx={{
                             position: "fixed",
                             bottom: 0,
-                            left: 0,
-                            right: 0,
+                            left: "var(--left-drawer-width, 0px)",
+                            right: "var(--right-drawer-width, 0px)",
                             height: 36,
                             bgcolor: "secondary.light",
                             display: "flex",

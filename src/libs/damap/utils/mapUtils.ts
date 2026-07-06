@@ -1,176 +1,182 @@
 import XYZ from "ol/source/XYZ";
-import { MapAPIs } from "@damap/api/MapApi";
 import GeoJSON from "ol/format/GeoJSON";
+import { Layer } from "ol/layer";
+import { Source } from "ol/source";
+
+import { MapAPIs } from "@damap/api/MapApi";
+import MapVM from "@damap/components/map/models/MapVM";
+import type { ILayerRecord } from "@damap/components/map/manager/LayerManager";
 
 import "@damap/assets/css/side-drawer.css";
-import MapVM from "@damap/components/map/models/MapVM";
-import {Layer} from "ol/layer";
-import {Source} from "ol/source";
-import mapVM from "@damap/components/map/models/MapVM";
-import "@damap/assets/css/identifier-table.css"
+import "@damap/assets/css/identifier-table.css";
 
 class MapUtils {
-    mapVm: mapVM | null = null;
+    mapVm: MapVM | null = null;
     dialogRef: any | null = null;
 
-    constructor(mVM: mapVM) {
+    constructor(mVM: MapVM) {
         this.mapVm = mVM;
         this.dialogRef = mVM.getDialogBoxRef();
     }
 
-
-
     getRasterPixelValue(coord: number[], mapVM: MapVM, targetElem: HTMLElement) {
-        let me = this;
-        Object.keys(mapVM.xyzLayer).forEach((key) => {
-            const olLayer = mapVM.xyzLayer[key].olLayer;
+        const xyzLayers = mapVM.getLayersByKind("xyz");
+
+        xyzLayers.forEach((record: ILayerRecord) => {
+            const olLayer = record.olLayer as Layer<Source>;
+
             if (olLayer.getSource() instanceof XYZ) {
-                let layer_name = olLayer.get("name");
-                let layer_title = olLayer.get("title");
+                const layerName = olLayer.get("name");
+                const layerTitle = olLayer.get("title");
+
                 mapVM
                     .getApi()
                     .get(MapAPIs.DCH_LAYER_PIXEL_VALUE, {
-                        uuid: layer_name,
+                        uuid: layerName,
                         long: coord[0],
                         lat: coord[1],
                     })
                     .then((payload) => {
                         if (payload) {
-                            let obj = { layer: layer_title, value: payload };
-                            me.showJsonDataInHTMLTable(obj, "raster", targetElem);
+                            const obj = { layer: layerTitle, value: payload };
+                            this.showJsonDataInHTMLTable(obj, "raster", targetElem);
                         }
+                    })
+                    .catch((err) => {
+                        console.error("Failed to get raster pixel value", err);
                     });
             }
         });
     }
 
-    getRasterAreaFromDB(polygonJsonStr: string, rasterLayers: Layer<Source>[], mapVM: MapVM, targetElem: HTMLElement) {
-        let layer_name = rasterLayers[0].get("name");
+    getRasterAreaFromDB(
+        polygonJsonStr: string,
+        rasterLayers: Layer<Source>[],
+        mapVM: MapVM,
+        targetElem: HTMLElement
+    ) {
+        if (!rasterLayers.length) return;
+
+        const layerName = rasterLayers[0].get("name");
+
         mapVM
             .getApi()
             .get(MapAPIs.DCH_RASTER_AREA, {
-                uuid: layer_name,
+                uuid: layerName,
                 geojson_str: polygonJsonStr,
             })
             .then((payload) => {
                 if (payload) {
-                    // @ts-ignore
-                    me.showAreaInRightDraw(payload, targetElem);
-                    // this.mapVm.open
+                    this.showAreaInRightDraw(payload, targetElem);
                 }
+            })
+            .catch((err) => {
+                console.error("Failed to get raster area", err);
             });
     }
 
-    showJsonDataInHTMLTable(myObj: Record<string, any>, lyrType: string, targetElem: HTMLElement) {
-        let table = "<table class='identifier-table'> ";
-        for (let key in myObj) {
+    showJsonDataInHTMLTable(
+        myObj: Record<string, any>,
+        lyrType: string,
+        targetElem: HTMLElement
+    ) {
+        let table = "<table class='identifier-table'>";
+        for (const key in myObj) {
             table +=
                 "<tr><td>" +
                 key.toUpperCase() +
-                "</td> <td>" +
+                "</td><td>" +
                 myObj[key] +
                 "</td></tr>";
         }
         table += "</table>";
-        let acc = document.getElementsByClassName("accordion");
+
+        const acc = document.getElementsByClassName("accordion");
         let index = 1;
+
         if (lyrType === "raster") {
             index = 0;
         }
-        if (acc.length > 0) {
+
+        if (acc.length > 0 && acc[index]) {
             acc[index].innerHTML = myObj["layer"];
-            // @ts-ignore
-            acc[index].nextElementSibling.innerHTML = table;
+            const panel = acc[index].nextElementSibling as HTMLElement | null;
+            if (panel) {
+                panel.innerHTML = table;
+            }
         } else {
             targetElem.innerHTML = table;
         }
     }
 
     addAccordionsToRightDraw(htmlElem: HTMLElement) {
-        let div = document.createElement("div");
-        let accordian1 =
-            '<button class="accordion">Raster Layer</button>\n' +
-            '<div class="panel">No Raster Layer Clicked</div>';
-        let accordian2 =
-            '<button class="accordion"> Vector Layer</button>\n' +
-            '<div class="panel">For values clcik on feature, please</div>';
-        div.append(accordian1);
-        div.append(accordian2);
-        htmlElem.innerHTML = div.innerText;
-        var acc = document.getElementsByClassName("accordion");
-        var i;
-        for (i = 0; i < acc.length; i++) {
+        const html = `
+            <button class="accordion">Raster Layer</button>
+            <div class="panel">No Raster Layer Clicked</div>
+            <button class="accordion">Vector Layer</button>
+            <div class="panel">For values click on feature, please</div>
+        `;
+
+        htmlElem.innerHTML = html;
+
+        const acc = htmlElem.getElementsByClassName("accordion");
+        for (let i = 0; i < acc.length; i++) {
             acc[i].addEventListener("click", function (this: HTMLElement) {
                 this.classList.toggle("active");
-                var panel = this.nextElementSibling as HTMLElement;
-                if (panel.style.display === "block") {
-                    panel.style.display = "none";
-                } else {
-                    panel.style.display = "block";
-                }
+                const panel = this.nextElementSibling as HTMLElement | null;
+                if (!panel) return;
+
+                panel.style.display =
+                    panel.style.display === "block" ? "none" : "block";
             });
         }
     }
 
     getRasterLayers(mapVM: MapVM): Layer<Source>[] {
-        const rasterLayers: Layer<Source>[] = [];
-        Object.keys(mapVM.xyzLayer).forEach((key) => {
-            const olLayer = mapVM.xyzLayer[key].olLayer;
-            if (olLayer.getSource() instanceof XYZ) {
-                rasterLayers.push(olLayer);
-            }
-        });
-        return rasterLayers;
+        return mapVM
+            .getLayersByKind("xyz")
+            .map((record: ILayerRecord) => record.olLayer as Layer<Source>)
+            .filter((olLayer) => olLayer.getSource() instanceof XYZ);
     }
 
     getRasterAreaFromPolygon(mapVM: MapVM, targetElem: HTMLElement, feature: any) {
-        const me = this;
-        const rasterLayers = me.getRasterLayers(mapVM);
-        let writer = new GeoJSON();
-        let polygonJsonStr = writer.writeFeatures([feature]);
+        const rasterLayers = this.getRasterLayers(mapVM);
+        const writer = new GeoJSON();
+        const polygonJsonStr = writer.writeFeatures([feature]);
+
         if (rasterLayers.length > 0) {
-            me.getRasterAreaFromDB(polygonJsonStr, rasterLayers, mapVM, targetElem);
+            this.getRasterAreaFromDB(polygonJsonStr, rasterLayers, mapVM, targetElem);
         }
     }
 
-    showAreaInRightDraw(arrData: Array<{pixel: string, area: number}>, targetElem: HTMLElement) {
-        // let me = this;
-        let div = document.createElement("div");
-        let table = "<table><tr><th>Class</th><th>Area (m^2)</th></tr> ";
+    showAreaInRightDraw(
+        arrData: Array<{ pixel: string; area: number }>,
+        targetElem: HTMLElement
+    ) {
+        let table = "<table><tr><th>Class</th><th>Area (m^2)</th></tr>";
         for (let i = 0; i < arrData.length; i++) {
-            let obj = arrData[i];
+            const obj = arrData[i];
             table +=
-                "<tr><td>" + obj["pixel"] + "</td> <td>" + obj["area"] + "</td></tr>";
+                "<tr><td>" + obj.pixel + "</td><td>" + obj.area + "</td></tr>";
         }
         table += "</table>";
-        div.append(table);
-        let footr =
+
+        const footer =
             '<div class="footer_div"><button id="btnShowChart" type="button" class="myButton">Show Chart</button></div>';
-        div.append(footr);
-        targetElem.innerHTML = div.innerText;
+
+        targetElem.innerHTML = table + footer;
+
         const data = arrData.map((row) => ({
             name: row.pixel,
             y: row.area,
         }));
+
         console.log(data);
-        // document.getElementById("btnShowChart").onclick = () => {
-        //     me.mapVm.getDialogBoxRef().current.openDialog({
-        //         title: "Area Chart",
-        //         content: (
-        //             <div style={{ width: 600 }}>
-        //     <DAChart chartData={data} />
-        //     </div>
-        // ),
-        //     actions: <p />,
-        // });
-        // };
     }
 
-    // ---- CRS detection helpers ----
     static detectGeoJsonCrs(geo: any): "EPSG:4326" | "EPSG:3857" | "unknown" {
         if (!geo) return "unknown";
 
-        // 1) If GeoJSON has explicit CRS info
         const crsName =
             geo?.crs?.properties?.name ??
             geo?.crs?.name ??
@@ -186,7 +192,6 @@ class MapUtils {
             }
         }
 
-        // 2) Heuristic: check coordinate magnitude
         const coords =
             geo?.type === "Feature"
                 ? geo?.geometry?.coordinates
@@ -199,10 +204,7 @@ class MapUtils {
 
         const abs = Math.abs(n);
 
-        // lon/lat typically in [-180, 180]
         if (abs <= 180) return "EPSG:4326";
-
-        // WebMercator meters typically up to ~20,037,508
         if (abs <= 20037508.34) return "EPSG:3857";
 
         return "unknown";
@@ -211,10 +213,12 @@ class MapUtils {
     private static firstNumberDeep(v: any): number | null {
         if (typeof v === "number" && isFinite(v)) return v;
         if (!Array.isArray(v)) return null;
+
         for (const x of v) {
             const n = MapUtils.firstNumberDeep(x);
             if (n !== null) return n;
         }
+
         return null;
     }
 }

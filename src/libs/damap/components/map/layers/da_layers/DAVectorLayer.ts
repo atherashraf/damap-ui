@@ -20,6 +20,7 @@ class DAVectorLayer extends AbstractDALayer {
         this.layer = new VectorLayer({
             //@ts-ignore
             name: uuid,
+            uuid: uuid,
             title: title,
             show_progress: true,
             visible: true,
@@ -140,7 +141,7 @@ class DAVectorLayer extends AbstractDALayer {
                             const feature = this.findFeature("id", item["id"]);
                             feature?.setProperties(item, true);
                         });
-                        this.layer.changed();
+                        this.layer?.changed();
                     });
             }
         }

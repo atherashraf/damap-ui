@@ -8,7 +8,7 @@ import DADialogBox from "@damap/components/base/DADialogBox";
 import DAColorPicker from "@damap/components/map/layer_styling/DAColorPicker";
 import _ from "@damap/utils/lodash";
 
-interface IProps extends IBaseMapProps {}
+type IProps = IBaseMapProps
 
 interface IState {
   backgroundColor: string;

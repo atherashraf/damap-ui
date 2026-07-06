@@ -1,139 +1,196 @@
 import { Box, Paper } from "@mui/material";
 import * as React from "react";
-
-import "@damap/assets/css/LayerSwitcher.css"
+import "@damap/assets/css/LayerSwitcher.css";
 import { Group } from "ol/layer";
 import LayerSwitcher from "ol-ext/control/LayerSwitcher";
-import {RefObject, useEffect} from "react";
-// import  { IContextMenuLoc} from "./ContextMenu";
+import { useEffect, useState, useRef } from "react";
 import MapVM from "@damap/components/map/models/MapVM";
-import {ContextMenuHandle} from "@damap/components/map/layer_switcher/ContextMenu";
+import LayerSwitcherLayerMenu, { ContextMenuHandle } from "@damap/components/map/layer_switcher_mui/LayerSwitcherLayerMenu";
+import { LayerMenuState } from "@damap/components/map/layer_switcher_mui/types";
 
-interface LayerSwitcherProps {
+interface LayerSwitcherPaperProps {
   mapVM: MapVM;
 }
 
-const LayerSwitcherPaper = (props: LayerSwitcherProps) => {
-  // const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(null);
-  // const contextMenuRef: RefObject<ContextMenuHandle | null> = useRef<ContextMenuHandle>(null);
-  // const [contextMenuLoc, setContextMenuLoc] = React.useState<IContextMenuLoc>();
-  // const [menuLayer, setMenuLayer] = React.useState<any>();
-  const { mapVM } = props;
-  const [isLSAdded, setLSAdded] = React.useState(false);
-  // const legendSize = [60, 40];
-  const mouseCoordinatesRef = React.useRef({ x: 0, y: 0 });
-  const mouseMoveHandler = React.useCallback((event: any) => {
+const LayerSwitcherPaper = ({ mapVM }: LayerSwitcherPaperProps) => {
+  const [menuState, setMenuState] = useState<LayerMenuState | null>(null);
+
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  // const switcherRef = useRef<LayerSwitcher | null>(null); // 🌟 Prevents duplicate instantiation loops
+  const switcherRef = useRef<any>(null);
+  const mouseCoordinatesRef = useRef({ x: 0, y: 0 });
+  const localMenuRef = useRef<ContextMenuHandle | null>(null); // 🌟 Use a secure local component ref
+
+  const mouseMoveHandler = React.useCallback((event: MouseEvent) => {
     mouseCoordinatesRef.current = {
       x: event.clientX,
       y: event.clientY,
     };
-  },[]);
+  }, []);
 
-  // React.useEffect(()=>{
-  //   props.mapVM.setContextMenuRef(contextMenuRef)
-  // }, [])
-  const contextMenuRef: RefObject<ContextMenuHandle | null> = mapVM.getContextMenuRef();
+  // Handle closing menu if clicking outside of it
+  useEffect(() => {
+    if (!menuState) return;
 
-  const addLayerSwitcher = React.useCallback((target: HTMLElement) => {
-    let switcher = new LayerSwitcher({
-      target: target,
-      //tipLabel: 'Legend', // Optional label for button
-      //groupSelectStyle: 'children',
-      show_progress: true,
-      extent: mapVM.mapExtent,
-      trash: true,
-      oninfo: function (l: any) {
-        contextMenuRef.current?.openAt(l, {
-          mouseX: mouseCoordinatesRef?.current?.x,
-          mouseY: mouseCoordinatesRef?.current?.y,
-        })
-      },
-    });
-
-    //@ts-ignore
-    switcher.on("drawlist", function (e) {
-      const layer: any = e.layer;
-      if (
-        layer &&
-        !(layer instanceof Group) &&
-        !layer.get("baseLayer") &&
-        layer.hasOwnProperty("legend") &&
-        layer?.legend["graphic"] !== "undefined"
-      ) {
-        const li = document.createElement("li");
-        e?.li?.appendChild(li);
-        const elem = document.getElementById("div-layer-switcher");
-        // const padding = 10;
-        let image;
-        const divElem = document.createElement("div");
-        divElem.style.padding = "10px";
-        divElem.addEventListener("click", (e: any) => {
-          const dialogRef = mapVM.getDialogBoxRef();
-          dialogRef?.current?.openDialog({
-            title: "Legend",
-            content: (
-              <React.Fragment>
-                <Box sx={{ flexGrow: 1, p: 1 }}>
-                  <img src={e.target.src} alt={""} />
-                </Box>
-              </React.Fragment>
-            ),
-          });
-        });
-        switch (layer.legend["sType"]) {
-          case "sld":
-            layer.legend["graphic"].render(e.li);
-            break;
-          case "src":
-            image = new Image();
-            image.src = layer?.legend["graphic"];
-            image.style.width = layer.legend.width;
-            if (image.style.height) image.style.height = layer.legend.height;
-            // e.li.appendChild(document.createElement('br'))
-            // e.li.appendChild(image);
-            divElem.appendChild(image);
-            e?.li?.appendChild(divElem);
-            break;
-          case "canvas":
-            const graphic = layer?.legend["graphic"];
-            const desireWidth = (elem?.clientWidth || 0) / 1.5;
-
-            image = new Image();
-            image.src = graphic.toDataURL();
-            image.width =
-              graphic.width < desireWidth ? graphic.width : desireWidth;
-            divElem.appendChild(image);
-            e.li?.appendChild(divElem);
-            break;
-          default:
-            break;
-        }
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (menuRef.current && target && !menuRef.current.contains(target)) {
+        setMenuState(null);
       }
-      // document.getElementsByClassName('ol-layerswitcher-buttons')[0].append(e.li)
-    });
-    mapVM.getMap()?.addControl(switcher);
-  }, [mapVM,mouseCoordinatesRef]);
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMenuState(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [menuState]);
+
+  const addLayerSwitcher = React.useCallback(
+      (target: HTMLElement) => {
+        const mapInstance = mapVM.getMap();
+        if (!mapInstance) return;
+
+        // Clean up any existing stale control before creating a new one
+        if (switcherRef.current) {
+          mapInstance.removeControl(switcherRef.current);
+        }
+
+        const switcher = new LayerSwitcher({
+          target,
+          show_progress: true,
+          extent: mapVM.mapExtent,
+          trash: true,
+          oninfo: function (l: any) {
+            const x = mouseCoordinatesRef.current.x;
+            const y = mouseCoordinatesRef.current.y;
+
+            // 1. Safely call your local menu ref API
+            localMenuRef.current?.openAt(l, { mouseX: x, mouseY: y });
+
+            // 2. Drive the state positioning securely
+            setMenuState({
+              item: l,
+              top: y,
+              left: x
+            });
+          },
+        });
+
+        // @ts-ignore
+        switcher.on("drawlist", function (e: any) {
+          const layer = e.layer;
+
+          if (
+              layer &&
+              !(layer instanceof Group) &&
+              !layer.get("baseLayer") &&
+              Object.prototype.hasOwnProperty.call(layer, "legend") &&
+              layer?.legend?.graphic != null
+          ) {
+            const elem = document.getElementById("div-layer-switcher");
+            const divElem = document.createElement("div");
+            divElem.style.padding = "10px";
+
+            divElem.addEventListener("click", (evt: any) => {
+              const dialogRef = mapVM.getDialogBoxRef();
+              dialogRef?.current?.openDialog({
+                title: "Legend",
+                content: (
+                    <React.Fragment>
+                      <Box sx={{ flexGrow: 1, p: 1 }}>
+                        <img src={evt.target.src} alt="Legend" />
+                      </Box>
+                    </React.Fragment>
+                ),
+              });
+            });
+
+            let image: HTMLImageElement;
+
+            switch (layer.legend["sType"]) {
+              case "sld":
+                layer.legend["graphic"].render(e.li);
+                break;
+
+              case "src":
+                image = new Image();
+                image.src = layer.legend["graphic"];
+                if (layer.legend.width) image.style.width = layer.legend.width;
+                if (layer.legend.height) image.style.height = layer.legend.height;
+                divElem.appendChild(image);
+                e?.li?.appendChild(divElem);
+                break;
+
+              case "canvas": {
+                const graphic = layer.legend["graphic"];
+                const desiredWidth = (elem?.clientWidth || 0) / 1.5;
+
+                image = new Image();
+                image.src = graphic.toDataURL();
+                image.width =
+                    graphic.width < desiredWidth ? graphic.width : desiredWidth;
+
+                divElem.appendChild(image);
+                e.li?.appendChild(divElem);
+                break;
+              }
+
+              default:
+                break;
+            }
+          }
+        });
+
+        mapInstance.addControl(switcher);
+        switcherRef.current = switcher; // Store instance reference
+      },
+      [mapVM]
+  );
+
   useEffect(() => {
     window.addEventListener("mousedown", mouseMoveHandler);
-    if (!isLSAdded) {
-      const elem = document.getElementById("div-layer-switcher") as HTMLElement;
+
+    const elem = document.getElementById("div-layer-switcher");
+    if (elem && !switcherRef.current) {
       elem.innerHTML = "";
-      // mapVM.addLayerSwitcher(elem)
       addLayerSwitcher(elem);
-      setLSAdded(true);
     }
-  }, [addLayerSwitcher, isLSAdded, mouseMoveHandler]);
+
+    return () => {
+      window.removeEventListener("mousedown", mouseMoveHandler);
+      // Clean up the OpenLayers control context when the component unmounts
+      if (switcherRef.current && mapVM.getMap()) {
+        mapVM.getMap().removeControl(switcherRef.current);
+        switcherRef.current = null;
+      }
+    };
+  }, [addLayerSwitcher, mouseMoveHandler, mapVM]);
 
   return (
-    <React.Fragment>
-      <Paper elevation={2} sx={{ height: "100%", width: "100%", m: 0, p: 0 }}>
-        <div
-          id={"div-layer-switcher"}
-          style={{ width: "auto", height: "auto" }}
+      <>
+        <Paper elevation={2} sx={{ height: "100%", width: "100%", m: 0, p: 0 }}>
+          <div
+              id="div-layer-switcher"
+              style={{ width: "auto", height: "auto" }}
+          />
+        </Paper>
+
+        <LayerSwitcherLayerMenu
+            ref={localMenuRef} // 🌟 Connected to the secure local reference
+            menuRef={menuRef}
+            menuState={menuState}
+            onCloseState={() => setMenuState(null)}
         />
-      </Paper>
-      {/*<ContextMenu ref={contextMenuRef} olLayer={menuLayer} contextMenuLoc={contextMenuLoc} mapVM={mapVM} />*/}
-    </React.Fragment>
+      </>
   );
 };
 

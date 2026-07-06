@@ -1,156 +1,312 @@
+import { useEffect, useRef, useState } from "react";
 import {
-  Box,
-  Button,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  SelectChangeEvent,
+    Box,
+    Button, Divider,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    SelectChangeEvent,
 } from "@mui/material";
-import { DAFieldSet, DASelect } from "@damap/components/styled/styledMapComponents";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import {
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
+    Typography,
+} from "@mui/material";
+
+import {
+    DAFieldSet,
+    DASelect,
+} from "@damap/components/styled/styledMapComponents";
+
+import {
+    IFeatureStyle,
+    isLabelableLayer,
+} from "@damap/types/typeDeclarations";
+
+import { MapAPIs } from "@damap/api/MapApi";
+import MapVM from "@damap/components/map/models/MapVM";
+
+import BaseStyleForm from "./vector/BaseStyleForm";
 import SingleStyleForm from "./vector/SingleStyleForm";
 import DensityStyleForm from "./vector/DensityStyleForm";
 import MultipleStyleForm from "./vector/MultipleStyleForm";
-import * as React from "react";
-import { IFeatureStyle } from "@damap/types/typeDeclarations";
-import { MapAPIs } from "@damap/api/MapApi";
-import BaseStyleForm from "./vector/BaseStyleForm";
-import { useEffect } from "react";
-import MapVM from "@damap/components/map/models/MapVM";
 import SLDForm from "./SLDForm";
+import TextStyleForm from "@damap/components/map/layer_styling/vector/TextStyleForm";
+import ZoomVisibilitySetting from "@damap/components/map/layer_styling/ZoomVisibilitySettings";
 
 interface IVectorStylingProps {
-  mapVM: MapVM;
+    mapVM: MapVM;
 }
 
-const VectorStyling = (props: IVectorStylingProps) => {
-  const styleFormRef = React.createRef<BaseStyleForm>();
-  const [styleType, setStyleType] = React.useState("");
-  const styleTypes = [
-    { name: "SLD / DA Style", val: "sld" },
-    { name: "Single", val: "single" },
-    { name: "Multiple", val: "multiple" },
-    { name: "Density", val: "density" },
-  ];
-  const layerId = props.mapVM.getLayerOfInterest();
-  const currentStyle = props.mapVM.getDALayer(layerId)?.style;
-  useEffect(() => {
-    if (currentStyle) setStyleType(currentStyle.type);
-  }, [currentStyle]);
+type StyleType = "" | "sld" | "single" | "multiple" | "density";
 
-  const handleSelectType = (event: SelectChangeEvent) => {
-    const styleType = event.target.value as string;
-    setStyleType(styleType);
-  };
+const VectorStyling = ({ mapVM }: IVectorStylingProps) => {
+    const geomFormRef = useRef<BaseStyleForm | null>(null);
+    const textFormRef = useRef<BaseStyleForm | null>(null);
 
-  const handleSaveStyle = () => {
-    //@ts-ignore
-    const style: IFeatureStyle = styleFormRef?.current?.getFeatureStyle();
-    props.mapVM.showSnackbar("Saving new style");
-    const mapUUID = props.mapVM.isMapEditor() ? props.mapVM.getMapUUID() : -1;
-    props.mapVM
-      .getApi()
-      .post(MapAPIs.DCH_SAVE_STYLE, style, { uuid: layerId, map_uuid: mapUUID })
-      .then(() => {
-        props.mapVM.showSnackbar("Style save successfully");
-        const daLayer = props.mapVM.getDALayer(layerId);
-        daLayer?.updateStyle();
-        props.mapVM.refreshMap();
-      });
-  };
-  const handleRemoveStyle = () => {
-    const style = "";
-    props.mapVM.showSnackbar("Removing style");
-    const mapUUID = props?.mapVM?.isMapEditor() ? props.mapVM.getMapUUID() : -1;
-    props.mapVM
-      .getApi()
-      .post(MapAPIs.DCH_SAVE_STYLE, style, { uuid: layerId, map_uuid: mapUUID })
-      .then(() => {
-        props.mapVM?.showSnackbar("Style removed successfully");
-        const daLayer = props.mapVM.getDALayer(layerId);
-        // daLayer.setStyle(null)
-        daLayer?.updateStyle();
+    const [styleType, setStyleType] = useState<StyleType>("");
 
-        // daLayer.refreshLayer()
-        // props.mapVM.refreshMap()
-      });
-  };
-  return (
-    <DAFieldSet>
-      <legend>Vector Styling</legend>
-      <FormControl fullWidth size="small">
-        <InputLabel id="style-type-label">Style Type</InputLabel>
-        <DASelect
-          labelId="style-type-label"
-          id="style-type-select"
-          value={styleType}
-          label="Style Type"
-          //@ts-ignore
-          onChange={handleSelectType}
-        >
-          {styleTypes.map(({ name, val }) => (
-            <MenuItem key={`${name}-key`} value={val}>
-              {name}
-            </MenuItem>
-          ))}
-        </DASelect>
-      </FormControl>
+    const styleTypes: { name: string; val: Exclude<StyleType, ""> }[] = [
+        { name: "SLD / DA Style", val: "sld" },
+        { name: "Single", val: "single" },
+        { name: "Multiple", val: "multiple" },
+        { name: "Density", val: "density" },
+    ];
 
-      {styleType === "sld" ? (
-        <SLDForm mapVM={props.mapVM} />
-      ) : styleType === "single" ? (
-        <SingleStyleForm
-          key={"single-style"}
-          layerId={layerId}
-          mapVM={props.mapVM}
-          // pointShape={pointShape}
-          //@ts-ignore
-          ref={styleFormRef}
-        />
-      ) : styleType === "density" ? (
-        <DensityStyleForm
-          key={"density-style"}
-          layerId={layerId}
-          mapVM={props.mapVM}
-          // pointShape={pointShape}
-          //@ts-ignore
-          ref={styleFormRef}
-        />
-      ) : styleType === "multiple" ? (
-        <MultipleStyleForm
-          key={"multiple-style"}
-          mapVM={props.mapVM}
-          layerId={layerId}
-          // pointShape={pointShape}
-          //@ts-ignore
-          ref={styleFormRef}
-        />
-      ) : (
-        <></>
-      )}
-      {styleType !== "sld" && (
-        <Box sx={{ m: 1 }}>
-          <Button
-            fullWidth={true}
-            color={"success"}
-            variant={"contained"}
-            onClick={handleSaveStyle}
-          >
-            Save Style
-          </Button>
-        </Box>
-      )}
-      <Box sx={{ m: 1 }}>
-        <Button
-          fullWidth={true}
-          color={"primary"}
-          variant={"contained"}
-          onClick={handleRemoveStyle}
-        >
-          Remove Style
-        </Button>
-      </Box>
-    </DAFieldSet>
-  );
+    const layerId = mapVM.getLayerOfInterest();
+    const daLayer = layerId ? mapVM.getDALayer(layerId) : undefined;
+    const currentStyle = daLayer?.style;
+    const isLabelable = isLabelableLayer(daLayer);
+    const isDisable = !(mapVM.isMapEditor || mapVM.isLayerDesigner());
+
+    useEffect(() => {
+        if (currentStyle?.type) {
+            setStyleType(currentStyle.type as StyleType);
+        } else {
+            setStyleType("");
+        }
+    }, [currentStyle?.type]);
+
+    if (!layerId) return null;
+
+    const updateStyle = (style?: IFeatureStyle | null) => {
+        const layer = mapVM.getDALayer(layerId);
+        if (!layer) return;
+
+        layer.style = style || undefined;
+
+        if (isLabelableLayer(layer)) {
+            if (style?.text) {
+                layer.setLabelProperty(style.text.labelField || "");
+                layer.setTextStyle(style.text.style || {});
+                layer.setShowLabel(style.text.showLabel ?? true);
+            } else {
+                layer.setLabelProperty("");
+                layer.setTextStyle({});
+                layer.setShowLabel(false);
+            }
+        }
+
+        layer.updateStyle();
+
+        if (typeof mapVM.refreshMap === "function") {
+            mapVM.refreshMap();
+        }
+    };
+
+    const handleSelectType = (event: SelectChangeEvent<unknown>) => {
+        setStyleType(event.target.value as StyleType);
+    };
+
+    const handleSaveStyle = async () => {
+        try {
+            if (styleType === "sld") {
+                mapVM.showSnackbar("SLD style is managed separately");
+                return;
+            }
+
+            if (!geomFormRef.current?.getFeatureStyle) {
+                mapVM.showSnackbar("Style form is not ready");
+                return;
+            }
+
+            const geomStyle = geomFormRef.current.getFeatureStyle();
+
+            const textStyle =
+                isLabelable && textFormRef.current?.getFeatureStyle
+                    ? textFormRef.current.getFeatureStyle()
+                    : undefined;
+
+            const finalStyle: IFeatureStyle | undefined = geomStyle
+                ? {
+                    ...geomStyle,
+                    ...(textStyle?.text ? { text: textStyle.text } : {}),
+                }
+                : textStyle;
+
+            if (!finalStyle) {
+                mapVM.showSnackbar("No style selected");
+                return;
+            }
+
+            const mapUUID = mapVM.isMapEditor
+                ? mapVM.getMapUUID() ?? "-1"
+                : "-1";
+
+            await mapVM.getApi().post(MapAPIs.DCH_SAVE_STYLE, finalStyle, {
+                uuid: layerId,
+                map_uuid: mapUUID,
+            });
+
+            updateStyle(finalStyle);
+            mapVM.showSnackbar("Style saved successfully");
+        } catch (error) {
+            console.error("Error saving style:", error);
+            mapVM.showSnackbar("Failed to save style");
+        }
+    };
+
+    const handleRemoveStyle = async () => {
+        try {
+            mapVM.showSnackbar("Removing style");
+
+            const mapUUID = mapVM.isMapEditor
+                ? mapVM.getMapUUID() ?? "-1"
+                : "-1";
+
+            await mapVM.getApi().post(MapAPIs.DCH_SAVE_STYLE, {}, {
+                uuid: layerId,
+                map_uuid: mapUUID,
+            });
+
+            updateStyle(undefined);
+            mapVM.showSnackbar("Style removed successfully");
+        } catch (error) {
+            console.error("Error removing style:", error);
+            mapVM.showSnackbar("Failed to remove style");
+        }
+    };
+
+    const renderGeometryStyleForm = () => {
+        switch (styleType) {
+            case "sld":
+                return <SLDForm mapVM={mapVM} />;
+
+            case "single":
+                return (
+                    <SingleStyleForm
+                        key={`single-style-${layerId}`}
+                        layerId={layerId}
+                        mapVM={mapVM}
+                        ref={(ref) => {
+                            geomFormRef.current = ref;
+                        }}
+                    />
+                );
+
+            case "density":
+                return (
+                    <DensityStyleForm
+                        key={`density-style-${layerId}`}
+                        layerId={layerId}
+                        mapVM={mapVM}
+                        ref={(ref) => {
+                            geomFormRef.current = ref;
+                        }}
+                    />
+                );
+
+            case "multiple":
+                return (
+                    <MultipleStyleForm
+                        key={`multiple-style-${layerId}`}
+                        layerId={layerId}
+                        mapVM={mapVM}
+                        ref={(ref) => {
+                            geomFormRef.current = ref;
+                        }}
+                    />
+                );
+
+            default:
+                return null;
+        }
+    };
+
+    return (
+        <DAFieldSet>
+            <legend>Vector Styling</legend>
+            {/* 💡 RENDER THE ISOLATED VISIBILITY CONTROLLER COMPONENT HERE */}
+
+            <Accordion defaultExpanded={false} sx={{ mt: 1 }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Typography>Visibility Setting</Typography>
+                </AccordionSummary>
+
+                <AccordionDetails sx={{ p: 1 }}>
+                    <ZoomVisibilitySetting mapVM={mapVM} activeUuid={layerId} />
+                </AccordionDetails>
+            </Accordion>
+            <Divider sx={{ my: 2 }} />
+
+
+            <FormControl fullWidth size="small">
+                <InputLabel id="style-type-label">Style Type</InputLabel>
+                <DASelect
+                    labelId="style-type-label"
+                    id="style-type-select"
+                    value={styleType}
+                    label="Style Type"
+                    onChange={handleSelectType}
+                >
+                    {styleTypes.map(({ name, val }) => (
+                        <MenuItem key={val} value={val}>
+                            {name}
+                        </MenuItem>
+                    ))}
+                </DASelect>
+            </FormControl>
+
+            {styleType !== "" && (
+                <Accordion defaultExpanded sx={{ mt: 1 }}>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography>Geometry Styling</Typography>
+                    </AccordionSummary>
+
+                    <AccordionDetails sx={{ p: 1 }}>
+                        {renderGeometryStyleForm()}
+                    </AccordionDetails>
+                </Accordion>
+            )}
+
+            {isLabelable && styleType !== "" && styleType !== "sld" && (
+                <Accordion sx={{ mt: 1 }} defaultExpanded={!!currentStyle?.text}>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography>Text / Label Styling</Typography>
+                    </AccordionSummary>
+
+                    <AccordionDetails sx={{ p: 1 }}>
+                        <TextStyleForm
+                            key={`text-style-${layerId}`}
+                            layerId={layerId}
+                            mapVM={mapVM}
+                            ref={(ref) => {
+                                textFormRef.current = ref;
+                            }}
+                        />
+                    </AccordionDetails>
+                </Accordion>
+            )}
+
+            {styleType !== "sld" && styleType !== "" && (
+                <Box sx={{ m: 1 }}>
+                    <Button
+                        fullWidth
+                        color="success"
+                        variant="contained"
+                        onClick={handleSaveStyle}
+                        disabled={isDisable}
+                    >
+                        Save Style
+                    </Button>
+                </Box>
+            )}
+
+            <Box sx={{ m: 1 }}>
+                <Button
+                    fullWidth
+                    color="primary"
+                    variant="contained"
+                    onClick={handleRemoveStyle}
+                    disabled={isDisable}
+                >
+                    Remove Style
+                </Button>
+            </Box>
+        </DAFieldSet>
+    );
 };
 
 export default VectorStyling;

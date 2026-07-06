@@ -113,13 +113,16 @@ export default class CustomToolManager {
         onEsc?: () => void;
     };
 
-    constructor(
-        /** Lazy getter because your Map may not be ready at construction time */
-        private readonly getMap: () => OLMap | null | undefined,
-        /** Optional cursor setter; falls back to direct style change if omitted */
-        private readonly setCursor?: (cursor: string) => void
-    ) {}
+   private readonly getMap: () => OLMap | null | undefined;
+private readonly setCursor?: (cursor: string) => void;
 
+constructor(
+    getMap: () => OLMap | null | undefined,
+    setCursor?: (cursor: string) => void
+) {
+    this.getMap = getMap;
+    this.setCursor = setCursor;
+}
     // -- Low-level message helpers --------------------------------------------
 
     /** Show a message chip (helper). */

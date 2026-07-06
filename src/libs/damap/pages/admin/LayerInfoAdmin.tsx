@@ -90,6 +90,7 @@ const LayerInfoAdmin = () => {
             if (payload) {
                 setData(payload.rows);
                 setColumns(payload.columns);
+                console.log("payload", payload.columns);
 
             } else {
                 setData([]);

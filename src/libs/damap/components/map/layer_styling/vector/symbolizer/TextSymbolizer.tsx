@@ -4,7 +4,6 @@ import {
     TextField,
     MenuItem,
     Grid,
-    Typography,
     Button,
     Paper,
 } from "@mui/material";
@@ -18,6 +17,9 @@ interface TextStyleFormProps {
     onApply: (textStyle: ITextStyle, label: string) => void;
     labels: string[]
 }
+
+
+
 
 const DEFAULT_FONT_FAMILY = "Arial, Sans-serif";
 const FONT_FAMILY_OPTIONS = ["Arial", "Sans-serif", "Times New Roman", "Georgia", "Courier New"];
@@ -108,9 +110,9 @@ const TextSymbolizer: React.FC<TextStyleFormProps> = ({
 
     return (
         <Box p={1}>
-            <Typography variant="h6" gutterBottom>
-                Text Style
-            </Typography>
+            {/*<Typography variant="h6" gutterBottom>*/}
+            {/*    Text Style*/}
+            {/*</Typography>*/}
             <Paper elevation={3} sx={{p: 2, mb: 2}}>
                 <Grid container spacing={1.5}>
                     <Grid size={{xs: 12}}>

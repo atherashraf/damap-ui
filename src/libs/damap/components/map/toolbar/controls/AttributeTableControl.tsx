@@ -4,12 +4,11 @@ import TableChartIcon from "@mui/icons-material/TableChart";
 import {useMapVM} from "@damap/hooks/MapVMContext";
 
 
-export const maxTableHeight = 300;
 const AttributeTableControl = () => {
     const mapVM = useMapVM();
     const theme = mapVM.getTheme();
     const ro = new ResizeObserver((entries) => {
-        for (let entry of entries) {
+        for (const entry of entries) {
             const cr = entry.contentRect;
             if (cr.height > 0) {
                 // daGridRef.current?.updateTableHeight(cr.height);

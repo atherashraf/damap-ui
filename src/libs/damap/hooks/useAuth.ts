@@ -1,10 +1,10 @@
-import AuthServices, {User} from "@damap/api/authServices";
+import AuthServices from "@/api/authServices";
+import type { User } from "@/components/admin/types";
 import { useState, useEffect, useCallback } from "react";
 
-
 export function useAuth() {
-    const [user, setUser] = useState<User | null>(AuthServices.getUser());
-    const [isLoggedIn, setIsLoggedIn] = useState(AuthServices.isLoggedIn());
+    const [user, setUser] = useState<User | null>(() => AuthServices.getUser());
+    const [isLoggedIn, setIsLoggedIn] = useState(() => AuthServices.hasUsableSessionSync());
 
     useEffect(() => {
         const handleLogout = () => {
@@ -12,17 +12,27 @@ export function useAuth() {
             setIsLoggedIn(false);
         };
 
+        const handleLogin = () => {
+            setUser(AuthServices.getUser());
+            setIsLoggedIn(AuthServices.hasUsableSessionSync());
+        };
+
         window.addEventListener("auth-logout", handleLogout);
-        return () => window.removeEventListener("auth-logout", handleLogout);
+        window.addEventListener("auth-login", handleLogin);
+        return () => {
+            window.removeEventListener("auth-logout", handleLogout);
+            window.removeEventListener("auth-login", handleLogin);
+        };
     }, []);
 
     const login = useCallback(async (username: string, password: string) => {
-        const success = await AuthServices.performLogin(username, password);
-        if (success) {
-            setUser(AuthServices.getUser());
+        const nextUser = await AuthServices.performLogin(username, password);
+        if (nextUser) {
+            setUser(nextUser);
             setIsLoggedIn(true);
+            return true;
         }
-        return success;
+        return false;
     }, []);
 
     const logout = useCallback(() => {
@@ -43,7 +53,7 @@ export function useAuth() {
         login,
         logout,
         refresh,
-        groups: user?.groups ?? [],
+        roles: user ? AuthServices.getUserRoles(user) : [],
         isSuperuser: user?.isSuperuser ?? false,
         isStaff: user?.isStaff ?? false,
     };

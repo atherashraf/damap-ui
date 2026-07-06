@@ -1,35 +1,42 @@
-import * as React from "react";
 import DesignServicesIcon from "@mui/icons-material/DesignServices";
 import { IconButton, Tooltip } from "@mui/material";
-
-import SymbologySetting from "@damap/components/map/layer_styling/SymbologySetting";
-import {useMapVM} from "@damap/hooks/MapVMContext";
+import { useMapVM } from "@damap/hooks/MapVMContext";
 
 const SymbologyControl = () => {
-  const mapVM = useMapVM();
-  const theme = mapVM.getTheme();
-  const drawerRef = mapVM.getRightDrawerRef();
-  const handleClick = () => {
-    drawerRef?.current?.setContent(
-      "Layer Styler",
-      <SymbologySetting key={"symbology-setting"} mapVM={mapVM} />
+    const mapVM = useMapVM();
+    const theme = mapVM.getTheme();
+
+    const handleClick = () => {
+        const layerId = mapVM.getLayerOfInterest();
+
+        if (!layerId) {
+            window.customAlert?.(
+                <div>Please select a layer first.</div>
+            );
+            return;
+        }
+
+        mapVM.getLayerManager().openLayerDesigner(layerId);
+    };
+
+    return (
+        <Tooltip title="Layer Style">
+            <IconButton
+                sx={{
+                    width: 30,
+                    height: 30,
+                    backgroundColor: theme?.palette.secondary.main,
+                    color: theme?.palette.secondary.contrastText,
+                    "&:hover": {
+                        backgroundColor: theme?.palette.secondary.dark,
+                    },
+                }}
+                onClick={handleClick}
+            >
+                <DesignServicesIcon />
+            </IconButton>
+        </Tooltip>
     );
-    drawerRef?.current?.openDrawer();
-    // props.mapVM?.refreshMap()
-  };
-  return (
-    <React.Fragment>
-      <Tooltip title={"Create Layer Style"}>
-        <IconButton sx={{ width: 30, height: 30 }}
-                    style={{width: 30, height: 30,
-                      backgroundColor: theme?.palette.secondary.main,
-                      color:theme?.palette.secondary.contrastText}}
-                    onClick={handleClick}>
-          <DesignServicesIcon />
-        </IconButton>
-      </Tooltip>
-    </React.Fragment>
-  );
 };
 
 export default SymbologyControl;

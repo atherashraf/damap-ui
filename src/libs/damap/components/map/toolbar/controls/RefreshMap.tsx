@@ -7,10 +7,10 @@ const RefreshMap = () => {
   const mapVM = useMapVM();
   const theme = mapVM.getTheme();
   const handleClick = () => {
-    const map = mapVM.getMap();
-    map?.render();
-    map?.setSize(map.getSize());
-    map?.updateSize();
+    // const map = mapVM.getMap();
+    // map?.render();
+    // map?.setSize(map.getSize());
+    // map?.updateSize();
     mapVM.refreshMap();
   };
   return (

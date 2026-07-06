@@ -12,17 +12,18 @@ import AbstractOverlayLayer from "./AbstractOverlayLayer";
 import StylingUtils from "../../layer_styling/utils/StylingUtils";
 import {Geometry} from "ol/geom";
 import {StyleFunction} from "ol/style/Style";
+import {buffer as bufferExtent} from 'ol/extent';
 
 // import {getPointShapes} from "../../components/styling/vector/symbolizer/PointSymbolizer";
 // As a type alias:
-export type SelectionMode = 'default' | 'drawing';
+export type SelectionLayerMode = 'default' | 'drawing';
 
 
 class SelectionLayer extends AbstractOverlayLayer {
     //@ts-ignore
     olLayer: VectorLayer<VectorSource>;
     mapVM: MapVM;
-    private selectionMode: SelectionMode = 'default';
+    private selectionMode: SelectionLayerMode = 'default';
 
     constructor(mapVM: MapVM) {
 
@@ -33,7 +34,7 @@ class SelectionLayer extends AbstractOverlayLayer {
     }
 
     /** Call this when entering/leaving draw mode */
-    setSelectionMode(mode: SelectionMode) {
+    setSelectionMode(mode: SelectionLayerMode) {
         this.selectionMode = mode;
         // refresh layer styling
         this.olLayer?.changed();
@@ -85,7 +86,7 @@ class SelectionLayer extends AbstractOverlayLayer {
         // console.log("geojson", geojson)
         // console.log("dataCRS", dataCRS)
         const features = new GeoJSON({
-            dataProjection: dataCRS, featureProjection:  this.mapVM.getViewProjectionCode() ?? "EPSG:3857",
+            dataProjection: dataCRS, featureProjection: this.mapVM.getViewProjectionCode() ?? "EPSG:3857",
         }).readFeatures(payload);
 
         this.getSource()?.addFeatures(features);
@@ -206,8 +207,8 @@ class SelectionLayer extends AbstractOverlayLayer {
             return new Style({
                 image: new CircleStyle({
                     radius: 10,
-                    fill: new Fill({ color: "rgba(255, 165, 0, 0.6)" }), // orange-ish
-                    stroke: new Stroke({ color: "#ffa500", width: 2 }),
+                    fill: new Fill({color: "rgba(255, 165, 0, 0.6)"}), // orange-ish
+                    stroke: new Stroke({color: "#ffa500", width: 2}),
                 }),
             });
         } else if (g_type.indexOf("LineString") !== -1) {
@@ -222,8 +223,8 @@ class SelectionLayer extends AbstractOverlayLayer {
             });
         } else {
             return new Style({
-                fill: new Fill({ color: "rgba(255, 165, 0, 0.15)" }),
-                stroke: new Stroke({ color: "#ffa500", width: 3, lineDash: [8, 6] }),
+                fill: new Fill({color: "rgba(255, 165, 0, 0.15)"}),
+                stroke: new Stroke({color: "#ffa500", width: 3, lineDash: [8, 6]}),
             });
         }
     }
@@ -232,16 +233,50 @@ class SelectionLayer extends AbstractOverlayLayer {
         super.getFeatures();
         return this.getSource()?.getFeatures();
     }
+
     getFeatureCount() {
         return this.getSource()?.getFeatures()?.length || 0;
     }
 
-    zoomToSelection() {
-        //@ts-ignore
-        if (this.getSource()?.getFeatures()?.length > 0) {
-            let extent = this.getSource()?.getExtent();
-            if (extent) {
-                this.mapVM.zoomToExtent(extent);
+
+    zoomToSelection(
+        keepCurrentZoomLevel: boolean = false,
+        targetZoomLevel: number = 18,
+        bufferPercent: number = 0.1
+    ) {
+        const map = this.mapVM.getMap();
+        const view = map.getView();
+        const source = this.getSource();
+        const features = source?.getFeatures();
+        const extent = source?.getExtent();
+
+        const hasValidExtent = extent && extent.every(v => Number.isFinite(v)) && extent[0] !== Infinity;
+
+        if (features && features.length > 0 && hasValidExtent) {
+            // Calculate buffer based on the larger dimension
+            const width = extent[2] - extent[0];
+            const height = extent[3] - extent[1];
+            const bufferAmount = Math.max(width, height) * bufferPercent;
+
+            const safeBuffer = bufferAmount || 0.0001;
+            const bufferedExtent = bufferExtent(extent, safeBuffer);
+
+            if (keepCurrentZoomLevel) {
+                // Priority 1: Just Pan (Ignore targetZoomLevel and Extent-zoom)
+                const center = [(bufferedExtent[0] + bufferedExtent[2]) / 2, (bufferedExtent[1] + bufferedExtent[3]) / 2];
+                view.animate({
+                    center: center,
+                    duration: 500
+                });
+            } else {
+                const finalZoom = targetZoomLevel < 19 ? 19 : targetZoomLevel;
+
+                view.fit(bufferedExtent, {
+                    size: map.getSize(),
+                    duration: 500,
+                    maxZoom: finalZoom,
+                    padding: [50, 50, 50, 50]
+                });
             }
         } else {
             this.mapVM.showSnackbar("Please select feature before zoom to");

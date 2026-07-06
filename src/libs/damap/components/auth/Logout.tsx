@@ -1,16 +1,14 @@
 import { useEffect } from "react";
-import { useDispatch } from "react-redux";
+import AuthServices from "@/api/authServices";
 import { useNavigate } from "react-router-dom";
-import AuthServices from "@damap/api/authServices";
 
 const Logout = () => {
-    const dispatch = useDispatch();
     const navigate = useNavigate();
 
     useEffect(() => {
-        AuthServices.performLogout(navigate)
-        navigate("/");        // ✅ redirect
-    }, [dispatch, navigate]);
+        AuthServices.performLogout({ silent: true });
+        navigate("/login", { replace: true });
+    }, [navigate]);
 
     return null;
 };

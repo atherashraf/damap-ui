@@ -38,11 +38,17 @@ const MinMaxStretch: React.FC<Props> = ({ mapVM, bandInfo }) => {
 
     const applyStretch = () => {
         mapVM.showSnackbar("Applying min-max stretch");
+        const layerUuid = mapVM.getLayerOfInterest();
         const noOfColor = maxVal >=255 ? 255 : maxVal;
         const colorRamp = colorRampRef.current?.getColorRamp(noOfColor);
         console.log("color ramp", colorRamp);
         if (!colorRamp || colorRamp.length === 0) {
             mapVM.showSnackbar("Color ramp not defined");
+            return;
+        }
+
+        if (!layerUuid) {
+            mapVM.showSnackbar("Please select a layer");
             return;
         }
 
@@ -56,12 +62,12 @@ const MinMaxStretch: React.FC<Props> = ({ mapVM, bandInfo }) => {
         mapVM
             .getApi()
             .post(MapAPIs.DCH_SAVE_STYLE, payload, {
-                uuid: mapVM.getLayerOfInterest(),
+                uuid: layerUuid,
                 map_uuid: "-1"
             })
             .then(() => {
                 mapVM.showSnackbar("Min-Max stretch applied successfully");
-                const daLayer = mapVM.getDALayer(mapVM.getLayerOfInterest());
+                const daLayer = mapVM.getDALayer(layerUuid);
                 setTimeout(() => daLayer?.refreshLayer(), 2000);
             });
     };

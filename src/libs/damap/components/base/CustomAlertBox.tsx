@@ -1,24 +1,27 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
-import { Box, Button, Typography, useTheme } from "@mui/material";
+import { Box, Button,  useTheme } from "@mui/material";
 
 declare global {
     interface Window {
-        customAlert: (msg: string) => Promise<void>;
+        customAlert: (content: React.ReactNode) => Promise<void>;
     }
 }
 
 let resolver: (() => void) | null = null;
-
+/***
+ await window.customAlert(`${features.length} feature(s) deleted successfully.`);
+ ***/
 const CustomAlertBox: React.FC = () => {
     const [open, setOpen] = useState(false);
-    const [message, setMessage] = useState("");
+    const [content, setContent] = useState<React.ReactNode>(null);
     const theme = useTheme();
 
     useEffect(() => {
-        window.customAlert = (msg: string) => {
-            setMessage(msg);
+        window.customAlert = (content: React.ReactNode) => {
+            setContent(content);
             setOpen(true);
+
             return new Promise<void>((resolve) => {
                 resolver = () => {
                     setOpen(false);
@@ -77,9 +80,9 @@ const CustomAlertBox: React.FC = () => {
 
                 {/* Message and OK button */}
                 <Box sx={{ p: 2, textAlign: "center" }}>
-                    <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-                        {message}
-                    </Typography>
+                    <Box sx={{ mb: 2 }}>
+                        {content}
+                    </Box>
                     <Button
                         variant="contained"
                         onClick={() => resolver && resolver()}

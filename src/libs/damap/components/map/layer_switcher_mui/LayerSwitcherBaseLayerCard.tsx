@@ -34,7 +34,7 @@ const LayerSwitcherBaseLayerCard = ({
   return (
     <Card
       variant="outlined"
-      sx={{ bgcolor: (theme) => alpha(theme.palette.primary.main, 0.3), position: "relative" }}
+      sx={{ bgcolor: (theme) => alpha(theme.palette.secondary.main, 0.15), position: "relative" }}
     >
       <CardContent sx={{ py: 1.25, "&:last-child": { pb: 1.25 } }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>

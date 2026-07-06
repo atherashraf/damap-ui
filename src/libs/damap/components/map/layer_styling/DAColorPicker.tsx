@@ -99,39 +99,30 @@ class DAColorPicker extends React.PureComponent<
             />
           </Button>
 
-          <Popper
-              open={open}
-              anchorEl={anchorEl}
-              placement="bottom-start"
-              modifiers={[
-                {
-                  name: 'zIndex',
-                  enabled: true,
-                  phase: 'write',
-                  fn({ state }) {
-                    state.styles.popper.zIndex = '1500';
-                  },
-                },
-              ]}
-              style={{ zIndex: 1500 }} // fallback
-          >
-            <ClickAwayListener onClickAway={this.handleClose}>
-              <Box
-                  p={1}
-                  bgcolor="white"
-                  border="1px solid #ccc"
-                  borderRadius={1}
-                  boxShadow={3}
-                  zIndex={9999}
-              >
-                <SketchPicker
-                    color={color}
-                    onChange={this.handleColorChange}
-                    disableAlpha={!isAlpha}
-                />
-              </Box>
-            </ClickAwayListener>
-          </Popper>
+            <Popper
+                open={open}
+                anchorEl={anchorEl}
+                placement="bottom-start"
+                disablePortal={false}
+                container={document.body}
+                sx={{ zIndex: (theme) => theme.zIndex.modal + 100 }}
+            >
+                <ClickAwayListener onClickAway={this.handleClose}>
+                    <Box
+                        p={1}
+                        bgcolor="white"
+                        border="1px solid #ccc"
+                        borderRadius={1}
+                        boxShadow={3}
+                    >
+                        <SketchPicker
+                            color={color}
+                            onChange={this.handleColorChange}
+                            disableAlpha={!isAlpha}
+                        />
+                    </Box>
+                </ClickAwayListener>
+            </Popper>
         </Box>
     );
   }

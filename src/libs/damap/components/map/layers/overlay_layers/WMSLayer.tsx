@@ -133,8 +133,10 @@ import AbstractOverlayLayer from "./AbstractOverlayLayer";
 import WMSCapabilities from "ol/format/WMSCapabilities";
 import { transformExtent } from "ol/proj";
 
+
 export interface IGeoServerWMSInfo {
     uuid: string;
+    name: string;
     title: string;
 
     // Example: "https://your-domain/geoserver/workspace/wms"
@@ -241,8 +243,10 @@ class WMSLayer extends AbstractOverlayLayer {
 
         const layer =  new ImageLayer({
             // @ts-ignore
+            uuid: MapVM.generateUUID(),
             name: this.layerInfo.uuid,
             title: this.layerInfo.title,
+            layerType: "wms",
             displayInLayerSwitcher: true,
             visible: this.layerInfo.visible ?? true,
             opacity: this.layerInfo.opacity ?? 1,
@@ -252,7 +256,7 @@ class WMSLayer extends AbstractOverlayLayer {
                 params,
                 serverType: "geoserver",
                 ratio: 1, // 1 = no extra margin around requests, can set 1.5 if needed
-                // crossOrigin: "anonymous", // enable if you need GetFeatureInfo images cross-domain
+                crossOrigin: "anonymous",
             }),
         });
 
@@ -481,20 +485,17 @@ class WMSLayer extends AbstractOverlayLayer {
 
             const res = await fetch(url);
             if (!res.ok) return null;
-            console.log("res", res);
 
             const xml = await res.text();
 
             const parser = new WMSCapabilities();
             const caps: any = parser.read(xml);
-            console.log("caps", caps);
             const rootLayer = caps?.Capability?.Layer;
             const target = this.findCapabilityLayer(rootLayer, this.layerInfo.layers);
-            console.log("target", target);
             if (!target) return null;
 
             const mapProjection = this.mapVM.getViewProjectionCode();
-            console.log("mapProjection", mapProjection);
+            // console.log("mapProjection", mapProjection);
             // Prefer explicit BoundingBox first
             if (Array.isArray(target.BoundingBox) && target.BoundingBox.length > 0) {
                 const bbox = target.BoundingBox.find((b: any) =>

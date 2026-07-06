@@ -1,28 +1,29 @@
 import * as React from "react";
 import { useMapVM } from "@damap/hooks/MapVMContext";
+import { LayerKind } from "@damap/components/map/manager/LayerManager";
 
 const LOISelector = () => {
+    const mapVM = useMapVM();
     const [layerIds, setLayerIds] = React.useState<string[]>([]);
     const [selectedLayerId, setSelectedLayerId] = React.useState<string>("");
-    const mapVM = useMapVM();
 
     React.useEffect(() => {
         const updateLayerIds = () => {
-            const daKeys = Object.keys(mapVM.daLayers);
-            const overlayKeys = Object.keys(mapVM.overlayLayers);
-            const newLayerIds = [...daKeys, ...overlayKeys];
+            const daLayerIds = mapVM.getLayersByKind("da").map((r) => r.id);
+            const overlayLayerIds = ["overlay", "selection", "wms", "wfs"]
+                .flatMap((kind) => mapVM.getLayersByKind(kind as LayerKind).map((r) => r.id));
+
+            const newLayerIds = [...daLayerIds, ...overlayLayerIds];
 
             if (!newLayerIds.includes(selectedLayerId)) {
-                setSelectedLayerId(""); // reset only if selected layer no longer exists
+                setSelectedLayerId("");
             }
 
             setLayerIds(newLayerIds);
         };
 
-        // Initial load
         updateLayerIds();
 
-        // Event listener
         const listener = () => updateLayerIds();
         window.addEventListener("DALayerAdded", listener);
 
@@ -52,10 +53,14 @@ const LOISelector = () => {
             <option key="opt-empty" value="">
                 Select Layer of Interest
             </option>
-            {layerIds.map((layerId, index) => {
-                const layer = mapVM.getDALayer(layerId) || mapVM.getOverlayLayer(layerId);
+
+            {layerIds.map((layerId) => {
+                const layer =
+                    mapVM.getDALayer(layerId) ||
+                    mapVM.getOverlayLayer(layerId);
+
                 return (
-                    <option key={`opt-${index}`} value={layerId}>
+                    <option key={layerId} value={layerId}>
                         {layer?.getLayerTitle?.() || layerId}
                     </option>
                 );

@@ -34,6 +34,23 @@
  * ```
  */
 
+
+// interface SavedMapLayer {
+//     uuid: string;
+//     isBase: boolean;
+//     key: string;
+//     title: string;
+//     type: "wms" | "wfs" | "xyz" | "gee";
+//     visible: boolean;
+//     opacity: number;
+//     zIndex: number;
+//
+//     groupName?: string;
+//     groupKey?: string;
+//     groupOrder?: number;
+//     layerOrder?: number;
+// }
+
 import React, { useRef, useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DASnackbar, { DASnackbarHandle } from "@damap/components/base/DASnackbar";
@@ -66,16 +83,16 @@ const MapInfo = () => {
                 visibleWhenEmpty: true,
                 action: () => navigate("/EditMap/-1"),
             },
-            {
-                name: "View Map",
-                requiresSelection: true,
-                action: () => {
-                    const uuid = getSelectedUUID();
-                    uuid
-                        ? navigate(`/ViewMap/${uuid}`)
-                        : snackbarRef.current?.show("Please select a row", "warning");
-                },
-            },
+            // {
+            //     name: "View Map",
+            //     requiresSelection: true,
+            //     action: () => {
+            //         const uuid = getSelectedUUID();
+            //         uuid
+            //             ? navigate(`/ViewMap/${uuid}`)
+            //             : snackbarRef.current?.show("Please select a row", "warning");
+            //     },
+            // },
             {
                 name: "Update Map",
                 requiresSelection: true,
@@ -92,7 +109,7 @@ const MapInfo = () => {
                 action: async () => {
                     const uuid = getSelectedUUID();
                     if (uuid) {
-                        const payload = await api.get(MapAPIs.DCH_DELETE_MAP, { uuid });
+                        const payload = await api.delete(MapAPIs.DCH_DELETE_MAP, { uuid });
                         if (payload) {
                             snackbarRef.current?.show("Map info deleted successfully", "success");
                             setTimeout(() => window.location.reload(), 1000);

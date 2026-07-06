@@ -1,9 +1,7 @@
 import * as React from "react";
-import "@damap/assets/css/da-map-loading.css";
+import { Backdrop, CircularProgress } from "@mui/material";
 
 interface IState {
-    width: number;
-    height: number;
     isLoading: boolean;
 }
 
@@ -13,44 +11,31 @@ class DAMapLoading extends React.PureComponent<IProps, IState> {
     constructor(props: IProps) {
         super(props);
         this.state = {
-            width: 200,
-            height: 200,
             isLoading: false,
         };
     }
 
-    componentDidMount() {
-        //@ts-ignore
-        const width = document?.getElementById("map")?.clientWidth | 200;
-        //@ts-ignore
-        const height = document?.getElementById("map")?.clientHeight | 200;
-        this.setState({
-            width: width,
-            height: height,
-        });
-    }
+    openIsLoading = () => {
+        this.setState({ isLoading: true });
+    };
 
-    openIsLoading() {
-        this.setState({
-            isLoading: true,
-        });
-    }
-
-    closeIsLoading() {
-        this.setState({
-            isLoading: false,
-        });
-    }
+    closeIsLoading = () => {
+        this.setState({ isLoading: false });
+    };
 
     render() {
-        if (!this.state.isLoading) {
-            return null; // Return null to hide the loading screen when isLoading is false
-        }
-
         return (
-            <div className="loading-screen">
-                <div className="loading-spinner"></div>
-            </div>
+            <Backdrop
+                open={this.state.isLoading}
+                sx={{
+                    position: "absolute",   // 👈 important for map overlay
+                    zIndex: 9999,
+                    color: "#fff",
+                    backgroundColor: "rgba(0,0,0,0.2)",
+                }}
+            >
+                <CircularProgress color="inherit" />
+            </Backdrop>
         );
     }
 }

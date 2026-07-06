@@ -53,6 +53,11 @@ export { useAuth } from './hooks/useAuth';
 export { default as MapApi } from './api/MapApi';
 export { MapAPIs } from './api/MapApi';
 export { default as AuthServices } from './api/authServices';
+export {
+    initMapApi,
+    getMapApi,
+    resetMapApi,
+} from './api/mapApiInstance';
 
 
 // -------------------------
@@ -63,7 +68,7 @@ export { default as AbstractOverlayLayer } from './components/map/layers/overlay
 export { default as IDWLayer } from './components/map/layers/overlay_layers/IDWLayer';
 export { default as OverlayVectorLayer } from './components/map/layers/overlay_layers/OverlayVectorLayer';
 export { default as SelectionLayer } from './components/map/layers/overlay_layers/SelectionLayer';
-export {type SelectionMode} from './components/map/layers/overlay_layers/SelectionLayer';
+export {type SelectionLayerMode} from './components/map/layers/overlay_layers/SelectionLayer';
 export { default as XYZLayer } from './components/map/layers/overlay_layers/XYZLayer';
 export type {IXYZLayerInfo} from './components/map/layers/overlay_layers/XYZLayer';
 export type { IOverLayVectorInfo } from './components/map/layers/overlay_layers/OverlayVectorLayer';
@@ -138,10 +143,12 @@ export { default as SymbologyControl } from './components/map/toolbar/controls/S
 // -------------------------
 // ✅ Layer Switcher & Context Menu
 // -------------------------
-export { default as ContextMenu } from './components/map/layer_switcher/ContextMenu';
+// export { default as ContextMenu } from './components/map/layer_switcher/ContextMenu';
+export {default as LayerSwitcherLayerMenu} from './components/map/layer_switcher_mui/LayerSwitcherLayerMenu'
 export { default as LayerSwitcherPaper } from './components/map/layer_switcher/LayerSwitcherPaper';
-export type { ContextMenuHandle } from './components/map/layer_switcher/ContextMenu';
-export type { CustomMenuItem } from './components/map/layer_switcher/ContextMenu';
+export {default as LayerSwitcherMUIPaper} from "./components/map/layer_switcher_mui/LayerSwitcherMUIPaper";
+export type { ContextMenuHandle } from './components/map/layer_switcher_mui/LayerSwitcherLayerMenu';
+export type { CustomMenuItem } from './components/map/layer_switcher_mui/LayerSwitcherLayerMenu';
 
 
 // -------------------------
@@ -154,6 +161,8 @@ export type { DAMapLoadingHandle } from './components/map/widgets/DAMapLoading';
 export type { IdentifyResultHandle } from './components/map/widgets/IdentifyResult';
 export { default as ColorUtils } from './utils/colorUtils';
 export {default as MapUtils} from './utils/mapUtils';
+
+
 
 
 // -------------------------
@@ -188,3 +197,5 @@ export type {IGeoJSONFeature} from './types/typeDeclarations';
 export type {Column} from './types/gridTypeDeclaration'
 export type {Row} from './types/gridTypeDeclaration'
 export type {Filter} from './types/gridTypeDeclaration'
+
+

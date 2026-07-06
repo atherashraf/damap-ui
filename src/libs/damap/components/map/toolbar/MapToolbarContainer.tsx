@@ -74,7 +74,13 @@ import AttributeTableControl from "@damap/components/map/toolbar/controls/Attrib
 import {MapVMInjectProvider} from "@damap/hooks/MapVMContext";
 import LOISelector from "@damap/components/map/toolbar/controls/LOISelector";
 import {Tooltip} from "@mui/material";
-import {AddLayer} from "@damap/damap";
+import {AddLayer} from "@/libs/damap"
+import AddTextStyle from "@damap/components/map/toolbar/controls/external/AddTextStyle";
+import GoToButton from "@damap/components/map/toolbar/controls/GotoXY";
+import MeasurementButton from "@damap/components/map/toolbar/controls/MeasurementButton";
+import PrintLayoutButton from "@damap/components/map/toolbar/controls/PrintLayoutButton";
+// import PrintLayoutButton from "@damap/components/map/toolbar/controls/PrintLayoutButton";
+
 // import SaveMap from "@damap/components/map/toolbar/controls/SaveMap";
 
 interface Props {
@@ -103,6 +109,7 @@ const MapToolbarContainer = forwardRef<MapToolbarHandle, Props>(
         <MapVMInjectProvider mapVM={mapVM}>
             <AddLayer />
             <LayerSwitcherControl />
+            <AddTextStyle />
             {/* Add more static buttons as needed */}
             {/*<AddClassificationSurface mapVM={mapVM}/>*/}
             {/*<NavigationTreeControl />*/}
@@ -110,11 +117,13 @@ const MapToolbarContainer = forwardRef<MapToolbarHandle, Props>(
             {/*/!*<RasterArea mapVM={mapVM} drawerRef={mapVM?.getRightDrawerRef()}/>*!/*/}
             <RefreshMap />
             {/*{optOptions.isCreateMap && <SaveMap />}*/}
+            <Identifier />
+            {/*<SelectControl />*/}
             <ClearSelection />
             {/*{optOptions.isDesigner && (*/}
             {/*    <SymbologyControl />*/}
             {/*)}*/}
-            <Identifier />
+
             <AttributeTableControl />
             {/*{!optOptions.isDesigner && <LOISelector mapVM={mapVM} />}*/}
 
@@ -124,9 +133,13 @@ const MapToolbarContainer = forwardRef<MapToolbarHandle, Props>(
             {externalButtons.map((btn, i) => (
                 <React.Fragment key={`ext-${i}`}>{btn}</React.Fragment>
             ))}
+            <GoToButton />
+            <MeasurementButton />
+            <PrintLayoutButton />
             <Tooltip title="Layer of Interest">
                 <LOISelector />
             </Tooltip>
+
         </MapVMInjectProvider>
     );
 });

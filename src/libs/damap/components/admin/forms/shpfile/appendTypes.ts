@@ -1,3 +1,5 @@
+
+
 export interface IGroupedShapeRow {
     name: string;
     files: File[];
@@ -5,6 +7,16 @@ export interface IGroupedShapeRow {
     shx?: number;
     dbf?: number;
     prj?: number;
+}
+
+export interface ITargetColumnSchema {
+    name: string;
+    type: string;
+    nullable: boolean;           // real DB nullable
+    default: string | null;
+    has_default: boolean;
+    input_required: boolean;     // required for user mapping/input
+    frontend_optional: boolean;  // optional in UI
 }
 
 export interface IPreviewAppendPayload {
@@ -19,12 +31,7 @@ export interface IPreviewAppendPayload {
     target: {
         schema: string;
         table: string;
-        columns: Array<{
-            name: string;
-            type: string;
-            nullable: boolean;
-            default: string | null;
-        }>;
+        columns: ITargetColumnSchema[];
         column_names: string[];
         geometry_column?: string | null;
         geometry_type?: string | null;

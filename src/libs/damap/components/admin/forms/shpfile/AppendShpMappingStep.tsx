@@ -1,17 +1,18 @@
 import * as React from "react";
 import {
     Alert,
+    Box,
     Button,
+    FormControl,
     Grid,
+    MenuItem,
     Paper,
+    Select,
     Table,
     TableBody,
     TableCell,
     TableHead,
     TableRow,
-    FormControl,
-    MenuItem,
-    Select,
     Typography,
 } from "@mui/material";
 import { DASnackbarHandle } from "@damap/components/base/DASnackbar";
@@ -20,8 +21,12 @@ import type { IPreviewAppendPayload } from "@damap/components/admin/forms/shpfil
 interface IProps {
     snackbarRef: React.RefObject<DASnackbarHandle | null>;
     previewPayload: IPreviewAppendPayload;
+
+    // IMPORTANT:
+    // finalMapping is TARGET -> SOURCE
     finalMapping: Record<string, string>;
     setFinalMapping: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+
     unresolvedRequiredTargets: string[];
     handleBack: () => void;
     handleNext: () => void;
@@ -32,26 +37,39 @@ const DROP_VALUE = "__drop__";
 const AppendShpMappingStep = (props: IProps) => {
     const { previewPayload, finalMapping, unresolvedRequiredTargets } = props;
 
-    const targetColumns = previewPayload.target.column_names.filter(
-        (c) => c !== previewPayload.target.geometry_column
-    );
+    const targetColumns = React.useMemo(() => {
+        return (previewPayload.target.columns || []).filter(
+            (col) => col.name !== previewPayload.target.geometry_column
+        );
+    }, [previewPayload]);
 
-    const handleChange = (sourceCol: string, targetCol: string) => {
+    const sourceColumns = React.useMemo(() => {
+        return previewPayload.source.columns || [];
+    }, [previewPayload]);
+
+    const requiredTargetColumns = React.useMemo(() => {
+        return new Set(
+            targetColumns
+                .filter((col) => {
+                    if (typeof col.input_required === "boolean") {
+                        return col.input_required;
+                    }
+                    return col.nullable === false && !col.default;
+                })
+                .map((col) => col.name.toLowerCase())
+        );
+    }, [targetColumns]);
+
+    const handleChange = (targetCol: string, sourceCol: string) => {
         props.setFinalMapping((prev) => {
             const next = { ...prev };
 
-            if (targetCol === DROP_VALUE) {
-                delete next[sourceCol];
-                return next;
+            if (sourceCol === DROP_VALUE) {
+                delete next[targetCol];
+            } else {
+                next[targetCol] = sourceCol;
             }
 
-            Object.keys(next).forEach((src) => {
-                if (src !== sourceCol && next[src] === targetCol) {
-                    delete next[src];
-                }
-            });
-
-            next[sourceCol] = targetCol;
             return next;
         });
     };
@@ -97,33 +115,58 @@ const AppendShpMappingStep = (props: IProps) => {
                         <Table size="small">
                             <TableHead>
                                 <TableRow>
-                                    <TableCell>Source Field</TableCell>
                                     <TableCell>Target Field</TableCell>
+                                    <TableCell>Source Field</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {previewPayload.source.columns.map((srcCol) => (
-                                    <TableRow key={srcCol}>
-                                        <TableCell>{srcCol}</TableCell>
-                                        <TableCell>
-                                            <FormControl fullWidth size="small">
-                                                <Select
-                                                    value={finalMapping[srcCol] || DROP_VALUE}
-                                                    onChange={(e) =>
-                                                        handleChange(srcCol, e.target.value as string)
-                                                    }
+                                {targetColumns.map((targetCol) => {
+                                    const tgtName = targetCol.name;
+                                    const isRequired = requiredTargetColumns.has(
+                                        tgtName.toLowerCase()
+                                    );
+
+                                    return (
+                                        <TableRow key={tgtName}>
+                                            <TableCell>
+                                                <Box
+                                                    component="span"
+                                                    sx={{
+                                                        color: isRequired ? "error.main" : "inherit",
+                                                        fontWeight: isRequired ? 700 : 400,
+                                                    }}
                                                 >
-                                                    <MenuItem value={DROP_VALUE}>Drop</MenuItem>
-                                                    {targetColumns.map((tgtCol) => (
-                                                        <MenuItem key={tgtCol} value={tgtCol}>
-                                                            {tgtCol}
+                                                    {tgtName}
+                                                    {isRequired ? " *" : ""}
+                                                </Box>
+                                            </TableCell>
+
+                                            <TableCell>
+                                                <FormControl fullWidth size="small">
+                                                    <Select
+                                                        value={finalMapping[tgtName] || DROP_VALUE}
+                                                        onChange={(e) =>
+                                                            handleChange(
+                                                                tgtName,
+                                                                e.target.value as string
+                                                            )
+                                                        }
+                                                    >
+                                                        <MenuItem value={DROP_VALUE}>
+                                                            Drop
                                                         </MenuItem>
-                                                    ))}
-                                                </Select>
-                                            </FormControl>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+
+                                                        {sourceColumns.map((srcCol) => (
+                                                            <MenuItem key={srcCol} value={srcCol}>
+                                                                {srcCol}
+                                                            </MenuItem>
+                                                        ))}
+                                                    </Select>
+                                                </FormControl>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
                             </TableBody>
                         </Table>
                     </Paper>

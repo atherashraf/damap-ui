@@ -3,6 +3,7 @@ import XYZ from "ol/source/XYZ";
 import MapVM from "@damap/components/map/models/MapVM";
 
 export interface IXYZLayerInfo {
+    name: string
     title: string;
     url: string;
     uuid: string;
@@ -58,11 +59,30 @@ class XYZLayer {
         });
     }
 
+    // setLegendImage() {
+    //     if (this.olLayer && this.layerInfo.legendURL) {
+    //         //@ts-ignore
+    //         this.olLayer.legend = { sType: "src", graphic: this.layerInfo.legendURL, width: "200px", height: "25px" };
+    //     }
+    // }
     setLegendImage() {
-        if (this.olLayer && this.layerInfo.legendURL) {
-            //@ts-ignore
-            this.olLayer.legend = { sType: "src", graphic: this.layerInfo.legendURL, width: "200px", height: "25px" };
-        }
+        if (!this.olLayer || !this.layerInfo.legendURL) return;
+
+        const legend = {
+            sType: "src",
+            graphic: this.layerInfo.legendURL,
+            width: "260px",
+            height: "70px",
+        };
+
+        this.olLayer.set("legend", legend);
+        this.olLayer.set("legend_ready", true);
+
+        // optional compatibility
+        //@ts-ignore
+        this.olLayer.legend = legend;
+
+        this.olLayer.changed();
     }
 
     updateSourceURL(newURL: string) {

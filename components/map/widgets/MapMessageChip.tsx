@@ -136,7 +136,7 @@ const MapMessageChip = forwardRef<MapMessageChipHandle>((_, ref) => {
                     }}
                 >
                     <Icon fontSize="small" sx={{ mr: 0.5 }} />
-                    <span style={{ lineHeight: 1.35, wordBreak: "break-word" }}>{chipText}</span>
+                    <span style={{ lineHeight: 1, wordBreak: "break-word",fontSize: "0.7rem", }}>{chipText}</span>
 
                     {chipActions.length > 0 && (
                         <Stack direction="row" spacing={1} sx={{ ml: 1 }}>

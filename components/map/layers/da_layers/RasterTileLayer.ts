@@ -10,14 +10,18 @@ class RasterTileLayer extends AbstractDALayer {
     const { title, uuid } = this.layerInfo || {};
     // @ts-ignore
     this.layer = new TileLayer({
-      //@ts-ignore
+      // @ts-ignore
       name: uuid,
+      uuid: uuid,
       title: title,
       visible: true,
       show_progress: true,
+
+      // identify flags
+      identifyType: "raster",
+      rasterIdentify: true,
+
       source: this.getDataSource(),
-      // style: this.styleFunction.bind(me),
-      // declutter: true
     });
     this.addLegendGraphic(this.layer);
   }
@@ -52,7 +56,7 @@ class RasterTileLayer extends AbstractDALayer {
     const url = this.layerInfo.dataURL || MapApi.getURL(MapAPIs.DCH_LAYER_RASTER, {
       uuid: this.layerInfo.uuid,
     });
-   console.log("url", url)
+
     this.dataSource = new XYZ({
       // url: 'https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?' +
       //     'apikey=873e70e2e69e4a36ae3f2c525f19425e'

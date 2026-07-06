@@ -14,3 +14,11 @@ export interface Row {
     rowId: number;
     [key: string]: any;
 }
+
+export interface AttributeTableData {
+    columns: Column[];
+    rows: Row[];
+    pkCols: string[];
+    tableHeight?: number;
+    isEditable?: boolean;
+}

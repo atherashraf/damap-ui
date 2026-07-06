@@ -4,6 +4,7 @@ import LegendRenderer from "geostyler-legend/dist/LegendRenderer/LegendRenderer"
 import olLegendImage from "ol-ext/legend/Image";
 import AbstractDALayer from "@damap/components/map/layers/da_layers/AbstractDALayer";
 import VectorLayer from "ol/layer/Vector";
+import type { Style } from "geostyler-style";
 
 interface LayerWithLegend extends VectorLayer {
   legend?: {
@@ -19,7 +20,18 @@ class SLDStyleParser {
   constructor(objMvtLayer: AbstractDALayer) {
     this.objMvtLayer = objMvtLayer;
   }
-
+  // private scaleLineDash(style: any, scale = 4): void {
+  //   const stroke = style?.getStroke?.();
+  //   const dash = stroke?.getLineDash?.();
+  //
+  //   if (!stroke) return;
+  //
+  //   if (!dash || dash.length === 0) {
+  //     return;
+  //   }
+  //
+  //   stroke.setLineDash(dash.map((value: number) => value * scale));
+  // }
   /**
    * Converts SLD text to an OpenLayers style and applies it to the given layer.
    * @param sldText - SLD text to be parsed and applied.
@@ -33,14 +45,14 @@ class SLDStyleParser {
 
     (async () => {
       const geostylerStyle = await sldParser.readStyle(sldText);
+      const style = geostylerStyle.output as unknown as Style;
 
       // console.log("GeoStyler style", geostylerStyle);
       const renderer = new LegendRenderer({
         overflow: "group",
-        styles: geostylerStyle.output ? [geostylerStyle.output] : [],
+        styles: style ? [style] : [],
         hideRect: true,
-        // @ts-ignore
-        iconSize: [20, 30],
+        iconSize: [100, 50],
         size: [300, 150],
       });
 
@@ -50,20 +62,35 @@ class SLDStyleParser {
       if (!geostylerStyle.output) {
         return;
       }
-      const olStyle = await olParser.writeStyle(geostylerStyle.output);
+      const olStyle = await olParser.writeStyle(style);
+      // console.log("ol Style", olStyle);
 
       const styleFunction = olStyle.output;
+      const dashScale = 5;
       if (typeof styleFunction === "function") {
         const safeStyleFunction = (feature: any, resolution: number) => {
           const styles = styleFunction(feature, resolution);
-          if (!Array.isArray(styles)) return styles;
+          const styleArray = Array.isArray(styles) ? styles : [styles];
 
-          styles.forEach((style) => {
+
+          styleArray.forEach((style: any) => {
+            const stroke = style.getStroke?.();
+            const dash = stroke?.getLineDash?.();
+
+            // ONLY scale existing dash
+            if (dash && dash.length > 0) {
+              stroke.setLineDash(
+                  dash.map((value: number) => value * dashScale)
+              );
+            }
+
             const text = style.getText?.();
+
             if (text) {
               if (typeof text.getKeepUpright !== "function") {
                 text.getKeepUpright = () => false;
               }
+
               if (typeof text.getDeclutterMode !== "function") {
                 text.getDeclutterMode = () => "none";
               }
@@ -75,11 +102,29 @@ class SLDStyleParser {
 
         layer.setStyle(safeStyleFunction);
       } else {
-        layer.setStyle(styleFunction as any);
+
+        const styleObject: any = styleFunction;
+
+
+
+        if (styleObject?.getStroke?.()) {
+          const stroke = styleObject.getStroke();
+          const dash = stroke?.getLineDash?.();
+
+          if (dash) {
+            stroke.setLineDash(dash.map((value: number) => value * dashScale));
+          }
+
+          console.log("stroke dash", stroke.getLineDash());
+        }
+
+        layer.setStyle(styleObject as any);
+
       }
 
-
+      layer.changed();
       layer.getSource()?.refresh();
+
       const legendPanel = this.objMvtLayer?.mapVM.getLegendPanel();
       if (legendPanel) {
         this.getLegendAsImage(this.legendRenderer, legendPanel, layer);

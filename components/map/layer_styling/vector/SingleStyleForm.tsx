@@ -1,10 +1,9 @@
 import autoBind from "auto-bind";
-
+import * as React from "react";
 
 import BaseStyleForm, { BaseStyleFormProps } from "./BaseStyleForm";
 import VectorSymbolizer from "./symbolizer/VectorSymbolizer";
-import * as React from "react";
-import {IGeomStyle} from "@damap/types/typeDeclarations";
+import { IFeatureStyle, IGeomStyle } from "@damap/types/typeDeclarations";
 
 class SingleStyleForm extends BaseStyleForm {
   vectorStyleRef = React.createRef<VectorSymbolizer>();
@@ -13,35 +12,39 @@ class SingleStyleForm extends BaseStyleForm {
     super(props);
     autoBind(this);
   }
-  //@ts-ignore
+
   getFeatureStyle(): IFeatureStyle | undefined {
     const style: IGeomStyle | undefined =
-      this.vectorStyleRef?.current?.getStyleParams();
-    if (style) {
-      return {
-        type: "single",
-        style: {
-          default: style,
-        },
-      };
-    }
+        this.vectorStyleRef.current?.getStyleParams();
+
+    if (!style) return undefined;
+
+    return {
+      type: "single",
+      style: {
+        default: style,
+      },
+    };
   }
 
-  render() {
-    // const style: IGeomStyle = this.vectorStyleRef.current.getStyleParams()
-    const layerId = this.props.mapVM.getLayerOfInterest();
-    const currentStyle = this.props.mapVM.getDALayer(layerId)?.style;
-    const geomType = this.props.mapVM
-      ?.getDALayer(this.props.layerId)
-      ?.getGeomType();
+  render(): React.ReactNode {
+    const layerId =
+        this.props.layerId || this.props.mapVM.getLayerOfInterest();
+
+    if (!layerId) return null;
+
+    const layer = this.props.mapVM.getDALayer(layerId);
+    if (!layer) return null;
+
+    const currentStyle = layer.style;
+    const geomType = layer.getGeomType();
+
     return (
-      <React.Fragment>
         <VectorSymbolizer
-          ref={this.vectorStyleRef}
-          geomType={geomType}
-          style={currentStyle?.style?.default}
+            ref={this.vectorStyleRef}
+            geomType={geomType}
+            style={currentStyle?.style?.default}
         />
-      </React.Fragment>
     );
   }
 }

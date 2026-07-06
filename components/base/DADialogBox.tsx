@@ -7,8 +7,7 @@ import autoBind from "auto-bind";
 import {JSX} from "react";
 
 
-interface IProps {
-}
+type IProps = object;
 
 export interface DialogData {
     title?: string;
@@ -91,6 +90,9 @@ class DADialogBox extends React.PureComponent<IProps, IState> {
                         open={this.state.open}
                         fullWidth={this.state.isFullWidth}
                         fullScreen={this.state.isFullScreen}
+                        sx={{
+                            zIndex: 2000   // higher than 1500
+                        }}
                     >
                         {this.state.title && (
                             <DialogTitle
@@ -119,7 +121,7 @@ class DADialogBox extends React.PureComponent<IProps, IState> {
                                 position: "fixed",
                                 bottom: 16,
                                 right: 16,
-                                zIndex: 1300,
+                                zIndex: 1500,
                                 backgroundColor: "#fff",
                                 boxShadow: "0px 0px 6px rgba(0,0,0,0.2)"
                             }}

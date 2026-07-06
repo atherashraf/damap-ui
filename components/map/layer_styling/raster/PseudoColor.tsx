@@ -79,6 +79,12 @@ const PseudoColor: React.FC<Props> = ({ mapVM, bandInfo }) => {
   };
 
   const saveStyle = () => {
+    const layerId = mapVM.getLayerOfInterest();
+    if (!layerId) {
+      mapVM.showSnackbar("Please select a layer first");
+      return;
+    }
+
     mapVM.showSnackbar("Creating new style");
 
     const values = styleList.map((item) => parseFloat(item.title));
@@ -94,12 +100,12 @@ const PseudoColor: React.FC<Props> = ({ mapVM, bandInfo }) => {
     mapVM
         .getApi()
         .post(MapAPIs.DCH_SAVE_STYLE, payload, {
-          uuid: mapVM.getLayerOfInterest(),
+          uuid: layerId,
             map_uuid: "-1"
         })
         .then(() => {
           mapVM.showSnackbar("Style saved successfully");
-          const daLayer = mapVM.getDALayer(mapVM.getLayerOfInterest());
+          const daLayer = mapVM.getDALayer(layerId);
           setTimeout(() => daLayer?.refreshLayer(), 2000);
         });
   };
@@ -152,7 +158,7 @@ const PseudoColor: React.FC<Props> = ({ mapVM, bandInfo }) => {
             styleList={styleList}
             updateStyleItem={updateStyleItem}
             mapVM={mapVM}
-            layerId={mapVM.getLayerOfInterest()}
+          layerId={mapVM.getLayerOfInterest() ?? ""}
         />
 
         <Box sx={{ flex: 1, pt: 1 }}>

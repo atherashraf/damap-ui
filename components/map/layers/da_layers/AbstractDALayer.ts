@@ -12,10 +12,9 @@ import SLDStyleParser from "@damap/components/map/layer_styling/utils/SLDStylePa
 import StylingUtils from "../../layer_styling/utils/StylingUtils";
 import {IFeatureStyle, ILayerInfo} from "@damap/types/typeDeclarations";
 
-class AbstractDALayer {
+abstract class AbstractDALayer {
     dataSource: any;
-    //@ts-ignore
-    layer: VectorLayer<any> | VectorTileLayer | TileLayer<any> | ImageLayer<any>;
+    layer?: VectorLayer<any> | VectorTileLayer | TileLayer<any> | ImageLayer<any>;
     layerInfo: ILayerInfo;
     style: IFeatureStyle;
     mapVM: MapVM;
@@ -32,51 +31,173 @@ class AbstractDALayer {
         info.declutter ??= true;
 
         this.layerInfo = info;
-
         this.mapVM = mapVM;
-        //@ts-ignore
-        this.uuid = info && "uuid" in info && info["uuid"];
-        //@ts-ignore
-        this.style = info && "style" in info && info["style"];
+        this.uuid = info && "uuid" in info ? info["uuid"] : "";
+        this.style = info && "style" in info ? info["style"] : undefined as any;
+
         this.setLayer();
-        //@ts-ignore
-        this.layer && this.mapVM.getMap().addLayer(this.layer);
-        //@ts-ignore
-        this.layer && this.addLayerChangeEvent();
+
+        if (this.layer) {
+            this.addLayerChangeEvent();
+        }
     }
 
     getZIndex() {
         return this.layerInfo.zIndex;
     }
 
+    // addLayerChangeEvent() {
+    //     this.layer.on("propertychange", (e) => {
+    //         if (e.key === "map" && e.target.values_[e.key] == null) {
+    //             this.mapVM.removeDALayer(this.layerInfo.uuid);
+    //         }
+    //         if (e.key === "map" && e.oldValue == null) {
+    //             this.mapVM.daLayers[this.layerInfo.uuid] = this;
+    //         }
+    //     });
+    // }
+
     addLayerChangeEvent() {
-        this.layer.on("propertychange", (e) => {
-            if (e.key === "map" && e.target.values_[e.key] == null) {
+        this.layer?.on("propertychange", (e: any) => {
+            if (e.key !== "map") return;
+
+            const isRemovedFromMap = e.target?.get?.("map") == null;
+            if (isRemovedFromMap) {
                 this.mapVM.removeDALayer(this.layerInfo.uuid);
-            }
-            if (e.key === "map" && e.oldValue == null) {
-                this.mapVM.daLayers[this.layerInfo.uuid] = this;
             }
         });
     }
 
     setSlDStyleAndLegendToLayer() {
         const type = this.style?.type || "";
-        let lyr = this.layer;
+        const lyr = this.layer;
+
+        if (!lyr) return;
+
+        let legendCreated = false;
+
         if (type === "sld") {
-            let sldObj = new SLDStyleParser(this);
+            const sldObj = new SLDStyleParser(this);
             //@ts-ignore
             sldObj.convertSLDTextToOL(this.style["style"], lyr);
+
+            const legend = lyr.get?.("legend") || (lyr as any)?.legend;
+            legendCreated = !!legend;
         } else {
             if (!(lyr instanceof TileLayer || lyr instanceof ImageLayer)) {
                 //@ts-ignore
                 lyr.setStyle(this.vectorStyleFunction.bind(this));
-                if (this.layerInfo?.geomType && this.layerInfo?.geomType.length > 0)
-                    StylingUtils.addLegendGraphic(lyr, this.style, this.layerInfo?.geomType[0])
+
+                const resolvedGeomType = this.resolveGeomType();
+
+                if (resolvedGeomType) {
+                    StylingUtils.addLegendGraphic(lyr, this.style, resolvedGeomType);
+
+                    const legend = lyr.get?.("legend") || (lyr as any)?.legend;
+                    legendCreated = !!legend;
+                } else {
+                    console.warn("Legend skipped: missing geomType", {
+                        title: lyr?.get?.("title"),
+                        styleType: this.style?.type,
+                        geomType: this.layerInfo?.geomType,
+                        resolvedGeomType,
+                        layerClass: lyr?.constructor?.name,
+                    });
+                }
+
                 this.mapVM.getLegendPanel()?.refresh();
             }
         }
+
+        lyr.set("style_added", true);
+        lyr.set("legend_ready", legendCreated);
+        lyr.set("da_ready", true);
     }
+
+    resolveGeomType(): string | undefined {
+        const raw = this.layerInfo?.geomType?.[0];
+
+        // 1. Prefer explicit geomType from layerInfo
+        if (raw  && raw.trim().length > 0) {
+            switch (raw.trim()) {
+                case "Point":
+                case "MultiPoint":
+                    return raw.trim();
+
+                case "Polyline":
+                case "Line":
+                case "LineString":
+                    return "LineString";
+
+                case "MultiPolyline":
+                case "MultiLine":
+                case "MultiLineString":
+                    return "MultiLineString";
+
+                case "Polygon":
+                    return "Polygon";
+
+                case "MultiPolygon":
+                    return "MultiPolygon";
+
+                default:
+                    return raw.trim();
+            }
+        }
+
+        // 2. Fallback by title when geomType is missing
+        const title = (this.layerInfo?.title || this.layer?.get?.("title") || "")
+            .toString()
+            .toLowerCase();
+
+        if (!title) return undefined;
+
+        // Point-like layers
+        if (
+            title.includes("manhole") ||
+            title.includes("valve") ||
+            title.includes("hydrant") ||
+            title.includes("meter") ||
+            title.includes("pole") ||
+            title.includes("point") ||
+            title.includes("well") ||
+            title.includes("chamber")
+        ) {
+            return "Point";
+        }
+
+        // Line-like layers
+        if (
+            title.includes("line") ||
+            title.includes("pipe") ||
+            title.includes("sewer") ||
+            title.includes("drain") ||
+            title.includes("network") ||
+            title.includes("road") ||
+            title.includes("channel") ||
+            title.includes("stream")
+        ) {
+            return "LineString";
+        }
+
+        // Polygon-like layers
+        if (
+            title.includes("subdivision") ||
+            title.includes("parcel") ||
+            title.includes("boundary") ||
+            title.includes("block") ||
+            title.includes("area") ||
+            title.includes("zone") ||
+            title.includes("sector") ||
+            title.includes("plot") ||
+            title.includes("polygon")
+        ) {
+            return "Polygon";
+        }
+
+        return undefined;
+    }
+
 
     // addLegendGraphic(layer: any) {
     //     //@ts-ignore
@@ -171,7 +292,7 @@ class AbstractDALayer {
     }
 
     getLayerTitle(): string {
-        return this.layer.get("title");
+        return this.layer?.get("title");
     }
 
     getLayerId(): string {
@@ -211,7 +332,7 @@ class AbstractDALayer {
     }
 
     clearAllDataSources() {
-        let source = this.layer.getSource();
+        let source = this.layer?.getSource();
         while (source) {
             source.clear();
             source =
@@ -219,13 +340,20 @@ class AbstractDALayer {
         }
     }
 
-    vectorStyleFunction(feature: Feature): Style {
-        return StylingUtils.vectorStyleFunction(feature, this.style);
+
+    vectorStyleFunction(feature: Feature, _resolution?: number): Style {
+        const geomType = StylingUtils.normalizeGeomType(
+            feature.getGeometry()?.getType() || ""
+        );
+
+        return StylingUtils.vectorStyleFunction(feature, this.style) ||
+            StylingUtils.getDefaultStyle(geomType);
+
     }
 
 
-    //@ts-ignore
     updateTemporalData(date: Date) {
+        console.log("date",date)
     }
 }
 

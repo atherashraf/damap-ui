@@ -40,7 +40,7 @@ interface IProps {
 }
 
 const AddURLLayerInfo = (props: IProps) => {
-    const selectItems = ["WMS", "WFS", "TMS", "Web Api"]; // Options for URL Type
+    const selectItems = ["Geoserver", "Arcgis", "WMS", "WFS", "TMS", "Web Api"]; // Options for URL Type
 
     const [selectedItem, setSelectedItem] = useState<string>("");
     const [layerURL, setLayerURL] = useState<string>("");

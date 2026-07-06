@@ -58,6 +58,7 @@ const MapPanel = ({ isMap, uuid, isEditor, children }: PropsWithChildren<IMapPan
                 .then((payload: IMapInfo) => {
                     const mapInfo: IMapInfo = {...payload, isEditor};
                     if (!mapVM.isInit) mapVM.initMap(mapInfo);
+                    mapVM.setMapUUID(uuid)
                     mapVM.setTarget(mapDivId);
 
                 });
@@ -74,8 +75,6 @@ const MapPanel = ({ isMap, uuid, isEditor, children }: PropsWithChildren<IMapPan
                 (async () => {
                     await mapVM.addDALayer({uuid});
                     const extent = await mapVM.getDALayer(uuid)?.getExtent();
-                    console.log("extent", extent);
-                    // mapVM.setMapExtent(extent);
                     mapVM.zoomToExtent(extent);
                 })();
                 //@ts-ignore
@@ -85,12 +84,10 @@ const MapPanel = ({ isMap, uuid, isEditor, children }: PropsWithChildren<IMapPan
             }
         }
         mapVM.setTheme(theme)
-    }, [uuid, isMap, isEditor]);
+    }, [uuid, isMap, isEditor, mapVM, theme, mapDivId]);
 
     useEffect(() => {
-
         const handleTemporalLayerAdded = (_: any) => {
-
             if (mapVM.hasTemporalLayers() && !timeSliderRef.current?.hasControl) {
                 // const onDateChange = (selectedDate: Date) => {
                 //     console.log("Selected temporal date:", selectedDate.toISOString());
@@ -106,7 +103,7 @@ const MapPanel = ({ isMap, uuid, isEditor, children }: PropsWithChildren<IMapPan
         return () => {
             window.removeEventListener("temporalLayerAdded", handleTemporalLayerAdded);
         };
-    }, [mapVM]);
+    }, [mapVM, timeSliderRef]);
 
 
     useEffect(() => {
@@ -115,7 +112,7 @@ const MapPanel = ({ isMap, uuid, isEditor, children }: PropsWithChildren<IMapPan
                 mapVM.getMap()?.removeControl(timeSliderControl);
             }
         };
-    }, [timeSliderControl]);
+    }, [mapVM, timeSliderControl]);
 
 
     const toggleFullscreen = () => {

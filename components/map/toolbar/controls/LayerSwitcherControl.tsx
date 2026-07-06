@@ -1,8 +1,10 @@
 import {IconButton, Tooltip} from "@mui/material";
 import LayersIcon from "@mui/icons-material/Layers";
-import LayerSwitcherMUIPaper from "@damap/components/map/layer_switcher_mui/LayerSwitcherMUIPaper";
+// import LayerSwitcherMUIPaper from "@damap/components/map/layer_switcher_mui/LayerSwitcherMUIPaper";
 import {useMapVM} from "@damap/hooks/MapVMContext";
 import {JSX} from "react";
+import {LayerSwitcherMUIPaper} from "@/libs/damap";
+import LayerSwitcherPaper from "@damap/components/map/layer_switcher/LayerSwitcherPaper";
 
 
 /**
@@ -24,9 +26,13 @@ const LayerSwitcherControl = (): JSX.Element => {
     };
     const openLayerSwitcher = () => {
         const leftDrawer = mapVM.getLeftDrawerRef();
-        // leftDrawer.current.setContent("Table of Content", <LayerSwitcherPaper mapVM={mapVM}/>);
-        leftDrawer.current.setContent("Table of Content", <LayerSwitcherMUIPaper mapVM={mapVM}/>);
-        leftDrawer.current.openDrawer(300);
+        const layerSwitcherType = mapVM.getLayerSwitcherType();
+        if (layerSwitcherType === "OLExt") {
+            leftDrawer.current.setContent("Table of Content", <LayerSwitcherPaper mapVM={mapVM}/>);
+        }else {
+            leftDrawer.current.setContent("Table of Content", <LayerSwitcherMUIPaper mapVM={mapVM}/>);
+        }
+        leftDrawer.current.openDrawer(350);
     };
 
     return (

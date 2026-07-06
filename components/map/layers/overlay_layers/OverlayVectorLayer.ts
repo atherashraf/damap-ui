@@ -147,14 +147,16 @@ import { Feature } from "ol";
 import GeoJSON from "ol/format/GeoJSON";
 import { WKT } from "ol/format";
 import AbstractOverlayLayer from "./AbstractOverlayLayer";
-import { IFeatureStyle, IGeoJSON, ITextStyle } from "@damap/types/typeDeclarations";
+import {IFeatureStyle, IGeoJSON, IGeoJSONFeature, ILabelableLayer, ITextStyle} from "@damap/types/typeDeclarations";
 import StylingUtils from "../../layer_styling/utils/StylingUtils";
 import { Extent, createEmpty, extend } from "ol/extent";
 import { Geometry } from "ol/geom";
 
 // import _ from "../../utils/lodash";
 
-export interface IOverLayVectorInfo {
+// type IOverLayVectorInfo = ILayerInfo & ILabelLayerInfo & { ... }
+
+export interface IOverLayVectorInfo  {
     uuid: string;
     title: string;
     style: IFeatureStyle;
@@ -170,7 +172,7 @@ export interface IOverLayVectorInfo {
     maxLabelZoom?: number;   // labels stop appearing after this zoom (inclusive)
 }
 
-class OverlayVectorLayer extends AbstractOverlayLayer {
+class OverlayVectorLayer extends AbstractOverlayLayer implements ILabelableLayer {
     olLayer: VectorLayer<VectorSource>;
     mapVM: MapVM;
     layerInfo: IOverLayVectorInfo;
@@ -246,7 +248,7 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
             displayInLayerSwitcher: true,
             source: new VectorSource(),
             // @ts-ignore
-            style: this.vectorStyleFunction,
+            style: this.vectorStyleFunction.bind(this),
             zIndex: 1000,
             declutter: true, // reduce overlapping labels
         });
@@ -258,15 +260,16 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
     }
 
     addGeojsonFeature(
-        geojson: IGeoJSON,
+        geojson: IGeoJSON | IGeoJSONFeature,
         dataCRS: string = "EPSG:4326",
         clearPreviousFeatures: boolean = false
     ): number {
         if (clearPreviousFeatures) this.clearFeatures();
 
-        // Optional: detect EPSG from payload if present
         const detected =
-            (geojson as any)?.crs?.properties?.name ?? (geojson as any)?.crs?.name;
+            (geojson as any)?.crs?.properties?.name ??
+            (geojson as any)?.crs?.name;
+
         const srid =
             typeof detected === "string" && /^EPSG:\d+$/.test(detected)
                 ? detected
@@ -274,10 +277,19 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
 
         try {
             const viewProj = this.mapVM.getViewProjectionCode?.() ?? "EPSG:3857";
+
+            const normalizedGeoJSON: IGeoJSON =
+                "features" in geojson
+                    ? geojson
+                    : {
+                        type: "FeatureCollection",
+                        features: [geojson],
+                    };
+
             const features = new GeoJSON({
                 dataProjection: srid,
                 featureProjection: viewProj,
-            }).readFeatures(geojson);
+            }).readFeatures(normalizedGeoJSON);
 
             if (!features?.length) {
                 this.mapVM.showSnackbar("No features found in GeoJSON.");
@@ -288,7 +300,7 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
             return features.length;
         } catch (e) {
             this.mapVM.showSnackbar(
-                `Failed to read GeoJSON (${srid} → 3857): ${
+                `Failed to read GeoJSON (${srid} → ${this.mapVM.getViewProjectionCode?.() ?? "EPSG:3857"}): ${
                     (e as Error)?.message ?? e
                 }`
             );
@@ -296,18 +308,17 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         }
     }
 
-    getGeometryType(): string {
-        if (this.layerInfo.geomType) {
-            return this.layerInfo.geomType;
-        } else {
-            const features = this.getFeatures();
-            // @ts-ignore
-            return features.length > 0
-                ? features[0]?.getGeometry()?.getType().toString()
-                : "Polygon";
-        }
-    }
+   getGeometryType(): string {
+    if (this.layerInfo.geomType) {
+        return this.layerInfo.geomType;
+    } else {
+        const features = this.getFeatures();
 
+        return features.length > 0
+            ? features[0]?.getGeometry()?.getType()?.toString() ?? "Polygon"
+            : "Polygon";
+    }
+}
     addWKTFeature(
         wkt: string,
         dataProjectionOverride?: string,
@@ -417,72 +428,32 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         source.getFeatures().forEach((f) => f.changed());
     }
 
-    vectorStyleFunction(feature: Feature, resolution: number): Style {
-        const baseStyle = StylingUtils.vectorStyleFunction(
-            feature,
-            this.layerInfo.style
+    vectorStyleFunction(feature: Feature, resolution?: number): Style {
+
+        const geomType = StylingUtils.normalizeGeomType(
+            feature.getGeometry()?.getType() || ""
         );
+
+        const baseStyle =
+            StylingUtils.vectorStyleFunction(feature, this.layerInfo.style) ||
+            StylingUtils.getDefaultStyle(geomType);
         const styled = baseStyle.clone();
 
-        const {
-            showLabel,
-            labelProperty,
-            textStyle,
-            minLabelZoom,
-            maxLabelZoom,
-        } = this.layerInfo;
-
-        // Labels globally off or no field → no text
-        if (!showLabel || !labelProperty) {
-            // @ts-ignore
-            styled.setText(null);
-            return styled;
-        }
-
-        // Get current zoom from map/view
-        const map = this.mapVM.getMap();
-        const view = map?.getView();
-
-        let zoom: number | undefined;
-        if (view) {
-            if ((view as any).getZoomForResolution) {
-                const z = (view as any).getZoomForResolution(resolution);
-                zoom = z ?? view.getZoom();
-            } else {
-                zoom = view.getZoom();
-            }
-        }
-
-        // If zoom is known, enforce min/max window
-        if (zoom !== undefined) {
-            const minZ = minLabelZoom ?? -Infinity; // no lower limit if not set
-            const maxZ = maxLabelZoom ?? +Infinity; // no upper limit if not set
-
-            // Hide labels if outside [minZ, maxZ]
-            if (zoom < minZ || zoom > maxZ) {
-                // @ts-ignore
-                styled.setText(null);
-                return styled;
-            }
-        }
-
-        // OK to draw label here
-        const label = feature.get(labelProperty);
-        if (label !== undefined && label !== null) {
-            const fillColor =
-                baseStyle.getFill()?.getColor()?.toString() ?? "#000";
-            styled.setText(
-                StylingUtils.getTextStyle(String(label), fillColor, textStyle || {})
-            );
-        }
-
-        return styled;
+        return StylingUtils.applyLabelStyle(
+            styled,
+            baseStyle,
+            feature,
+            this.mapVM,
+            this.layerInfo,
+            resolution
+        );
     }
 
     zoomToFeatures() {
         if (this.getSource().getFeatures().length > 0) {
             const extent = this.getSource().getExtent();
-            this.mapVM.zoomToExtent(extent);
+            if(extent)
+                this.mapVM.zoomToExtent(extent);
         } else {
             this.mapVM.showSnackbar("Please select feature before zoom to");
         }
@@ -505,12 +476,21 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         super.getFeaturesById();
     }
 
-    toGeoJson() {
+    toGeoJson(outputProjection = "EPSG:3857", featureProjection = "EPSG:3857") {
         const geojsonFormat = new GeoJSON();
         const features = this.getFeatures();
-        return geojsonFormat.writeFeaturesObject(features, {
-            featureProjection: "EPSG:3857",
+
+        const geojson = geojsonFormat.writeFeaturesObject(features, {
+            featureProjection: featureProjection,
+            dataProjection: outputProjection,
         });
+
+        // Ensure FeatureCollection
+        return {
+            type: "FeatureCollection",
+            features: geojson.features || [],
+            crs: outputProjection
+        };
     }
 
     getAttributeList(): string[] {
@@ -531,11 +511,10 @@ class OverlayVectorLayer extends AbstractOverlayLayer {
         return src.getFeatures().includes(feature);
     }
 
-    removeFeature(feature: Feature): boolean {
+    removeFeature(feature: Feature, alreadyInside?: boolean): boolean {
         const src = this.getSource();
         if (!src) return false;
-
-        const alreadyInside = src.hasFeature(feature);
+        if(!alreadyInside)  alreadyInside = src.hasFeature(feature);
 
         if (alreadyInside) {
             src.removeFeature(feature);

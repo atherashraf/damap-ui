@@ -6,10 +6,9 @@ import type { ICommitAppendPayload, IPreviewAppendPayload } from "./appendTypes"
 import AppendShpUploadStep from "@damap/components/admin/forms/shpfile/AppendShpUploadStep";
 import AppendShpMappingStep from "@damap/components/admin/forms/shpfile/AppendShpMappingStep";
 import AppendShpCommitStep from "@damap/components/admin/forms/shpfile/AppendShpCommitStep";
-import {RightDrawerHandle} from "@damap/components/map/drawers/RightDrawer";
+import { RightDrawerHandle } from "@damap/components/map/drawers/RightDrawer";
 
 interface IProps {
-
     snackbarRef: React.RefObject<DASnackbarHandle | null>;
     rightDrawerRef?: React.RefObject<RightDrawerHandle | null>;
     onSuccess?: () => void;
@@ -22,13 +21,20 @@ const AppendShpWizard = (props: IProps) => {
     const [step, setStep] = React.useState<0 | 1 | 2>(0);
 
     const [previewPayload, setPreviewPayload] = React.useState<IPreviewAppendPayload | null>(null);
+
+    // IMPORTANT:
+    // finalMapping is now TARGET -> SOURCE
     const [finalMapping, setFinalMapping] = React.useState<Record<string, string>>({});
+
     const [commitPayload, setCommitPayload] = React.useState<ICommitAppendPayload | null>(null);
     const [reprojectIfNeeded, setReprojectIfNeeded] = React.useState(true);
 
     const handlePreviewSuccess = (payload: IPreviewAppendPayload) => {
         setPreviewPayload(payload);
+
+        // Backend auto_mapping is now expected as target -> source
         setFinalMapping(payload.auto_mapping || {});
+
         setStep(1);
         props.rightDrawerRef?.current?.setWidth(460);
     };
@@ -41,10 +47,28 @@ const AppendShpWizard = (props: IProps) => {
 
     const unresolvedRequiredTargets = React.useMemo(() => {
         if (!previewPayload) return [];
-        const mappedTargets = new Set(Object.values(finalMapping));
-        return (previewPayload.missing_required_target_columns || []).filter(
-            (col) => !mappedTargets.has(col)
+
+        const assignedTargets = new Set(
+            Object.keys(finalMapping).map((v) => v.toLowerCase())
         );
+
+        const geomCol = previewPayload.target.geometry_column?.toLowerCase();
+
+        return (previewPayload.target.columns || [])
+            .filter((col) => {
+                const colName = col.name.toLowerCase();
+
+                const isRequired =
+                    typeof col.input_required === "boolean"
+                        ? col.input_required
+                        : col.nullable === false && !col.default;
+
+                if (!isRequired) return false;
+                if (colName === geomCol) return false;
+
+                return !assignedTargets.has(colName);
+            })
+            .map((col) => col.name);
     }, [previewPayload, finalMapping]);
 
     return (

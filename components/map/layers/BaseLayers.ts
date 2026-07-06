@@ -7,13 +7,16 @@ import { ILayerSources, ILayerSourcesInfo } from "@damap/types/typeDeclarations"
 import XYZ from "ol/source/XYZ";
 
 export const baseLayerSources = {
-  osm: { title: "Open Street Map", source: "osm" },
+  none: { title: "Empty Map", source: "none" },
   googleTerrain: { title: "Google Physical", source: "google" },        // lyrs=p
   googleLabels: { title: "Google Labels", source: "google" },           // lyrs=m
   googleSatellite: { title: "Google Satellite", source: "google" },     // lyrs=s
   googleHybrid: { title: "Google Hybrid", source: "google" },           // lyrs=y (Satellite + Labels)
+
+  osm: { title: "Open Street Map", source: "osm" },
   // bingRoad: { title: "Bing Roads", source: "osm", imagerySet: "RoadOnDemand" },
   // bingAerial: { title: "Bing Aerial", source: "bing", visible: false, imagerySet: "Aerial" },
+
 };
 
 class BaseLayers {
@@ -26,29 +29,45 @@ class BaseLayers {
     this.mapVM = mapVM;
   }
 
-  addBaseLayers(title = null) {
+  addBaseLayers(title: string | null = null) {
     const layers = [];
-    //@ts-ignore
-    title = !title ? "Google Hybrid" : title;
-    for (let key in baseLayerSources) {
-      //@ts-ignore
+
+    // Ensure title is a string; default to "Google Hybrid" if null is passed
+    const activeTitle: string = !title ? "Google Hybrid" : title;
+
+    for (const key in baseLayerSources) {
+      // Cast key to access the sources object correctly
+      const info = (baseLayerSources as any)[key];
       const layer = this.getLayer(key);
-      //@ts-ignore
-      layers.push(layer);
-      //@ts-ignore
-      if (baseLayerSources[key]?.title === title) {
-        layer?.setVisible(true);
+
+      if (layer) {
+        layers.push(layer);
+
+        // Compare the layer title to our activeTitle string
+        if (info?.title === activeTitle) {
+          layer.setVisible(true);
+        }
       }
     }
 
     const gLayer = new Group({
-      //@ts-ignore
+      // @ts-ignore - 'title' is a custom property for the LayerSwitcher logic
       title: "Base Layers",
       openInLayerSwitcher: true,
       layers: layers,
     });
 
     this.mapVM.getMap().addLayer(gLayer);
+  }
+
+  getEmptyLayer(info: ILayerSourcesInfo): TileLayer<any> {
+    return new TileLayer({
+      //@ts-ignore
+      title: info.title, // This will be "Empty Map"
+      visible: false,
+      baseLayer: true,
+      // By providing no source, the layer is "empty"
+    });
   }
 
   getLayer(key: string): any {
@@ -64,6 +83,9 @@ class BaseLayers {
         break;
       case "google":
         layer = this.getGoogleLayer(info);
+        break;
+      case "none": // NEW: Handle Empty Map
+        layer = this.getEmptyLayer(info);
         break;
     }
     return layer;
@@ -83,7 +105,7 @@ class BaseLayers {
       baseLayer: true,
       source: new XYZ({
         attributions: "Google Maps",
-        url: `http://mt0.google.com/vt/lyrs=${lyrs}&hl=en&x={x}&y={y}&z={z}`,
+        url: `https://mt0.google.com/vt/lyrs=${lyrs}&hl=en&x={x}&y={y}&z={z}`,
         crossOrigin: "anonymous",
         wrapX: true,
       }),
@@ -99,6 +121,7 @@ class BaseLayers {
       source: new OSM({
         attributions: "© OpenStreetMap contributors",
         wrapX: false,
+        crossOrigin: "anonymous",
       }),
     });
   }
@@ -116,6 +139,7 @@ class BaseLayers {
         //@ts-ignore
         imagerySet: info.imagerySet,
         maxZoom: 19,
+        crossOrigin: "anonymous"
       }),
     });
   }

@@ -36,7 +36,7 @@ export default function DAAppBar(props: { snackbarRef: React.RefObject<any> }) {
         navigate("/login");
     };
 
-    const isLoggedIn = AuthServices.isLoggedIn();
+    const isLoggedIn = AuthServices.hasUsableSessionSync();
     const user = isLoggedIn ? AuthServices.getUser() : null;
 
     return (

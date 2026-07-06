@@ -119,6 +119,7 @@ import { IFeatureStyle, IGeoJSON, ITextStyle } from "@damap/types/typeDeclaratio
 
 export interface IGeoServerWFSInfo extends Omit<IOverLayVectorInfo, "style"> {
     /** same uuid/title as overlay layer */
+    name: string;
     uuid: string;
     title: string;
 

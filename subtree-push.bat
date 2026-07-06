@@ -1,6 +1,6 @@
 @echo off
 setlocal
-
+@REM git subtree push --prefix=src/libs/damap damap-lib main
 set REMOTE=damap-lib
 set BRANCH=main
 set PREFIX=src/libs/damap

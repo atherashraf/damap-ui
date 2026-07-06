@@ -1,70 +1,117 @@
-/**
- * DASnackbar
- * ----------
- *
- * A reusable, programmatically-controlled Snackbar + Alert component based on MUI.
- *
- * Features:
- * - Show success, error, info, warning messages
- * - Set message, severity (color), and duration dynamically
- * - Controlled via exposed `show` method through `ref`
- *
- * Usage Example:
- *
- * import DASnackbar, { DASnackbarHandle } from "@damap/components/base/DASnackbar";
- *
- * const snackbarRef = useRef<DASnackbarHandle>(null);
- *
- * // Render
- * <DASnackbar ref={snackbarRef} />
- *
- * // To show a message
- * snackbarRef.current?.show("Successfully saved!", "success");
- *
- * Parameters for `show`:
- * - message: string
- * - severity?: "success" | "info" | "warning" | "error" (default: "info")
- * - duration?: number in milliseconds (default: 3000 ms)
- */
+import {
+    forwardRef,
+    ReactNode,
+    SyntheticEvent,
+    useImperativeHandle,
+    useState,
+} from "react";
+import {
+    Snackbar,
+    Alert,
+    AlertColor,
+    SnackbarCloseReason,
+} from "@mui/material";
 
-import { forwardRef, useImperativeHandle, useState } from "react";
-import { Snackbar, Alert, AlertColor } from "@mui/material";
+export type DASnackbarOptions = {
+    message: ReactNode;
+    severity?: AlertColor;
+    duration?: number;
+    icon?: ReactNode;
+};
 
-// Interface for exposing methods to parent
 export interface DASnackbarHandle {
-    show: (message: string, severity?: AlertColor, duration?: number) => void;
+    show: (
+        messageOrOptions: string | ReactNode | DASnackbarOptions,
+        severity?: AlertColor,
+        duration?: number
+    ) => void;
+    close: () => void;
 }
 
-// Main Component
 const DASnackbar = forwardRef<DASnackbarHandle>((_, ref) => {
     const [open, setOpen] = useState(false);
-    const [message, setMessage] = useState("");
+    const [message, setMessage] = useState<ReactNode>("");
     const [severity, setSeverity] = useState<AlertColor>("info");
-    const [duration, setDuration] = useState(3000);
+    const [duration, setDuration] = useState(4000);
+    const [icon, setIcon] = useState<ReactNode>(undefined);
+    const [snackbarKey, setSnackbarKey] = useState(0);
 
     useImperativeHandle(ref, () => ({
-        show(msg: string, sev: AlertColor = "info", dur = 3000) {
-            setMessage(msg);
-            setSeverity(sev);
-            setDuration(dur);
-            setOpen(true);
+        show(messageOrOptions, severityArg = "info", durationArg = 4000) {
+            let options: DASnackbarOptions;
+
+            if (
+                typeof messageOrOptions === "object" &&
+                messageOrOptions !== null &&
+                "message" in messageOrOptions
+            ) {
+                options = {
+                    message: messageOrOptions.message,
+                    severity: messageOrOptions.severity ?? "info",
+                    duration: messageOrOptions.duration ?? 4000,
+                    icon: messageOrOptions.icon,
+                };
+            } else {
+                options = {
+                    message: messageOrOptions,
+                    severity: severityArg,
+                    duration: durationArg,
+                    icon: undefined,
+                };
+            }
+
+            setOpen(false);
+
+            setTimeout(() => {
+                setMessage(options.message);
+                setSeverity(options.severity ?? "info");
+                setDuration(options.duration ?? 4000);
+                setIcon(options.icon);
+                setSnackbarKey((prev) => prev + 1);
+                setOpen(true);
+            }, 50);
+        },
+
+        close() {
+            setOpen(false);
         },
     }));
 
-    const handleClose = () => setOpen(false);
+    const handleClose = (
+        _: Event | SyntheticEvent,
+        reason?: SnackbarCloseReason
+    ) => {
+        if (reason === "clickaway") return;
+        setOpen(false);
+    };
 
     return (
         <Snackbar
+            key={snackbarKey}
             open={open}
             autoHideDuration={duration}
             onClose={handleClose}
             anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         >
-            <Alert onClose={handleClose} severity={severity} variant="filled">
+            <Alert
+                onClose={handleClose}
+                severity={severity}
+                variant="filled"
+                icon={icon ?? undefined}
+                sx={{
+                    width: "100%",
+                    minWidth: 320,
+                    maxWidth: 520,
+                    alignItems: "flex-start",
+                    whiteSpace: "pre-line",
+                }}
+            >
                 {message}
             </Alert>
         </Snackbar>
     );
 });
+
+DASnackbar.displayName = "DASnackbar";
 
 export default DASnackbar;

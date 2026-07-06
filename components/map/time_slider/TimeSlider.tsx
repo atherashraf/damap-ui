@@ -10,16 +10,19 @@ import {
     Grid
 } from "@mui/material";
 import {
-    forwardRef, useCallback, useEffect,
-    useImperativeHandle, useRef,
+    forwardRef,
+    useCallback,
+    useEffect,
+    useImperativeHandle,
+    useRef,
     useState
 } from "react";
-import {DatePicker} from "@mui/x-date-pickers/DatePicker";
-import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
-import {AdapterDateFns} from "@mui/x-date-pickers/AdapterDateFns";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+
 import MapVM from "@damap/components/map/models/MapVM";
 import AbstractDALayer from "@damap/components/map/layers/da_layers/AbstractDALayer";
-
 
 export interface IDateRange {
     minDate: Date | string;
@@ -35,12 +38,12 @@ export interface TimeSliderHandle {
     setDateRange: (range: IDateRange) => void;
     getSelectedDate?: () => Date | null;
     getSelectedLayer?: () => AbstractDALayer | null;
-    hasControl: boolean
+    hasControl: boolean;
 }
 
 const TimeSlider = forwardRef<TimeSliderHandle, ITimeSliderProps>((props, ref) => {
-    const {mapVM} = props;
-    const sliderRef = useRef<HTMLSpanElement | null>(null); // MUI Slider renders as a <span>
+    const { mapVM } = props;
+    const sliderRef = useRef<HTMLSpanElement | null>(null);
 
     const [selectedLayerUUID, setSelectedLayerUUID] = useState<string>("");
     const [currentDayOffset, setCurrentDayOffset] = useState<number>(0);
@@ -52,40 +55,23 @@ const TimeSlider = forwardRef<TimeSliderHandle, ITimeSliderProps>((props, ref) =
     const [minDate, setMinDate] = useState<Date | null>(yesterday);
     const [maxDate, setMaxDate] = useState<Date | null>(today);
 
-
-    const temporalLayerOptions = Object.keys(mapVM.temporalLayers).map((uuid) => ({
-        uuid,
-        title: mapVM.temporalLayers[uuid].getLayerTitle(),
-    }));
+    const temporalLayerOptions = mapVM
+        .getLayersByKind("da")
+        .filter((record) => record.isTemporal)
+        .map((record) => ({
+            uuid: record.id,
+            title: record.title,
+        }));
 
     function toValidDate(input: Date | string): Date | null {
         const date = input instanceof Date ? input : new Date(input);
         return isNaN(date.getTime()) ? null : date;
     }
 
-    useImperativeHandle(ref, () => ({
-        hasControl: false,
-        setDateRange: ({minDate, maxDate}: IDateRange) => {
-            const parsedMin = toValidDate(minDate);
-            const parsedMax = toValidDate(maxDate);
-
-            if (!parsedMin || !parsedMax) {
-                console.warn("Invalid date range passed to setDateRange", {minDate, maxDate});
-                return;
-            }
-
-            setMinDate(parsedMin);
-            setMaxDate(parsedMax);
-            setCurrentDayOffset(getDayOffset(parsedMax, parsedMin));
-        },
-        getSelectedDate: (): Date | null => {
-            return getDateFromOffset(currentDayOffset);
-        },
-        getSelectedLayer: (): AbstractDALayer | null => {
-            if (!selectedLayerUUID) return null;
-            return mapVM.temporalLayers[selectedLayerUUID];
-        },
-    }));
+    const getSelectedDALayer = (uuid: string): AbstractDALayer | null => {
+        if (!uuid) return null;
+        return mapVM.getDALayer(uuid) || null;
+    };
 
     const getDayOffset = (d1: Date, d0: Date) => {
         return Math.round((d1.getTime() - d0.getTime()) / (1000 * 60 * 60 * 24));
@@ -97,6 +83,29 @@ const TimeSlider = forwardRef<TimeSliderHandle, ITimeSliderProps>((props, ref) =
         d.setDate(d.getDate() + offset);
         return d;
     };
+
+    useImperativeHandle(ref, () => ({
+        hasControl: false,
+        setDateRange: ({ minDate, maxDate }: IDateRange) => {
+            const parsedMin = toValidDate(minDate);
+            const parsedMax = toValidDate(maxDate);
+
+            if (!parsedMin || !parsedMax) {
+                console.warn("Invalid date range passed to setDateRange", { minDate, maxDate });
+                return;
+            }
+
+            setMinDate(parsedMin);
+            setMaxDate(parsedMax);
+            setCurrentDayOffset(getDayOffset(parsedMax, parsedMin));
+        },
+        getSelectedDate: (): Date | null => {
+            return getDateFromOffset(currentDayOffset);
+        },
+        getSelectedLayer: (): AbstractDALayer | null => {
+            return getSelectedDALayer(selectedLayerUUID);
+        },
+    }));
 
     const handleSliderChange = (_: Event, value: number | number[]) => {
         const offset = Array.isArray(value) ? value[0] : value;
@@ -112,22 +121,25 @@ const TimeSlider = forwardRef<TimeSliderHandle, ITimeSliderProps>((props, ref) =
     };
 
     const getDateRange = (uuid: string) => {
-        const layerInfo = mapVM.temporalLayers[uuid].layerInfo;
-        const url = layerInfo.dateRangeURL;
-        if (url)
-            mapVM.getApi().get(url).then((payload: IDateRange) => {
-                const defaultMin = toValidDate(payload.minDate);
-                const defaultMax = toValidDate(payload.maxDate);
+        const daLayer = getSelectedDALayer(uuid);
+        const layerInfo = daLayer?.layerInfo;
+        const url = layerInfo?.dateRangeURL;
 
-                if (!defaultMin || !defaultMax) {
-                    console.warn("Invalid dates in API response", payload);
-                    return;
-                }
+        if (!url) return;
 
-                setMinDate(defaultMin);
-                setMaxDate(defaultMax);
-                setCurrentDayOffset(getDayOffset(defaultMax, defaultMin));
-            });
+        mapVM.getApi().get(url).then((payload: IDateRange) => {
+            const defaultMin = toValidDate(payload.minDate);
+            const defaultMax = toValidDate(payload.maxDate);
+
+            if (!defaultMin || !defaultMax) {
+                console.warn("Invalid dates in API response", payload);
+                return;
+            }
+
+            setMinDate(defaultMin);
+            setMaxDate(defaultMax);
+            setCurrentDayOffset(getDayOffset(defaultMax, defaultMin));
+        });
     };
 
     useEffect(() => {
@@ -136,13 +148,13 @@ const TimeSlider = forwardRef<TimeSliderHandle, ITimeSliderProps>((props, ref) =
             setSelectedLayerUUID(firstUUID);
             getDateRange(firstUUID);
         }
-    }, [temporalLayerOptions, selectedLayerUUID]);
+    }, [selectedLayerUUID, temporalLayerOptions]);
 
     function useDebouncedCallback<T extends (...args: any[]) => void>(
         callback: T,
         delay: number
     ): T {
-        const timer = useRef<NodeJS.Timeout | null>(null);
+        const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
         return useCallback((...args: any[]) => {
             if (timer.current) {
@@ -159,8 +171,8 @@ const TimeSlider = forwardRef<TimeSliderHandle, ITimeSliderProps>((props, ref) =
     }, 300);
 
     const debouncedUpdateLayer = useDebouncedCallback((date: Date) => {
-        const daLayer = mapVM.temporalLayers[selectedLayerUUID];
-        daLayer.updateTemporalData(date);
+        const daLayer = getSelectedDALayer(selectedLayerUUID);
+        daLayer?.updateTemporalData(date);
     }, 300);
 
     const onDateChange = (date: Date) => {
@@ -194,22 +206,18 @@ const TimeSlider = forwardRef<TimeSliderHandle, ITimeSliderProps>((props, ref) =
             }
         };
 
-        // Attach global listener
         window.addEventListener("keydown", handleKeyDown);
-
-        // Cleanup on unmount
         return () => {
             window.removeEventListener("keydown", handleKeyDown);
         };
-    }, [minDate, maxDate]); // make sure to track these as dependencies
-
+    }, [minDate, maxDate]);
 
     return (
         <Box
             sx={{
                 mx: 1,
                 p: 1,
-                mb:1,
+                mb: 1,
                 backgroundColor: "rgba(255, 255, 255, 0.1)",
                 borderRadius: 1,
                 backdropFilter: "blur(4px)",
@@ -218,8 +226,7 @@ const TimeSlider = forwardRef<TimeSliderHandle, ITimeSliderProps>((props, ref) =
             }}
         >
             <Grid container spacing={2} alignItems="center" justifyContent="stretch">
-                {/* Layer Selector */}
-                <Grid size={{xs: 12, sm: 4}}>
+                <Grid size={{ xs: 12, sm: 4 }}>
                     <FormControl size="small" fullWidth>
                         <InputLabel>Temporal Layer</InputLabel>
                         <Select
@@ -227,7 +234,7 @@ const TimeSlider = forwardRef<TimeSliderHandle, ITimeSliderProps>((props, ref) =
                             label="Temporal Layer"
                             onChange={handleLayerChange}
                         >
-                            {temporalLayerOptions.map(({uuid, title}) => (
+                            {temporalLayerOptions.map(({ uuid, title }) => (
                                 <MenuItem key={uuid} value={uuid}>
                                     {title}
                                 </MenuItem>
@@ -236,12 +243,10 @@ const TimeSlider = forwardRef<TimeSliderHandle, ITimeSliderProps>((props, ref) =
                     </FormControl>
                 </Grid>
 
-                {/* Date Picker + Slider */}
                 {minDate && maxDate && (
-                    <Grid container spacing={2} size={{xs: 12, sm: 8}}>
+                    <Grid container spacing={2} size={{ xs: 12, sm: 8 }}>
                         <LocalizationProvider dateAdapter={AdapterDateFns}>
-                            {/* Date Picker */}
-                            <Grid size={{xs: 12, md: 5}}>
+                            <Grid size={{ xs: 12, md: 5 }}>
                                 <DatePicker
                                     label="Select Date"
                                     value={getDateFromOffset(currentDayOffset)}
@@ -262,8 +267,7 @@ const TimeSlider = forwardRef<TimeSliderHandle, ITimeSliderProps>((props, ref) =
                                 />
                             </Grid>
 
-                            {/* Slider */}
-                            <Grid size={{xs: 12, md: 7}}>
+                            <Grid size={{ xs: 12, md: 7 }}>
                                 <Box
                                     sx={{
                                         position: "relative",
@@ -272,7 +276,7 @@ const TimeSlider = forwardRef<TimeSliderHandle, ITimeSliderProps>((props, ref) =
                                         py: 1,
                                         px: 2,
                                         backgroundColor: "rgba(255, 255, 255, 0.4)",
-                                        width: "90%", // ✅ ensure full width
+                                        width: "90%",
                                     }}
                                 >
                                     <Typography
@@ -298,7 +302,6 @@ const TimeSlider = forwardRef<TimeSliderHandle, ITimeSliderProps>((props, ref) =
                                             width: "100%",
                                         }}
                                     >
-                                        {/* Minus Button */}
                                         <Box
                                             sx={{
                                                 border: "1px solid rgba(0,0,0,0.2)",
@@ -321,7 +324,6 @@ const TimeSlider = forwardRef<TimeSliderHandle, ITimeSliderProps>((props, ref) =
                                             <Typography variant="body2">➖</Typography>
                                         </Box>
 
-                                        {/* Slider */}
                                         <Slider
                                             value={currentDayOffset}
                                             ref={sliderRef}
@@ -330,10 +332,9 @@ const TimeSlider = forwardRef<TimeSliderHandle, ITimeSliderProps>((props, ref) =
                                             step={1}
                                             onChange={handleSliderChange}
                                             size="small"
-                                            sx={{flexGrow: 1}}
+                                            sx={{ flexGrow: 1 }}
                                         />
 
-                                        {/* Plus Button */}
                                         <Box
                                             sx={{
                                                 border: "1px solid rgba(0,0,0,0.2)",
@@ -346,7 +347,7 @@ const TimeSlider = forwardRef<TimeSliderHandle, ITimeSliderProps>((props, ref) =
                                             }}
                                             onClick={() => {
                                                 setCurrentDayOffset((prev) => {
-                                                    const max = getDayOffset(maxDate!, minDate!);
+                                                    const max = getDayOffset(maxDate, minDate);
                                                     const next = Math.min(prev + 1, max);
                                                     const nextDate = getDateFromOffset(next);
                                                     if (nextDate) onDateChange(nextDate);
@@ -357,16 +358,11 @@ const TimeSlider = forwardRef<TimeSliderHandle, ITimeSliderProps>((props, ref) =
                                             <Typography variant="body2">➕</Typography>
                                         </Box>
                                     </Box>
-
-
                                 </Box>
                             </Grid>
-
                         </LocalizationProvider>
                     </Grid>
                 )}
-
-
             </Grid>
         </Box>
     );

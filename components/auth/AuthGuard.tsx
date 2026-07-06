@@ -34,7 +34,6 @@ export const AuthGuard = ({ children }: { children: JSX.Element }) => {
     const isAuthenticated = token && token !== "null" && token !== "undefined";
 
     if (!isAuthenticated) {
-        console.log("Redirecting to login from:", location.pathname);
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 

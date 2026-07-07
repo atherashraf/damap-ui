@@ -1,7 +1,8 @@
 import { memo, useState } from "react";
 import { Box } from "@mui/material";
 import PhotoOutlinedIcon from "@mui/icons-material/PhotoOutlined";
-import { preloadImageUrl } from "@/utils/media";
+import {preloadImageUrl} from "@/libs/damap";
+
 
 type Props = {
     label: string;

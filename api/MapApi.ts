@@ -41,6 +41,8 @@ export const MapAPIs = Object.freeze({
     DCH_LAYER_ATTRIBUTES: "api/dch/layer_attributes/{uuid}/",
     DCH_LAYER_SELECT: "api/dch/spatial_select/{uuid}/",
     DCH_LAYER_PKCOLS: "api/dch/layer_pk_cols/{uuid}/",
+    PDMA_DCH_UPLOAD_RASTER: "",
+    PDMA_DCH_RASTER_TMS: "",
 
     DCH_GEE_LAYER: "api/gee/gee_layer/{layer_type}/",
     DCH_GEE_LAYER_LEGEND: "api/gee/gee_layer_legend/{layer_type}/",

@@ -8,6 +8,21 @@ export { initDamap, getDamapConfig } from './config';
 export type { DamapOptions } from './config';
 
 // -------------------------
+// ✅ Auth
+// -------------------------
+export { useAuth } from './hooks/useAuth';
+
+export { AuthGuard } from './components/auth/AuthGuard';
+export { default as LoginForm } from './components/auth/LoginForm';
+export { default as Logout } from './components/auth/Logout';
+export { default as AuthServices } from './api/authServices';
+
+export type {
+    DAMapUserBase,
+} from './types/authTypes';
+
+
+// -------------------------
 // ✅ Admin Pages
 // -------------------------
 export { default as MapInfoAdmin } from './pages/admin/MapInfoAdmin';
@@ -44,7 +59,6 @@ export type {PayloadType, MapMessageAction, SeverityType, MapMessageChipHandle} 
 // -------------------------
 export { useMapVM, getMapVM } from './hooks/MapVMContext';
 export { useMapApi } from './hooks/useMapApi';
-export { useAuth } from './hooks/useAuth';
 
 
 // -------------------------
@@ -52,7 +66,6 @@ export { useAuth } from './hooks/useAuth';
 // -------------------------
 export { default as MapApi } from './api/MapApi';
 export { MapAPIs } from './api/MapApi';
-export { default as AuthServices } from './api/authServices';
 export {
     initMapApi,
     getMapApi,
@@ -161,14 +174,23 @@ export type { DAMapLoadingHandle } from './components/map/widgets/DAMapLoading';
 export type { IdentifyResultHandle } from './components/map/widgets/IdentifyResult';
 export { default as ColorUtils } from './utils/colorUtils';
 export {default as MapUtils} from './utils/mapUtils';
+export {
+    getMediaUrl,
+    getImageThumbnailUrl,
+    getImageCellUrl,
+    getImageCellThumbnailUrl,
+    preloadImageUrl,
+    isImageUrlPreloaded,
+    setThumbnailUrlBuilder,
+} from './utils/mediaUtils';
+
+export type {
+    ThumbnailUrlBuilder,
+} from './utils/mediaUtils';
 
 
 
 
-// -------------------------
-// ✅ Auth Guards
-// -------------------------
-export { AuthGuard } from './components/auth/AuthGuard';
 
 
 // -------------------------

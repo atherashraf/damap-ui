@@ -15,22 +15,30 @@ const LOISelector = () => {
 
             const newLayerIds = [...daLayerIds, ...overlayLayerIds];
 
-            if (!newLayerIds.includes(selectedLayerId)) {
-                setSelectedLayerId("");
-            }
-
             setLayerIds(newLayerIds);
+
+            // Guard selection boundary cleanly without re-triggering the parent effect
+            setSelectedLayerId((prevSelected) => {
+                if (prevSelected && !newLayerIds.includes(prevSelected)) {
+                    return "";
+                }
+                return prevSelected;
+            });
         };
 
+        // 1. Initial execution pass on component mount
         updateLayerIds();
 
+        // 2. Listen to the unified event that LayerManager fires
         const listener = () => updateLayerIds();
-        window.addEventListener("DALayerAdded", listener);
+        window.addEventListener("LayerTreeChanged", listener);
+        window.addEventListener("DALayerAdded", listener); // Keep fallback compatibility
 
         return () => {
+            window.removeEventListener("LayerTreeChanged", listener);
             window.removeEventListener("DALayerAdded", listener);
         };
-    }, [mapVM, selectedLayerId]);
+    }, [mapVM]); // <-- REMOVED selectedLayerId to prevent state loop traps
 
     const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const selectedValue = e.target.value;
@@ -46,6 +54,8 @@ const LOISelector = () => {
                 color: "black",
                 border: "2px solid #000",
                 width: "200px",
+                padding: "4px",
+                borderRadius: "4px"
             }}
             onChange={handleChange}
             value={selectedLayerId}
@@ -55,13 +65,13 @@ const LOISelector = () => {
             </option>
 
             {layerIds.map((layerId) => {
-                const layer =
-                    mapVM.getDALayer(layerId) ||
-                    mapVM.getOverlayLayer(layerId);
+                // Safely extract names using your existing view-model layout properties
+                const record = mapVM.getLayerManager().getLayerRecord(layerId);
+                const title = record?.title || layerId;
 
                 return (
                     <option key={layerId} value={layerId}>
-                        {layer?.getLayerTitle?.() || layerId}
+                        {title}
                     </option>
                 );
             })}

@@ -8,7 +8,8 @@ import {
     Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { isImageUrlPreloaded, preloadImageUrl } from "@/utils/media";
+import {isImageUrlPreloaded, preloadImageUrl} from "@/libs/damap";
+
 
 export type AttributeTableImagePreviewState = {
     url: string;

@@ -38,7 +38,8 @@ import {
     type AttributeTableImagePreviewState,
 } from "@damap/components/map/table/AttributeTableImagePreview";
 import { formatAttributeCellDisplay } from "@damap/utils/attributeTableDisplay";
-import { getImageCellThumbnailUrl, getImageCellUrl } from "@/utils/media";
+import {getImageCellThumbnailUrl, getImageCellUrl} from "@/libs/damap";
+// import { getImageCellThumbnailUrl, getImageCellUrl } from "@/utils/media";
 
 const ROW_HEIGHT = 38;
 const OVERSCAN_COUNT = 10;

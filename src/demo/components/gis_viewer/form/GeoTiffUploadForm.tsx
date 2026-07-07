@@ -94,6 +94,7 @@ export default function GeoTiffUploadForm() {
         const uuid = "b4db702a8f014c9ea06ec2a05828fa65"
         const layerInfo = {
             uuid: uuid,
+            name: uuid,
             title: "flood rp",
             dataModel: "R",
             dataURL: MapApi.getURL(MapAPIs.PDMA_DCH_RASTER_TMS, {uuid: uuid})

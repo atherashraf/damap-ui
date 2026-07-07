@@ -8,7 +8,7 @@ import {
     Paper,
     Slider,
     Tooltip,
-    Typography,
+    Typography, useTheme,
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
@@ -20,7 +20,7 @@ import { alpha } from "@mui/material/styles";
 import { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 import { unByKey } from "ol/Observable";
 import { LayerItem } from "./types";
-import theme from "@/theme";
+
 
 interface LayerSwitcherLayerCardProps {
     item: LayerItem;
@@ -54,6 +54,8 @@ const LayerSwitcherLayerCard = ({
 
     const [sldPreviewSrc, setSldPreviewSrc] = React.useState<string | null>(null);
     const [legendExpanded, setLegendExpanded] = React.useState(true);
+
+    const theme = useTheme();
 
     const getLegend = React.useCallback((): LayerLegend | undefined => {
         return item.layer?.get?.("legend") || (item.layer as any)?.legend;

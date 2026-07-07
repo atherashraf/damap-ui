@@ -15,7 +15,7 @@ import { useMapVM } from "@damap/hooks/MapVMContext";
 import type { PrintLayoutSettings } from "@damap/components/map/map_layout/types";
 import PrintMapPreview from "@damap/components/map/map_layout/PrintMapPreview";
 import PrintLegendPanel from "@damap/components/map/map_layout/PrintLegendPanel";
-import northArrowImg from "@/assets/images/NorthArrow.png";
+import northArrowImg from "@damap/assets/img/NorthArrow.png";
 
 interface PrintLayoutDialogProps {
     open: boolean;

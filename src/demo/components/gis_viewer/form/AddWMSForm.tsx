@@ -54,9 +54,10 @@ const AddWMSForm = forwardRef<AddWMSFormHandle, any>((_, ref) => {
             selectedLayerNames.forEach(layerName => {
                 const layerObj = layers.find(l => l.name === layerName);
                 const title = layerObj?.title ?? layerName;
-
+                const uuid = MapVM.generateUUID();
                 mapVM.createWMSLayer({
-                    uuid: MapVM.generateUUID(),
+                    uuid: uuid,
+                    name: uuid,
                     title,
                     url,
                     layers: layerName,

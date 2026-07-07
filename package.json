@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "@date-io/date-fns": "^3.2.1",
+    "@hello-pangea/dnd": "^18.0.1",
     "auto-bind": "^5.0.1",
     "copyfiles": "^2.4.1",
     "date-fns": "^4.1.0",
@@ -44,6 +45,7 @@
     "geostyler-openlayers-parser": "^5.1.2",
     "geostyler-sld-parser": "^8.4.1",
     "geostyler-style": "^10.4.0",
+    "html-to-image": "^1.11.13",
     "pako": "^2.1.0",
     "pbf": "^4.0.1",
     "plotly.js-dist-min": "^3.1.2",

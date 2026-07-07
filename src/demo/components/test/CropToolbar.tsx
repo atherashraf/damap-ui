@@ -7,7 +7,7 @@ import {type RefObject, useEffect, useState} from "react";
 import {BottomDrawerHandle} from "@damap/components/map/drawers/BottomDrawer";
 import MapVM from "@damap/components/map/models/MapVM";
 import {useMapVM} from "@damap/hooks/MapVMContext";
-import AttributeTable from "@damap/components/map/table/AttributeTable";
+
 
 
 interface ISurfaceName {
@@ -66,9 +66,16 @@ const CropToolbar = () => {
                     //     cropDAGridRef?.current?.pinColumns(["id", "canal"])
                     // }, 2000)
 
-                    const attributeTable = <AttributeTable columns={payload.columns} data={payload.rows}
-                                                          pkCols={payload.pkCols} />
-                    bottomDrawerRef.current.setContent(attributeTable)
+                    // const attributeTable = <AttributeTable columns={payload.columns} data={payload.rows}
+                    //                                       pkCols={payload.pkCols} />
+                    // bottomDrawerRef.current.setContent(attributeTable)
+                    mapVM.openCustomAttributeTable({
+                            columns:payload.columns,
+                            rows: payload.rows,
+                            pkCols: payload.pkCols,
+                            tableHeight: tableHeight
+                        }
+                    );
                 }
             });
         }

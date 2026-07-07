@@ -14,12 +14,30 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import DASnackbar, { DASnackbarHandle } from "@damap/components/base/DASnackbar";
-import AuthServices from "@damap/api/authServices";
-import type { User } from "@/components/admin/types";
-import { getPostLoginPath } from "@/auth/postLoginPath";
 
-const LoginForm = () => {
+import DASnackbar, {
+    DASnackbarHandle,
+} from "@damap/components/base/DASnackbar";
+import AuthServices from "@damap/api/authServices";
+import type { DAMapUserBase } from "@damap/types/authTypes";
+
+export type LoginFormProps<TUser extends DAMapUserBase = DAMapUserBase> = {
+    getPostLoginPath?: (user: TUser) => string;
+    defaultPostLoginPath?: string;
+    onLoginSuccess?: (user: TUser) => void;
+    forgotPasswordPath?: string;
+    title?: string;
+    subtitle?: string;
+};
+
+const LoginForm = <TUser extends DAMapUserBase = DAMapUserBase>({
+                                                                    getPostLoginPath,
+                                                                    defaultPostLoginPath = "/",
+                                                                    onLoginSuccess,
+                                                                    forgotPasswordPath = "#",
+                                                                    title = "Welcome!",
+                                                                    subtitle = "Please enter your details",
+                                                                }: LoginFormProps<TUser>) => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
@@ -34,24 +52,29 @@ const LoginForm = () => {
         setLoading(true);
 
         try {
-            const result = await AuthServices.performLogin(username, password);
+            const user = await AuthServices.performLogin<TUser>(
+                username,
+                password
+            );
 
-            if (result) {
-                const user = AuthServices.getUser() as User | null;
-
-                if (!user) {
-                    snackbarRef.current?.show("Login succeeded but user data missing", "error");
-                    return;
-                }
-
-                const target = getPostLoginPath(user);
-
-                snackbarRef.current?.show("Login successful", "success");
-                window.dispatchEvent(new Event("auth-login"));
-                navigate(target, { replace: true });
-            } else {
-                snackbarRef.current?.show("Invalid username or password", "error");
+            if (!user) {
+                snackbarRef.current?.show(
+                    "Invalid username or password",
+                    "error"
+                );
+                return;
             }
+
+            snackbarRef.current?.show("Login successful", "success");
+            window.dispatchEvent(new Event("auth-login"));
+
+            onLoginSuccess?.(user);
+
+            const target = getPostLoginPath
+                ? getPostLoginPath(user)
+                : defaultPostLoginPath;
+
+            navigate(target, { replace: true });
         } finally {
             setLoading(false);
         }
@@ -83,7 +106,7 @@ const LoginForm = () => {
                     lineHeight: 1.2,
                 }}
             >
-                Welcome!
+                {title}
             </Typography>
 
             <Typography
@@ -95,7 +118,7 @@ const LoginForm = () => {
                     mb: 3,
                 }}
             >
-                Please enter your details
+                {subtitle}
             </Typography>
 
             <Box component="form" onSubmit={handleSubmit}>
@@ -189,11 +212,17 @@ const LoginForm = () => {
                         endAdornment: (
                             <InputAdornment position="end">
                                 <IconButton
-                                    onClick={() => setShowPassword((prev) => !prev)}
+                                    onClick={() =>
+                                        setShowPassword((prev) => !prev)
+                                    }
                                     edge="end"
                                     sx={{ color: "#5f6f82" }}
                                 >
-                                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                                    {showPassword ? (
+                                        <VisibilityOff />
+                                    ) : (
+                                        <Visibility />
+                                    )}
                                 </IconButton>
                             </InputAdornment>
                         ),
@@ -220,7 +249,9 @@ const LoginForm = () => {
                         control={
                             <Checkbox
                                 checked={rememberMe}
-                                onChange={(e) => setRememberMe(e.target.checked)}
+                                onChange={(e) =>
+                                    setRememberMe(e.target.checked)
+                                }
                                 sx={{
                                     color: "#355a92",
                                     p: 0.5,
@@ -245,7 +276,7 @@ const LoginForm = () => {
                     />
 
                     <Link
-                        href="#"
+                        href={forgotPasswordPath}
                         underline="hover"
                         sx={{
                             fontFamily: "Georgia, serif",
@@ -268,19 +299,25 @@ const LoginForm = () => {
                         mt: 0.5,
                         py: 1.25,
                         borderRadius: 2.5,
-                        background: "linear-gradient(180deg, #6f8fc0 0%, #5f81b5 100%)",
+                        background:
+                            "linear-gradient(180deg, #6f8fc0 0%, #5f81b5 100%)",
                         textTransform: "none",
                         fontFamily: "Georgia, serif",
                         fontWeight: 700,
                         fontSize: "1.15rem",
                         boxShadow: "none",
                         "&:hover": {
-                            background: "linear-gradient(180deg, #6787b7 0%, #5377aa 100%)",
+                            background:
+                                "linear-gradient(180deg, #6787b7 0%, #5377aa 100%)",
                             boxShadow: "none",
                         },
                     }}
                 >
-                    {loading ? <CircularProgress size={24} color="inherit" /> : "Sign In"}
+                    {loading ? (
+                        <CircularProgress size={24} color="inherit" />
+                    ) : (
+                        "Sign In"
+                    )}
                 </Button>
             </Box>
 

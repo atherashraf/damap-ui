@@ -38,6 +38,7 @@ function GesServerToolbar() {
         if (!mapVM.isOverlayLayerExist(wmsUUID)) {
             mapVM.createWMSLayer({
                 uuid: wmsUUID,
+                name:wmsUUID,
                 title: "District Boundary (WMS)",
                 url: "https://gis.wasalhr.pk:82/geoserver/cite/wms",
                 layers: "cite:district_boundary",
@@ -62,6 +63,7 @@ function GesServerToolbar() {
         if (!mapVM.isOverlayLayerExist(wfsUUID)) {
             mapVM.createWFSLayer({
                 uuid: wfsUUID,
+                name:wfsUUID,
                 title: "District Boundary (WFS)",
                 url: "https://gis.wasalhr.pk:82/geoserver/cite/ows",
                 typeName: "cite:district_boundary",

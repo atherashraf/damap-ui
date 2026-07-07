@@ -55,9 +55,10 @@ const AddWFSForm = forwardRef<AddWFSFormHandle, any>((_, ref) => {
                 for (const typeName of selectedTypeNames) {
                     const ft = featureTypes.find(f => f.name === typeName);
                     const title = ft?.title ?? typeName;
-
+                    const uuid = MapVM.generateUUID()
                     const wfsLayer = mapVM.createWFSLayer({
-                        uuid: MapVM.generateUUID(),
+                        uuid: uuid,
+                        name: uuid,
                         title: `${title} (WFS)`,
                         url: url,
                         typeName: typeName,

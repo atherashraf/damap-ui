@@ -2,7 +2,6 @@ import {Routes, Route} from "react-router-dom";
 import React, {Suspense} from "react";
 import { AuthGuard } from "@damap/components/auth/AuthGuard";
 import MapInfoAdmin from "@damap/pages/admin/MapInfoAdmin";
-import MapOverlayer from "@demo/pages/MapOverlayer";
 import CustomizeAttributeTable from "@demo/pages/CustomizeAttributeTable";
 import TestIDWLayer from "@demo/pages/TestIDWLayer";
 import GISViewer from "@demo/pages/GISViewer";
@@ -33,7 +32,7 @@ const MapRoutes = () => (
                 <Route path="designer/:layerId/" element={<AuthGuard><LayerDesigner /></AuthGuard>} />
                 <Route path="ViewMap/:mapId/" element={<DAMap />} />
                 <Route path="EditMap/:mapId/" element={<MapEditor />} />
-                <Route path={"MapOverlays"} element={<MapOverlayer />} />
+                {/*<Route path={"MapOverlays"} element={<MapOverlayer />} />*/}
                 <Route path={"CustomizeAttributeTable"} element={<CustomizeAttributeTable />} />
                 <Route path={"TestIDWLayer"} element={<TestIDWLayer />} />
 

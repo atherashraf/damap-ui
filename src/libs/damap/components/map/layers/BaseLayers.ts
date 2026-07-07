@@ -5,6 +5,7 @@ import { BingMaps } from "ol/source";
 import { Group } from "ol/layer";
 import { ILayerSources, ILayerSourcesInfo } from "@damap/types/typeDeclarations";
 import XYZ from "ol/source/XYZ";
+import BaseLayer from "ol/layer/Base";
 
 export const baseLayerSources = {
   none: { title: "Empty Map", source: "none" },
@@ -30,7 +31,7 @@ class BaseLayers {
   }
 
   addBaseLayers(title: string | null = null) {
-    const layers = [];
+    const layers: BaseLayer[] = [];
 
     // Ensure title is a string; default to "Google Hybrid" if null is passed
     const activeTitle: string = !title ? "Google Hybrid" : title;
